@@ -1,0 +1,2169 @@
+2026-03-01T02:56:42.771Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T02:56:42.775Z DATABASE_URL missing — creating default SQLite .env
+2026-03-01T02:56:42.797Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:11:42.170Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:11:42.172Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:11:50.183Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:11:50.184Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:11:58.321Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:11:58.323Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:12:07.325Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:12:07.327Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:12:16.825Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:12:16.828Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:12:25.239Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:12:25.241Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:12:33.848Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:12:33.849Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:12:42.537Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:12:42.539Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:12:51.807Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:12:51.809Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:13:00.971Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:13:00.973Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:13:11.831Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:13:11.832Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:13:17.905Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:13:17.906Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:13:25.938Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:13:25.945Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:13:37.839Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:13:37.843Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:13:45.928Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:13:45.929Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:13:53.373Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:13:53.375Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:13:59.427Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:13:59.430Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:14:07.982Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:14:07.984Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:14:17.134Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:14:17.138Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:14:27.181Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:14:27.187Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:14:37.654Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:14:37.657Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:14:45.220Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:14:45.222Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:14:50.885Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:14:50.888Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:15:01.019Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:15:01.023Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:15:10.127Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:15:10.131Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:15:20.488Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:15:20.491Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:15:29.634Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:15:29.641Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:15:38.749Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:15:38.753Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:15:47.283Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:15:47.287Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:15:55.533Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:15:55.542Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:16:03.912Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:16:03.915Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:16:13.715Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:16:13.719Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:16:22.811Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:16:22.817Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:16:31.241Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:16:31.246Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:16:40.067Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:16:40.070Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:16:49.604Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:16:49.609Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:16:58.366Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:16:58.368Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:17:06.362Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:17:06.365Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:17:14.985Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:17:14.993Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:17:24.309Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:17:24.314Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:17:32.849Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:17:32.855Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:17:41.847Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:17:41.856Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:17:51.224Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:17:51.232Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:17:59.226Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:17:59.232Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:18:08.603Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:18:08.609Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:18:18.077Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:18:18.082Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:18:27.368Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:18:27.375Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:18:37.440Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:18:37.445Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:18:46.346Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:18:46.355Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:18:55.150Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:18:55.155Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:19:03.544Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:19:03.549Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:19:11.740Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:19:11.750Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:19:20.737Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:19:20.741Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:19:29.984Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:19:29.990Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:19:38.917Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:19:38.921Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:19:47.396Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:19:47.401Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:19:56.348Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:19:56.353Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:20:05.378Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:20:05.381Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:20:14.211Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:20:14.216Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:20:22.736Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:20:22.740Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:20:31.728Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:20:31.761Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:20:40.560Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:20:40.564Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:20:48.765Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:20:48.771Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:20:57.023Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:20:57.031Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:21:07.101Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:21:07.105Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:21:17.011Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:21:17.016Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:21:26.863Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:21:26.868Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:21:35.626Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:21:35.632Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:21:44.185Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:21:44.189Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:21:52.548Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:21:52.552Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:22:00.844Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:22:00.852Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:22:09.250Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:22:09.257Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:22:17.631Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:22:17.636Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:22:26.326Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:22:26.335Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:22:36.241Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:22:36.243Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:22:44.390Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:22:44.395Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:22:52.929Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:22:52.934Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:23:01.400Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:23:01.405Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:23:10.024Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:23:10.029Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:23:19.212Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:23:19.216Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:23:27.090Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:23:27.095Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:23:36.398Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:23:36.404Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:23:46.277Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:23:46.284Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:23:55.049Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:23:55.056Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:24:03.683Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:24:03.690Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:24:13.747Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:24:13.751Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:24:23.990Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:24:23.995Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:24:31.710Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:24:31.713Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:24:37.511Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:24:37.517Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:24:43.174Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:24:43.176Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:24:48.729Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:24:48.734Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:30:52.777Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:30:52.782Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:31:04.292Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:31:04.295Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:31:13.517Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:31:13.526Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:31:22.553Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:31:22.562Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:31:31.356Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:31:31.361Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:31:40.006Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:31:40.012Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:31:49.959Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:31:49.963Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:31:57.468Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:31:57.479Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:32:07.249Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:32:07.254Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:32:15.544Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:32:15.548Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:32:24.573Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:32:24.578Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:32:32.632Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:32:32.635Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:32:40.887Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:32:40.890Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:32:50.863Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:32:50.868Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:32:59.158Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:32:59.163Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:33:09.015Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:33:09.018Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:33:18.952Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:33:18.964Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:33:29.222Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:33:29.229Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:33:37.481Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:33:37.485Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:33:45.719Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:33:45.724Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:33:54.510Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:33:54.517Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:34:02.891Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:34:02.896Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:34:11.094Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:34:11.098Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:34:19.502Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:34:19.533Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:34:29.740Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:34:29.751Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:34:37.958Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:34:37.963Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:34:47.005Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:34:47.011Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:34:55.941Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:34:55.945Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:35:04.937Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:35:04.946Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:35:14.820Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:35:14.826Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:35:23.897Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:35:23.902Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:35:32.775Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:35:32.798Z ED Prisma Self-Healing completed successfully
+2026-03-01T03:35:42.070Z ED Self-Healing Prisma started in AUTO mode
+2026-03-01T03:35:42.072Z ED Prisma Self-Healing completed successfully
+2026-03-01T07:56:51.395Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T07:56:51.426Z ED Prisma Self-Healing completed successfully
+2026-03-01T07:57:25.631Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T07:57:25.641Z ED Prisma Self-Healing completed successfully
+2026-03-01T08:07:01.384Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T08:07:01.386Z ED Prisma Self-Healing completed successfully
+2026-03-01T08:25:35.292Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T08:25:35.295Z ED Prisma Self-Healing completed successfully
+2026-03-01T08:35:26.640Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T08:35:26.645Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:05:08.396Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:05:08.403Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:05:15.132Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:05:15.136Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:05:24.261Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:05:24.267Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:05:31.894Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:05:31.895Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:05:39.991Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:05:39.994Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:05:47.981Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:05:47.988Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:05:56.113Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:05:56.115Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:06:03.584Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:06:03.587Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:06:12.246Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:06:12.248Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:06:21.556Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:06:21.559Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:06:30.727Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:06:30.731Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:06:38.709Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:06:38.711Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:06:46.961Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:06:46.963Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:06:54.485Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:06:54.487Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:07:01.815Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:07:01.817Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:07:09.236Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:07:09.237Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:07:16.717Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:07:16.718Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:07:25.272Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:07:25.274Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:07:30.872Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:07:30.874Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:07:37.896Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:07:37.899Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:07:44.968Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:07:44.974Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:07:53.352Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:07:53.353Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:08:01.411Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:08:01.417Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:08:10.394Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:08:10.396Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:08:17.724Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:08:17.726Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:08:25.420Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:08:25.422Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:08:33.040Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:08:33.042Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:08:41.410Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:08:41.416Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:08:49.317Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:08:49.321Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:08:57.120Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:08:57.122Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:09:06.221Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:09:06.224Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:09:13.227Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:09:13.232Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:09:21.933Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:09:21.935Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:09:29.241Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:09:29.244Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:09:37.968Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:09:37.975Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:09:47.027Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:09:47.033Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:09:55.951Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:09:55.961Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:10:04.624Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:10:04.635Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:10:12.975Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:10:12.983Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:10:21.056Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:10:21.064Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:10:30.357Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:10:30.364Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:10:38.957Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:10:38.965Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:10:47.629Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:10:47.635Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:10:56.121Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:10:56.126Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:11:04.893Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:11:04.897Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:11:10.757Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:11:10.762Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:11:16.932Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:11:16.940Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:11:25.047Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:11:25.053Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:11:32.199Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:11:32.203Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:11:39.904Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:11:39.910Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:11:47.526Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:11:47.531Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:11:55.686Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:11:55.693Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:12:03.537Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:12:03.542Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:12:11.915Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:12:11.922Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:12:20.703Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:12:20.712Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:12:29.609Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:12:29.621Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:12:37.372Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:12:37.376Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:12:45.879Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:12:45.888Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:12:53.674Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:12:53.681Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:13:00.915Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:13:00.923Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:13:08.258Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:13:08.267Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:13:15.819Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:13:15.823Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:13:22.876Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:13:22.882Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:13:30.721Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:13:30.728Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:13:39.067Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:13:39.074Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:13:48.033Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:13:48.040Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:13:57.073Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:13:57.077Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:14:05.666Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:14:05.674Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:14:11.096Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:14:11.102Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:14:17.070Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:14:17.076Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:14:26.178Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:14:26.184Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:14:34.822Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:14:34.828Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:14:43.482Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:14:43.489Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:14:52.112Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:14:52.119Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:15:01.252Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:15:01.263Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:15:10.605Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:15:10.611Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:15:19.266Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:15:19.274Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:15:27.714Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:15:27.720Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:15:33.563Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:15:33.573Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:15:38.996Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:15:39.002Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:15:44.651Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:15:44.657Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:15:53.463Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:15:53.470Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:16:01.498Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:16:01.505Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:16:09.078Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:16:09.087Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:16:17.273Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:16:17.279Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:16:24.863Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:16:24.870Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:16:33.137Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:16:33.143Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:16:41.332Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:16:41.337Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:16:50.172Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:16:50.179Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:16:57.729Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:16:57.736Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:17:05.664Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:17:05.671Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:17:13.962Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:17:13.969Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:17:21.142Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:17:21.151Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:17:28.613Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:17:28.620Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:17:36.445Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:17:36.456Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:17:44.487Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:17:44.494Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:17:52.095Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:17:52.104Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:18:00.058Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:18:00.065Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:18:08.413Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:18:08.419Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:18:16.160Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:18:16.165Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:18:25.554Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:18:25.562Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:18:33.572Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:18:33.580Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:18:41.153Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:18:41.164Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:18:49.865Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:18:49.874Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:18:58.181Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:18:58.191Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:19:05.556Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:19:05.566Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:19:13.240Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:19:13.250Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:19:20.564Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:19:20.571Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:19:28.458Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:19:28.464Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:19:36.844Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:19:36.852Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:19:44.853Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:19:44.859Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:19:52.038Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:19:52.044Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:19:59.665Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:19:59.675Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:20:07.600Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:20:07.607Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:20:15.147Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:20:15.154Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:20:22.474Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:20:22.481Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:20:29.782Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:20:29.791Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:20:37.213Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:20:37.221Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:20:45.666Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:20:45.673Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:20:53.100Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:20:53.106Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:21:00.692Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:21:00.697Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:21:10.058Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:21:10.071Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:21:18.197Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:21:18.204Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:21:26.669Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:21:26.679Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:21:34.871Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:21:34.877Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:21:42.660Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:21:42.668Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:21:51.709Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:21:51.716Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:22:00.958Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:22:00.965Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:22:08.631Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:22:08.635Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:22:14.623Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:22:14.627Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:22:20.319Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:22:20.326Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:22:26.054Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:22:26.059Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:22:32.129Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:22:32.133Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:22:38.178Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:22:38.184Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:22:44.213Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:22:44.219Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:22:50.212Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:22:50.217Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:22:55.708Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:22:55.716Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:23:03.636Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:23:03.645Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:23:11.605Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:23:11.614Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:23:20.529Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:23:20.536Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:23:28.084Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:23:28.091Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:23:35.515Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:23:35.522Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:23:43.169Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:23:43.180Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:23:50.812Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:23:50.818Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:23:58.530Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:23:58.538Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:24:06.698Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:24:06.704Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:24:15.360Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:24:15.369Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:24:23.926Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:24:23.934Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:24:31.607Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:24:31.617Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:24:38.901Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:24:38.909Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:24:46.909Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:24:46.916Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:24:54.894Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:24:54.901Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:25:01.428Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:25:01.435Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:25:10.166Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:25:10.175Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:25:17.826Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:25:17.835Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:25:25.481Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:25:25.490Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:25:33.611Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:25:33.622Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:25:41.263Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:25:41.272Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:25:54.191Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:25:54.199Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:26:13.099Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:26:13.104Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:26:31.963Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:26:31.973Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:26:43.769Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:26:43.777Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:28:16.474Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:28:16.496Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:28:23.391Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:28:23.393Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:28:31.329Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:28:31.335Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:28:40.187Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:28:40.191Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:28:48.351Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:28:48.354Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:28:55.819Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:28:55.821Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:29:03.591Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:29:03.594Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:29:13.639Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:29:13.644Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:29:20.929Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:29:20.933Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:29:26.988Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:29:26.990Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:29:32.710Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:29:32.713Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:29:40.821Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:29:40.825Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:29:48.760Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:29:48.761Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:29:54.314Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:29:54.316Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:30:02.498Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:30:02.502Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:30:11.132Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:30:11.135Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:30:19.799Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:30:19.805Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:30:28.704Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:30:28.711Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:30:36.484Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:30:36.487Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:30:44.736Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:30:44.739Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:30:52.196Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:30:52.198Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:30:59.566Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:30:59.569Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:31:06.653Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:31:06.657Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:31:13.974Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:31:13.977Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:31:21.700Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:31:21.705Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:31:29.566Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:31:29.569Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:31:38.251Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:31:38.260Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:31:47.358Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:31:47.369Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:31:56.265Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:31:56.275Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:32:03.381Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:32:03.395Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:32:11.897Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:32:11.907Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:32:19.850Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:32:19.858Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:32:27.401Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:32:27.412Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:32:35.512Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:32:35.527Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:32:43.526Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:32:43.535Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:32:52.164Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:32:52.175Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:33:00.575Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:33:00.582Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:33:09.639Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:33:09.643Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:33:18.488Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:33:18.496Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:33:26.717Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:33:26.728Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:33:36.031Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:33:36.040Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:33:45.228Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:33:45.240Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:33:53.548Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:33:53.558Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:34:02.049Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:34:02.062Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:34:11.143Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:34:11.153Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:34:19.151Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:34:19.160Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:34:27.759Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:34:27.767Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:34:33.926Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:34:33.935Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:34:39.898Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:34:39.909Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:34:46.395Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:34:46.401Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:34:51.951Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:34:51.957Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:34:58.402Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:34:58.416Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:35:07.693Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:35:07.702Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:35:17.314Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:35:17.331Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:35:25.956Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:35:25.967Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:35:32.621Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:35:32.633Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:35:39.150Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:35:39.159Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:35:48.912Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:35:48.922Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:35:57.183Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:35:57.194Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:36:05.990Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:36:06.000Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:36:14.618Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:36:14.630Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:36:23.481Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:36:23.492Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:36:32.357Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:36:32.360Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:36:39.198Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:36:39.203Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:36:50.384Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:36:50.392Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:36:58.881Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:36:58.884Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:37:06.552Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:37:06.555Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:37:13.926Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:37:13.930Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:37:21.472Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:37:21.475Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:37:28.572Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:37:28.576Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:37:36.246Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:37:36.250Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:37:45.054Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:37:45.057Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:37:53.044Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:37:53.046Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:38:00.583Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:38:00.587Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:38:08.092Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:38:08.095Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:38:17.044Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:38:17.051Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:38:26.940Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:38:26.945Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:38:33.136Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:38:33.142Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:38:38.939Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:38:38.946Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:38:47.539Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:38:47.547Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:38:55.875Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:38:55.882Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:39:03.866Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:39:03.875Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:39:12.794Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:39:12.802Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:39:21.955Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:39:21.966Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:39:31.483Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:39:31.496Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:39:39.021Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:39:39.031Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:39:47.095Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:39:47.107Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:39:56.081Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:39:56.095Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:40:05.511Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:40:05.526Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:40:13.854Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:40:13.865Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:40:21.823Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:40:21.834Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:40:31.218Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:40:31.229Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:40:38.725Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:40:38.737Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:40:47.605Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:40:47.615Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:40:56.311Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:40:56.326Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:41:04.194Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:41:04.200Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:41:13.459Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:41:13.472Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:41:21.721Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:41:21.727Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:41:28.203Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:41:28.212Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:41:34.832Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:41:34.838Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:41:41.461Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:41:41.471Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:41:47.851Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:41:47.862Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:41:58.122Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:41:58.136Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:46:40.433Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:46:40.503Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:46:56.919Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:46:56.935Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:47:08.444Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:47:08.466Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:47:17.998Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:47:18.021Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:47:31.240Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:47:31.256Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:47:47.913Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:47:47.932Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:48:07.013Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:48:07.018Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:48:19.132Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:48:19.139Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:48:30.082Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:48:30.105Z ED Prisma Self-Healing completed successfully
+2026-03-01T19:48:42.486Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T19:48:42.498Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:05:55.006Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:05:55.014Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:06:08.030Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:06:08.036Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:06:18.484Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:06:18.494Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:06:28.095Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:06:28.103Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:06:37.464Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:06:37.477Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:06:45.060Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:06:45.069Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:06:53.477Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:06:53.486Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:06:59.495Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:06:59.500Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:07:05.536Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:07:05.545Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:07:13.762Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:07:13.773Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:07:22.008Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:07:22.010Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:07:28.736Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:07:28.739Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:07:38.620Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:07:38.630Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:07:47.348Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:07:47.359Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:07:55.952Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:07:55.961Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:08:03.696Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:08:03.705Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:08:11.050Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:08:11.059Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:08:18.454Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:08:18.462Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:08:27.074Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:08:27.084Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:08:34.819Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:08:34.828Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:08:43.096Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:08:43.105Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:08:51.150Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:08:51.166Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:08:59.412Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:08:59.424Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:09:08.475Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:09:08.484Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:09:17.156Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:09:17.165Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:09:26.161Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:09:26.173Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:09:35.038Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:09:35.048Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:09:43.823Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:09:43.826Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:09:51.567Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:09:51.569Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:09:59.880Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:09:59.883Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:10:07.861Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:10:07.865Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:10:15.743Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:10:15.745Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:10:23.129Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:10:23.132Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:10:31.359Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:10:31.368Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:10:39.693Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:10:39.700Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:10:47.052Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:10:47.065Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:10:56.192Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:10:56.201Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:11:04.047Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:11:04.057Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:11:12.107Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:11:12.112Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:11:17.781Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:11:17.786Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:11:25.783Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:11:25.791Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:11:32.694Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:11:32.705Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:11:40.938Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:11:40.945Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:11:48.806Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:11:48.813Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:11:56.142Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:11:56.146Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:12:04.290Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:12:04.293Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:12:11.127Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:12:11.131Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:12:17.797Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:12:17.803Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:12:25.795Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:12:25.798Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:12:34.053Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:12:34.055Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:12:41.176Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:12:41.180Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:12:48.793Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:12:48.799Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:12:56.669Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:12:56.671Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:13:04.085Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:13:04.091Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:13:11.387Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:13:11.390Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:13:20.071Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:13:20.074Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:13:28.301Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:13:28.305Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:13:36.015Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:13:36.019Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:13:43.185Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:13:43.188Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:13:51.118Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:13:51.120Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:13:59.267Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:13:59.269Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:14:06.821Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:14:06.825Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:14:14.187Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:14:14.193Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:14:22.307Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:14:22.315Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:14:30.993Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:14:31.001Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:14:38.771Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:14:38.775Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:14:46.550Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:14:46.553Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:15:02.757Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:15:02.761Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:18:57.901Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:18:57.904Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:19:06.339Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:19:06.342Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:19:15.423Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:19:15.435Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:19:24.742Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:19:24.752Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:19:33.738Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:19:33.745Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:19:41.591Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:19:41.604Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:19:49.445Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:19:49.454Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:19:58.600Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:19:58.610Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:20:06.800Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:20:06.810Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:20:16.137Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:20:16.143Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:20:24.991Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:20:25.006Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:20:33.290Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:20:33.296Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:20:41.159Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:20:41.168Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:20:48.520Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:20:48.527Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:20:55.117Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:20:55.128Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:21:01.515Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:21:01.523Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:21:09.789Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:21:09.799Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:21:16.485Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:21:16.493Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:21:25.360Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:21:25.372Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:21:33.531Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:21:33.541Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:21:41.425Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:21:41.442Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:21:49.105Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:21:49.115Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:21:56.976Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:21:56.989Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:22:04.917Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:22:04.928Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:22:13.041Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:22:13.054Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:22:20.895Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:22:20.907Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:22:28.522Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:22:28.534Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:22:36.485Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:22:36.498Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:22:44.751Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:22:44.764Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:22:52.483Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:22:52.496Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:23:01.344Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:23:01.356Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:23:09.295Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:23:09.308Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:23:16.436Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:23:16.450Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:23:23.946Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:23:23.961Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:23:31.395Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:23:31.406Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:23:38.456Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:23:38.467Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:23:46.026Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:23:46.039Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:23:53.616Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:23:53.628Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:24:02.729Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:24:02.739Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:24:11.784Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:24:11.799Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:24:19.652Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:24:19.662Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:24:26.107Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:24:26.115Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:24:34.194Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:24:34.205Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:24:42.409Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:24:42.421Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:24:50.457Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:24:50.469Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:24:57.705Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:24:57.714Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:25:03.942Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:25:03.955Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:25:12.375Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:25:12.388Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:25:20.156Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:25:20.167Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:25:28.154Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:25:28.168Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:25:36.753Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:25:36.757Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:25:43.258Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:25:43.261Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:25:50.927Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:25:50.932Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:25:57.258Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:25:57.263Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:26:05.006Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:26:05.011Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:26:13.135Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:26:13.138Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:26:21.229Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:26:21.238Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:26:29.233Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:26:29.236Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:26:38.041Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:26:38.054Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:26:45.922Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:26:45.938Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:26:53.261Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:26:53.274Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:27:03.753Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:27:03.765Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:27:12.650Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:27:12.664Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:27:20.521Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:27:20.533Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:27:29.084Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:27:29.099Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:27:36.418Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:27:36.431Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:27:43.933Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:27:43.946Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:27:51.319Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:27:51.331Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:27:59.390Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:27:59.402Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:28:06.719Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:28:06.731Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:28:14.404Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:28:14.415Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:28:21.693Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:28:21.702Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:28:29.163Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:28:29.175Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:28:36.839Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:28:36.850Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:28:44.688Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:28:44.711Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:28:52.203Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:28:52.215Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:29:00.887Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:29:00.900Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:29:08.273Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:29:08.283Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:29:15.829Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:29:15.847Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:29:23.313Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:29:23.330Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:29:31.110Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:29:31.121Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:29:44.919Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:29:44.930Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:30:02.680Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:30:02.692Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:33:47.781Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:33:47.791Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:33:56.903Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:33:56.919Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:34:05.830Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:34:05.843Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:34:14.239Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:34:14.253Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:34:21.959Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:34:21.970Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:34:29.434Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:34:29.440Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:34:38.709Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:34:38.723Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:34:47.233Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:34:47.248Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:34:55.258Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:34:55.272Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:35:04.092Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:35:04.104Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:35:12.974Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:35:12.987Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:35:21.085Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:35:21.096Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:35:28.914Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:35:28.928Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:35:36.956Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:35:36.971Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:35:44.019Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:35:44.026Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:35:50.398Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:35:50.410Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:35:56.341Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:35:56.352Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:36:02.108Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:36:02.114Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:36:10.413Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:36:10.430Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:36:20.248Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:36:20.266Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:36:28.510Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:36:28.521Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:36:36.356Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:36:36.371Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:36:44.339Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:36:44.350Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:36:52.348Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:36:52.362Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:37:00.280Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:37:00.290Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:37:07.248Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:37:07.260Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:37:15.121Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:37:15.133Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:37:22.805Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:37:22.817Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:37:30.874Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:37:30.889Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:37:38.582Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:37:38.592Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:37:45.295Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:37:45.307Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:37:52.291Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:37:52.302Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:38:00.857Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:38:00.872Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:38:08.856Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:38:08.872Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:38:16.439Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:38:16.451Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:38:23.635Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:38:23.649Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:38:30.864Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:38:30.880Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:38:38.580Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:38:38.597Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:38:47.164Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:38:47.176Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:38:55.070Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:38:55.087Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:39:04.470Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:39:04.476Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:39:12.137Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:39:12.145Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:39:20.547Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:39:20.558Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:39:28.648Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:39:28.654Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:39:35.180Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:39:35.184Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:39:41.614Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:39:41.619Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:39:49.499Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:39:49.505Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:39:57.074Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:39:57.083Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:40:05.232Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:40:05.247Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:40:13.016Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:40:13.020Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:40:20.676Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:40:20.679Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:40:27.387Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:40:27.396Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:40:35.098Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:40:35.102Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:40:43.850Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:40:43.862Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:40:51.504Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:40:51.508Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:40:59.881Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:40:59.888Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:41:08.116Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:41:08.128Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:41:16.633Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:41:16.637Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:41:25.076Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:41:25.084Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:41:33.706Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:41:33.717Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:41:41.206Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:41:41.214Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:41:48.072Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:41:48.080Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:41:56.388Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:41:56.395Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:42:05.086Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:42:05.096Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:42:13.984Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:42:13.989Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:42:21.909Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:42:21.916Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:42:30.474Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:42:30.480Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:42:37.795Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:42:37.799Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:42:45.829Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:42:45.833Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:42:54.721Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:42:54.726Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:43:02.947Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:43:02.957Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:43:10.048Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:43:10.051Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:43:17.718Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:43:17.722Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:43:25.658Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:43:25.662Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:43:33.572Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:43:33.580Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:43:40.259Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:43:40.261Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:43:47.697Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:43:47.710Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:43:55.844Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:43:55.852Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:44:04.405Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:44:04.412Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:44:12.695Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:44:12.703Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:44:21.166Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:44:21.175Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:44:29.525Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:44:29.530Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:44:37.389Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:44:37.393Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:44:43.280Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:44:43.297Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:44:45.778Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:44:45.782Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:44:52.291Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:44:52.305Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:44:54.976Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:44:54.982Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:01.204Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:01.217Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:04.526Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:04.532Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:10.938Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:10.946Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:13.810Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:13.818Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:20.313Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:20.320Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:22.538Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:22.550Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:29.100Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:29.115Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:31.630Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:31.634Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:38.129Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:38.139Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:40.654Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:40.664Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:46.760Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:46.767Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:49.100Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:49.105Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:55.731Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:55.738Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:45:58.260Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:45:58.265Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:46:05.199Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:46:05.211Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:46:07.739Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:46:07.747Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:46:14.298Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:46:14.306Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:46:16.957Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:46:16.963Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:46:23.994Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:46:24.008Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:46:26.277Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:46:26.284Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:46:33.424Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:46:33.430Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:46:35.336Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:46:35.347Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:46:42.222Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:46:42.233Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:46:44.762Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:46:44.766Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:46:50.927Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:46:50.932Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:46:52.668Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:46:52.672Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:47:00.436Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:47:00.441Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:47:08.842Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:47:08.852Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:47:17.662Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:47:17.668Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:47:26.140Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:47:26.146Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:47:35.274Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:47:35.281Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:47:43.462Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:47:43.468Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:47:50.774Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:47:50.780Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:47:58.300Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:47:58.307Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:48:06.832Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:48:06.838Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:48:14.630Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:48:14.636Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:48:24.951Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:48:24.967Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:48:33.037Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:48:33.049Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:48:40.769Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:48:40.783Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:48:49.634Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:48:49.651Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:48:58.473Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:48:58.488Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:49:06.446Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:49:06.466Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:49:14.387Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:49:14.404Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:49:22.468Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:49:22.483Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:49:30.352Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:49:30.366Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:49:39.051Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:49:39.067Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:49:47.059Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:49:47.072Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:49:55.005Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:49:55.020Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:50:02.697Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:50:02.712Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:50:10.420Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:50:10.435Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:50:18.170Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:50:18.188Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:50:26.948Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:50:26.963Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:50:35.629Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:50:35.645Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:50:44.684Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:50:44.700Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:50:53.979Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:50:53.995Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:51:02.806Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:51:02.820Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:51:11.679Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:51:11.697Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:51:20.736Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:51:20.751Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:51:29.917Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:51:29.933Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:51:38.789Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:51:38.804Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:51:47.953Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:51:47.970Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:51:56.979Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:51:56.996Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:52:06.163Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:52:06.183Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:52:14.718Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:52:14.732Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:52:23.423Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:52:23.443Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:52:32.014Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:52:32.032Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:52:40.936Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:52:40.956Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:52:49.877Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:52:49.891Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:52:58.829Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:52:58.843Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:53:08.380Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:53:08.388Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:53:18.252Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:53:18.267Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:53:26.800Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:53:26.806Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:53:35.148Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:53:35.154Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:53:43.399Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:53:43.405Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:53:52.581Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:53:52.588Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:54:01.560Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:54:01.570Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:54:10.520Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:54:10.528Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:54:19.201Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:54:19.208Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:54:28.152Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:54:28.157Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:54:36.483Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:54:36.488Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:54:46.170Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:54:46.177Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:54:54.452Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:54:54.460Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:54:57.114Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:54:57.122Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:55:03.065Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:55:03.070Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:55:05.493Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:55:05.503Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:55:11.362Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:55:11.369Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:55:14.059Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:55:14.064Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:55:19.851Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:55:19.858Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:55:22.572Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:55:22.577Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:55:28.349Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:55:28.353Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:55:31.065Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:55:31.073Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:55:36.901Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:55:36.912Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:55:45.898Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:55:45.909Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:55:54.120Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:55:54.127Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:56:02.411Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:56:02.420Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:56:10.802Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:56:10.810Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:56:19.068Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:56:19.076Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:56:28.342Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:56:28.347Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:56:37.115Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:56:37.120Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:56:45.890Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:56:45.896Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:56:54.641Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:56:54.645Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:57:02.853Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:57:02.858Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:57:10.911Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:57:10.915Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:57:19.635Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:57:19.641Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:57:28.308Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:57:28.314Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:57:37.103Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:57:37.112Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:57:46.090Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:57:46.095Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:57:54.950Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:57:54.956Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:58:03.506Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:58:03.520Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:58:11.975Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:58:11.982Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:58:20.153Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:58:20.162Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:58:28.836Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:58:28.845Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:58:37.298Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:58:37.305Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:58:45.912Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:58:45.923Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:58:54.209Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:58:54.217Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:59:02.107Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:59:02.113Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:59:10.154Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:59:10.163Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:59:18.476Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:59:18.482Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:59:26.689Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:59:26.697Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:59:34.523Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:59:34.530Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:59:42.472Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:59:42.477Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:59:50.884Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:59:50.890Z ED Prisma Self-Healing completed successfully
+2026-03-01T20:59:59.129Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T20:59:59.137Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:00:07.195Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:00:07.205Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:00:15.365Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:00:15.370Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:00:23.575Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:00:23.585Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:00:32.226Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:00:32.235Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:00:40.248Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:00:40.254Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:00:48.877Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:00:48.881Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:00:57.237Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:00:57.242Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:01:05.215Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:01:05.221Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:01:13.666Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:01:13.673Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:01:21.920Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:01:21.929Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:01:29.944Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:01:29.949Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:01:38.122Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:01:38.139Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:01:47.000Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:01:47.013Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:02:08.057Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:02:08.073Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:02:30.645Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:02:30.651Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:02:39.269Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:02:39.274Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:02:49.469Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:02:49.477Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:02:59.124Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:02:59.132Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:03:07.829Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:03:07.836Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:03:17.084Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:03:17.090Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:03:25.899Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:03:25.908Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:03:34.550Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:03:34.563Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:03:43.766Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:03:43.774Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:03:53.428Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:03:53.435Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:04:00.539Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:04:00.548Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:04:02.252Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:04:02.266Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:04:09.564Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:04:09.574Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:04:11.154Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:04:11.160Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:04:18.395Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:04:18.404Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:04:19.913Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:04:19.920Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:04:26.895Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:04:26.905Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:04:28.357Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:04:28.363Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:04:35.550Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:04:35.561Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:04:37.114Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:04:37.119Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:04:45.822Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:04:45.827Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:04:54.115Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:04:54.124Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:05:02.486Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:05:02.495Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:05:11.507Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:05:11.520Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:05:23.542Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:05:23.565Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:05:33.169Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:05:33.184Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:05:42.968Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:05:42.983Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:05:52.525Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:05:52.545Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:06:02.359Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:06:02.375Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:06:11.900Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:06:11.916Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:06:22.254Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:06:22.272Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:06:31.519Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:06:31.538Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:06:40.915Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:06:40.937Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:06:50.104Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:06:50.119Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:06:58.732Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:06:58.747Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:07:07.744Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:07:07.766Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:07:16.515Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:07:16.535Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:07:25.276Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:07:25.290Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:07:34.318Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:07:34.335Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:07:43.275Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:07:43.293Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:07:52.521Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:07:52.538Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:08:01.764Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:08:01.778Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:08:10.811Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:08:10.829Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:08:20.098Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:08:20.116Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:08:29.329Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:08:29.347Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:08:38.999Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:08:39.006Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:08:47.894Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:08:47.901Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:08:57.122Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:08:57.131Z ED Prisma Self-Healing completed successfully
+2026-03-01T21:10:28.252Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T21:10:28.267Z ED Prisma Self-Healing completed successfully
+2026-03-01T23:59:29.308Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T23:59:29.316Z ED Prisma Self-Healing completed successfully
+2026-03-01T23:59:32.697Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T23:59:32.702Z ED Prisma Self-Healing completed successfully
+2026-03-01T23:59:36.465Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T23:59:36.477Z ED Prisma Self-Healing completed successfully
+2026-03-01T23:59:40.886Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T23:59:40.906Z ED Prisma Self-Healing completed successfully
+2026-03-01T23:59:45.336Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T23:59:45.348Z ED Prisma Self-Healing completed successfully
+2026-03-01T23:59:49.399Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T23:59:49.408Z ED Prisma Self-Healing completed successfully
+2026-03-01T23:59:53.604Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T23:59:53.612Z ED Prisma Self-Healing completed successfully
+2026-03-01T23:59:57.595Z ED Self-Healing Prisma started in ASK mode
+2026-03-01T23:59:57.607Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:02.057Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:02.073Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:06.157Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:06.176Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:10.311Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:10.325Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:14.827Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:14.839Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:19.535Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:19.550Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:23.641Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:23.647Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:28.430Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:28.445Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:33.282Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:33.299Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:38.129Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:38.138Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:42.749Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:42.760Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:47.396Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:47.402Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:51.517Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:51.528Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:00:55.948Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:00:55.956Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:00.536Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:00.554Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:05.117Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:05.127Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:09.477Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:09.484Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:13.599Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:13.608Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:18.065Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:18.072Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:22.488Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:22.495Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:26.275Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:26.285Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:30.842Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:30.861Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:35.412Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:35.423Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:40.107Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:40.118Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:45.143Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:45.155Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:50.063Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:50.079Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:55.275Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:55.296Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:01:59.695Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:01:59.712Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:02:04.494Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:02:04.518Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:02:10.176Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:02:10.195Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:02:15.466Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:02:15.481Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:02:20.654Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:02:20.673Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:02:25.501Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:02:25.520Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:02:30.315Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:02:30.331Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:02:34.451Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:02:34.465Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:02:39.085Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:02:39.101Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:02:43.829Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:02:43.847Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:02:48.762Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:02:48.781Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:02:53.727Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:02:53.746Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:02:58.447Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:02:58.465Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:03:03.588Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:03:03.605Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:03:09.476Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:03:09.494Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:03:14.675Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:03:14.696Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:03:20.076Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:03:20.092Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:03:25.100Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:03:25.121Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:03:29.254Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:03:29.272Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:03:33.845Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:03:33.868Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:03:37.985Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:03:38.001Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:03:42.507Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:03:42.525Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:03:46.479Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:03:46.496Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:03:51.459Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:03:51.479Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:03:56.280Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:03:56.303Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:00.925Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:00.949Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:05.510Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:05.531Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:11.523Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:11.542Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:16.793Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:16.820Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:22.477Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:22.494Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:27.225Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:27.255Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:31.737Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:31.758Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:35.661Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:35.679Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:39.869Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:39.884Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:43.558Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:43.572Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:46.666Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:46.678Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:49.941Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:49.954Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:52.934Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:52.948Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:55.889Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:55.904Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:04:58.888Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:04:58.901Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:02.088Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:02.102Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:05.122Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:05.136Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:09.970Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:09.992Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:14.875Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:14.895Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:19.859Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:19.878Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:24.690Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:24.712Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:29.577Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:29.597Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:33.008Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:33.028Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:36.109Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:36.126Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:41.106Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:41.127Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:45.797Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:45.824Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:50.106Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:50.123Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:54.875Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:54.896Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:05:58.896Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:05:58.917Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:03.186Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:03.201Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:07.947Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:07.971Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:13.343Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:13.367Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:18.256Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:18.278Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:23.310Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:23.336Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:27.787Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:27.807Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:32.318Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:32.341Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:35.443Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:35.461Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:40.632Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:40.647Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:45.125Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:45.151Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:49.441Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:49.461Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:53.747Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:53.768Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:06:57.829Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:06:57.844Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:02.516Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:02.537Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:05.638Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:05.655Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:11.081Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:11.107Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:15.963Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:15.982Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:20.592Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:20.613Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:25.284Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:25.300Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:29.441Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:29.462Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:33.713Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:33.733Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:37.816Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:37.834Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:42.250Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:42.272Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:47.105Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:47.126Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:51.587Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:51.606Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:07:56.141Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:07:56.160Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:01.155Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:01.176Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:05.726Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:05.745Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:11.247Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:11.270Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:15.779Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:15.798Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:20.405Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:20.428Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:24.539Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:24.558Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:29.141Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:29.158Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:33.559Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:33.578Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:37.435Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:37.454Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:42.039Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:42.057Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:46.020Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:46.040Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:50.376Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:50.394Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:54.450Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:54.469Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:08:57.874Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:08:57.894Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:09:02.637Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:09:02.657Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:09:07.357Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:09:07.373Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:09:13.286Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:09:13.313Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:09:18.242Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:09:18.261Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:09:23.319Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:09:23.335Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:09:28.566Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:09:28.583Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:09:33.441Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:09:33.459Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:09:38.465Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:09:38.485Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:09:42.936Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:09:42.959Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:09:48.111Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:09:48.130Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:09:52.840Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:09:52.851Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:09:56.751Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:09:56.771Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:01.920Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:01.939Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:07.071Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:07.091Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:12.342Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:12.363Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:16.907Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:16.925Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:21.652Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:21.669Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:26.052Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:26.065Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:30.571Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:30.589Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:35.181Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:35.206Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:40.356Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:40.382Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:45.003Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:45.023Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:49.383Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:49.407Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:53.657Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:53.672Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:10:57.683Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:10:57.742Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:02.151Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:02.177Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:06.542Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:06.563Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:11.108Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:11.127Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:14.765Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:14.789Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:19.760Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:19.784Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:24.836Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:24.856Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:29.400Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:29.419Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:33.026Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:33.053Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:37.228Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:37.249Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:42.458Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:42.481Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:47.059Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:47.084Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:51.468Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:51.494Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:11:56.350Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:11:56.422Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:00.919Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:00.929Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:05.436Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:05.446Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:10.331Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:10.338Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:13.984Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:13.999Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:17.910Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:17.919Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:22.146Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:22.161Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:26.598Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:26.606Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:38.491Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:38.500Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:41.889Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:41.896Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:46.165Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:46.183Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:50.670Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:50.685Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:55.173Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:55.196Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:12:59.710Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:12:59.717Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:04.359Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:04.371Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:08.848Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:08.854Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:13.779Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:13.806Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:18.665Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:18.691Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:23.350Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:23.370Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:27.305Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:27.327Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:32.244Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:32.270Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:36.142Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:36.169Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:41.141Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:41.166Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:45.669Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:45.685Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:48.710Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:48.729Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:51.806Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:51.824Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:54.829Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:54.846Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:13:57.971Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:13:58.011Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:01.266Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:01.290Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:06.048Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:06.075Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:12.036Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:12.075Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:17.095Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:17.126Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:22.105Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:22.126Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:27.110Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:27.135Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:31.158Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:31.178Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:35.216Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:35.230Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:38.211Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:38.229Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:42.120Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:42.147Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:46.519Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:46.545Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:49.549Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:49.568Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:54.761Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:54.784Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:14:59.295Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:14:59.305Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:15:04.335Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:15:04.342Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:15:08.573Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:15:08.581Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:23:42.918Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:23:42.927Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:23:46.167Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:23:46.175Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:23:49.888Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:23:49.902Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:23:54.319Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:23:54.338Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:23:58.945Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:23:58.958Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:24:03.693Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:24:03.705Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:30:31.088Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:30:31.094Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:30:34.520Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:30:34.534Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:30:39.156Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:30:39.169Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:30:43.690Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:30:43.704Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:30:48.199Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:30:48.219Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:30:52.708Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:30:52.732Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:46:06.156Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:46:06.165Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:46:09.530Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:46:09.538Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:46:13.319Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:46:13.329Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:46:17.819Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:46:17.827Z ED Prisma Self-Healing completed successfully
+2026-03-02T00:46:22.056Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T00:46:22.078Z ED Prisma Self-Healing completed successfully
+2026-03-02T01:20:09.677Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T01:20:09.695Z ED Prisma Self-Healing completed successfully
+2026-03-02T01:24:46.851Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T01:24:46.861Z ED Prisma Self-Healing completed successfully
+2026-03-02T01:25:58.117Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T01:25:58.133Z ED Prisma Self-Healing completed successfully
+2026-03-02T01:26:42.458Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T01:26:42.465Z ED Prisma Self-Healing completed successfully
+2026-03-02T01:33:31.177Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T01:33:31.184Z ED Prisma Self-Healing completed successfully
+2026-03-02T01:36:42.696Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T01:36:42.728Z ED Prisma Self-Healing completed successfully
+2026-03-02T01:41:41.807Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T01:41:41.814Z ED Prisma Self-Healing completed successfully
+2026-03-02T01:51:22.293Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T01:51:22.314Z ED Prisma Self-Healing completed successfully
+2026-03-02T01:57:56.700Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T01:57:56.707Z ED Prisma Self-Healing completed successfully
+2026-03-02T02:05:32.878Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T02:05:32.884Z ED Prisma Self-Healing completed successfully
+2026-03-02T02:09:56.550Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T02:09:56.562Z ED Prisma Self-Healing completed successfully
+2026-03-02T02:10:25.961Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T02:10:25.969Z ED Prisma Self-Healing completed successfully
+2026-03-02T02:10:40.311Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T02:10:40.336Z ED Prisma Self-Healing completed successfully
+2026-03-02T02:15:21.858Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T02:15:21.866Z ED Prisma Self-Healing completed successfully
+2026-03-02T02:25:36.163Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T02:25:36.208Z ED Prisma Self-Healing completed successfully
+2026-03-02T02:29:26.617Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T02:29:26.625Z ED Prisma Self-Healing completed successfully
+2026-03-02T02:29:52.269Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T02:29:52.278Z ED Prisma Self-Healing completed successfully
+2026-03-02T02:30:23.686Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T02:30:23.699Z ED Prisma Self-Healing completed successfully
+2026-03-02T02:42:15.784Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T02:42:15.803Z ED Prisma Self-Healing completed successfully
+2026-03-02T03:15:25.717Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T03:15:25.735Z Prisma client invalid — ASK mode: waiting for user
+2026-03-02T03:17:50.297Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T03:17:50.303Z Prisma client invalid — ASK mode: waiting for user
+2026-03-02T04:38:21.240Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T04:38:21.253Z Prisma client invalid — ASK mode: waiting for user
+2026-03-02T04:43:33.209Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T04:43:33.215Z Prisma client invalid — ASK mode: waiting for user
+2026-03-02T05:08:32.655Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T05:08:32.665Z ED Prisma Self-Healing completed successfully
+2026-03-02T05:39:40.583Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T05:39:40.595Z Schema missing — cannot continue
+2026-03-02T05:43:35.570Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T05:43:35.576Z Schema missing — cannot continue
+2026-03-02T05:46:06.160Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T05:46:06.174Z Schema missing — cannot continue
+2026-03-02T05:54:28.070Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T05:54:28.078Z Schema missing — cannot continue
+2026-03-02T06:42:31.073Z ED Self-Healing Prisma started in ASK mode
+2026-03-02T06:42:31.098Z Schema missing — cannot continue

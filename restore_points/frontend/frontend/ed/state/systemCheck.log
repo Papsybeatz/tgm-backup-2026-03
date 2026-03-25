@@ -1,0 +1,20 @@
+2026-03-01T21:03:10.467Z Frontend SystemCheck started
+2026-03-01T21:03:10.468Z ⚠️ Missing folder: src/components
+   → Recommended next step: Recreate src/components/ or restore from version control. UI may fail to render.
+2026-03-01T21:03:10.469Z ⚠️ index.html missing
+   → Recommended next step: Recreate index.html. Vite cannot build or serve without it.
+2026-03-01T21:03:10.471Z ⚠️ src/main.jsx missing
+   → Recommended next step: Recreate main.jsx. React cannot mount without it.
+2026-03-01T21:03:10.471Z ⚠️ src/App.jsx missing
+   → Recommended next step: Recreate App.jsx. UI will not render without a root component.
+2026-03-01T21:03:10.472Z ⚠️ .env missing
+   → Recommended next step: Create frontend/.env with VITE_API_URL. Frontend may fail to call backend.
+2026-03-01T21:03:10.474Z ⚠️ node_modules missing
+   → Recommended next step: Run npm install. Frontend cannot start without dependencies.
+2026-03-01T21:03:10.474Z ⚠️ Missing dependency: react
+   → Recommended next step: Install with: npm install react
+2026-03-01T21:03:10.475Z ⚠️ Missing dependency: react-dom
+   → Recommended next step: Install with: npm install react-dom
+2026-03-01T21:03:10.476Z ⚠️ Missing dependency: vite
+   → Recommended next step: Install with: npm install vite
+2026-03-01T21:03:10.477Z Frontend SystemCheck completed

@@ -1,0 +1,10 @@
+{
+  "required": {
+    "GROQ_API_KEY": { "prefix": "gsk_", "min": 30, "max": 80 },
+    "OPENAI_API_KEY": { "prefix": "sk-", "min": 40, "max": 80 },
+    "ANTHROPIC_API_KEY": { "prefix": "sk-ant-", "min": 60, "max": 120 },
+    "GOOGLE_API_KEY": { "prefix": "AIza", "min": 30, "max": 60 },
+    "AZURE_OPENAI_KEY": { "hex": true, "length": 32 },
+    "COHERE_API_KEY": { "prefix": "co-", "min": 30, "max": 80 }
+  }
+}

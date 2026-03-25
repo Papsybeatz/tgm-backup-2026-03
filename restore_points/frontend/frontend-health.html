@@ -1,0 +1,16 @@
+<!-- Vite frontend health endpoint -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Frontend Health</title>
+</head>
+<body>
+  <h1>Frontend OK</h1>
+  <p>Status: ok</p>
+  <p>Timestamp: <span id="ts"></span></p>
+  <script>
+    document.getElementById('ts').textContent = new Date().toISOString();
+  </script>
+</body>
+</html>

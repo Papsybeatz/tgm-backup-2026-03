@@ -1,0 +1,70 @@
+@media (max-width: 768px) {
+  .pricingGrid {
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+  .pricingCard {
+    width: 100% !important;
+    margin: 0 auto 1.5rem auto !important;
+    box-sizing: border-box;
+  }
+  .pricingButton {
+    width: 100% !important;
+    font-size: 1.1rem !important;
+    padding: 1rem !important;
+  }
+  h2, h3 {
+    font-size: 1.2rem !important;
+  }
+}
+@media (max-width: 480px) {
+  .pricingGrid {
+    gap: 1rem !important;
+  }
+  .pricingCard {
+    padding: 1rem !important;
+    font-size: 0.95rem !important;
+  }
+  .pricingButton {
+    font-size: 1rem !important;
+    padding: 0.75rem !important;
+  }
+}
+.pricingPageContainer {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pricingTitle {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.pricingSubtitle {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.pricingCard {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.pricingButton {
+  background-color: #007bff;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
