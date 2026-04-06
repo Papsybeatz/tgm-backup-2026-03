@@ -1,0 +1,293 @@
+2026-03-01T03:15:00.000Z ED SystemCheck started.
+2026-03-01T03:15:00.001Z No previous log found. Creating new systemCheck.log.
+2026-03-01T07:56:51.388Z ED SystemCheck started.
+2026-03-01T07:56:51.393Z server.js imported successfully.
+2026-03-01T07:56:51.393Z ED SystemCheck completed successfully.
+2026-03-01T07:57:25.626Z ED SystemCheck started.
+2026-03-01T07:57:25.629Z server.js imported successfully.
+2026-03-01T07:57:25.629Z ED SystemCheck completed successfully.
+2026-03-01T08:07:01.380Z ED SystemCheck started.
+2026-03-01T08:07:01.383Z server.js imported successfully.
+2026-03-01T08:07:01.383Z ED SystemCheck completed successfully.
+2026-03-01T08:25:35.287Z ED SystemCheck started.
+2026-03-01T08:25:35.290Z server.js imported successfully.
+2026-03-01T08:25:35.291Z ED SystemCheck completed successfully.
+2026-03-01T08:35:26.634Z ED SystemCheck started.
+2026-03-01T08:35:26.639Z server.js imported successfully.
+2026-03-01T08:35:26.639Z ED SystemCheck completed successfully.
+2026-03-01T19:05:08.392Z SystemCheck started
+2026-03-01T19:05:08.459Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-01T19:05:08.461Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-01T19:05:08.461Z SystemCheck completed
+2026-03-01T20:44:43.265Z SystemCheck started
+2026-03-01T20:44:43.361Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-01T20:44:43.362Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-01T20:44:43.364Z SystemCheck completed
+2026-03-01T20:54:57.110Z SystemCheck started
+2026-03-01T20:54:57.177Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-01T20:54:57.178Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-01T20:54:57.179Z SystemCheck completed
+2026-03-01T21:04:00.534Z SystemCheck started
+2026-03-01T21:04:00.611Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-01T21:04:00.613Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-01T21:04:00.614Z SystemCheck completed
+2026-03-01T21:10:28.248Z SystemCheck started
+2026-03-01T21:10:28.331Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-01T21:10:28.333Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-01T21:10:28.334Z SystemCheck completed
+2026-03-01T23:59:29.305Z SystemCheck started
+2026-03-01T23:59:29.374Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-01T23:59:29.375Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-01T23:59:29.376Z SystemCheck completed
+2026-03-02T00:12:38.486Z SystemCheck started
+2026-03-02T00:12:38.572Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T00:12:38.575Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T00:12:38.577Z SystemCheck completed
+2026-03-02T00:23:42.915Z SystemCheck started
+2026-03-02T00:23:42.991Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T00:23:42.993Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T00:23:42.994Z SystemCheck completed
+2026-03-02T00:30:31.084Z SystemCheck started
+2026-03-02T00:30:31.155Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T00:30:31.156Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T00:30:31.157Z SystemCheck completed
+2026-03-02T00:46:06.154Z SystemCheck started
+2026-03-02T00:46:06.238Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T00:46:06.240Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T00:46:06.242Z SystemCheck completed
+2026-03-02T01:20:09.672Z SystemCheck started
+2026-03-02T01:20:09.765Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T01:20:09.766Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T01:20:09.770Z SystemCheck completed
+2026-03-02T01:24:46.846Z SystemCheck started
+2026-03-02T01:24:46.926Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T01:24:46.927Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T01:24:46.928Z SystemCheck completed
+2026-03-02T01:25:58.113Z SystemCheck started
+2026-03-02T01:25:58.219Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T01:25:58.220Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T01:25:58.222Z SystemCheck completed
+2026-03-02T01:26:42.456Z SystemCheck started
+2026-03-02T01:26:42.516Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T01:26:42.517Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T01:26:42.518Z SystemCheck completed
+2026-03-02T01:33:31.175Z SystemCheck started
+2026-03-02T01:33:31.232Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T01:33:31.233Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T01:33:31.234Z SystemCheck completed
+2026-03-02T01:36:42.691Z SystemCheck started
+2026-03-02T01:36:42.792Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T01:36:42.795Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T01:36:42.799Z SystemCheck completed
+2026-03-02T01:41:41.804Z SystemCheck started
+2026-03-02T01:41:41.875Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T01:41:41.876Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T01:41:41.877Z SystemCheck completed
+2026-03-02T01:51:22.283Z SystemCheck started
+2026-03-02T01:51:22.406Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T01:51:22.411Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T01:51:22.413Z SystemCheck completed
+2026-03-02T01:57:56.697Z SystemCheck started
+2026-03-02T01:57:56.773Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T01:57:56.774Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T01:57:56.775Z SystemCheck completed
+2026-03-02T02:05:32.874Z SystemCheck started
+2026-03-02T02:05:32.930Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T02:05:32.931Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T02:05:32.931Z SystemCheck completed
+2026-03-02T02:09:56.545Z SystemCheck started
+2026-03-02T02:09:56.655Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T02:09:56.659Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T02:09:56.661Z SystemCheck completed
+2026-03-02T02:10:25.958Z SystemCheck started
+2026-03-02T02:10:26.031Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T02:10:26.035Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T02:10:26.036Z SystemCheck completed
+2026-03-02T02:10:40.303Z SystemCheck started
+2026-03-02T02:10:40.441Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T02:10:40.444Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T02:10:40.445Z SystemCheck completed
+2026-03-02T02:15:21.854Z SystemCheck started
+2026-03-02T02:15:21.903Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T02:15:21.904Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T02:15:21.904Z SystemCheck completed
+2026-03-02T02:25:36.154Z SystemCheck started
+2026-03-02T02:25:36.261Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T02:25:36.263Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T02:25:36.263Z SystemCheck completed
+2026-03-02T02:29:26.612Z SystemCheck started
+2026-03-02T02:29:26.661Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T02:29:26.662Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T02:29:26.663Z SystemCheck completed
+2026-03-02T02:29:52.264Z SystemCheck started
+2026-03-02T02:29:52.330Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T02:29:52.332Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T02:29:52.333Z SystemCheck completed
+2026-03-02T02:30:23.681Z SystemCheck started
+2026-03-02T02:30:23.768Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T02:30:23.772Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T02:30:23.773Z SystemCheck completed
+2026-03-02T02:42:15.778Z SystemCheck started
+2026-03-02T02:42:15.855Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T02:42:15.856Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T02:42:15.857Z SystemCheck completed
+2026-03-02T03:15:25.712Z SystemCheck started
+2026-03-02T03:15:25.714Z ⚠️ Missing folder: node_modules
+   → Recommended next step: Recreate node_modules/ or restore from version control. Backend may behave unpredictably.
+2026-03-02T03:15:25.715Z ⚠️ Prisma client missing: index.js
+   → Recommended next step: Run: npm install @prisma/client && npx prisma generate
+2026-03-02T03:15:25.715Z ⚠️ Prisma client missing: runtime
+   → Recommended next step: Run: npm install @prisma/client && npx prisma generate
+2026-03-02T03:15:25.715Z ⚠️ Prisma client missing: package.json
+   → Recommended next step: Run: npm install @prisma/client && npx prisma generate
+2026-03-02T03:15:25.761Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T03:15:25.761Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T03:15:25.762Z SystemCheck completed
+2026-03-02T03:17:50.292Z SystemCheck started
+2026-03-02T03:17:50.294Z ⚠️ Missing folder: node_modules
+   → Recommended next step: Recreate node_modules/ or restore from version control. Backend may behave unpredictably.
+2026-03-02T03:17:50.295Z ⚠️ Prisma client missing: index.js
+   → Recommended next step: Run: npm install @prisma/client && npx prisma generate
+2026-03-02T03:17:50.295Z ⚠️ Prisma client missing: runtime
+   → Recommended next step: Run: npm install @prisma/client && npx prisma generate
+2026-03-02T03:17:50.296Z ⚠️ Prisma client missing: package.json
+   → Recommended next step: Run: npm install @prisma/client && npx prisma generate
+2026-03-02T03:17:50.321Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T03:17:50.322Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T03:17:50.322Z SystemCheck completed
+2026-03-02T04:38:21.232Z SystemCheck started
+2026-03-02T04:38:21.234Z ⚠️ Missing folder: node_modules
+   → Recommended next step: Recreate node_modules/ or restore from version control. Backend may behave unpredictably.
+2026-03-02T04:38:21.236Z ⚠️ Prisma client missing: index.js
+   → Recommended next step: Run: npm install @prisma/client && npx prisma generate
+2026-03-02T04:38:21.238Z ⚠️ Prisma client missing: runtime
+   → Recommended next step: Run: npm install @prisma/client && npx prisma generate
+2026-03-02T04:38:21.238Z ⚠️ Prisma client missing: package.json
+   → Recommended next step: Run: npm install @prisma/client && npx prisma generate
+2026-03-02T04:38:21.310Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T04:38:21.316Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T04:38:21.318Z SystemCheck completed
+2026-03-02T04:43:33.205Z SystemCheck started
+2026-03-02T04:43:33.207Z ⚠️ Missing folder: node_modules
+   → Recommended next step: Recreate node_modules/ or restore from version control. Backend may behave unpredictably.
+2026-03-02T04:43:33.208Z ⚠️ Prisma client missing: index.js
+   → Recommended next step: Run: npm install @prisma/client && npx prisma generate
+2026-03-02T04:43:33.208Z ⚠️ Prisma client missing: runtime
+   → Recommended next step: Run: npm install @prisma/client && npx prisma generate
+2026-03-02T04:43:33.208Z ⚠️ Prisma client missing: package.json
+   → Recommended next step: Run: npm install @prisma/client && npx prisma generate
+2026-03-02T04:43:33.260Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T04:43:33.262Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T04:43:33.264Z SystemCheck completed
+2026-03-02T05:08:32.653Z SystemCheck started
+2026-03-02T05:08:32.704Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T05:08:32.705Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T05:08:32.706Z SystemCheck completed
+2026-03-02T05:39:40.577Z SystemCheck started
+2026-03-02T05:39:40.580Z ⚠️ schema.prisma is missing
+   → Recommended next step: Restore schema.prisma. Prisma cannot generate a client without it.
+2026-03-02T05:39:40.621Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T05:39:40.621Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T05:39:40.622Z SystemCheck completed
+2026-03-02T05:43:35.566Z SystemCheck started
+2026-03-02T05:43:35.568Z ⚠️ schema.prisma is missing
+   → Recommended next step: Restore schema.prisma. Prisma cannot generate a client without it.
+2026-03-02T05:43:35.607Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T05:43:35.608Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T05:43:35.609Z SystemCheck completed
+2026-03-02T05:46:06.155Z SystemCheck started
+2026-03-02T05:46:06.158Z ⚠️ schema.prisma is missing
+   → Recommended next step: Restore schema.prisma. Prisma cannot generate a client without it.
+2026-03-02T05:46:06.228Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T05:46:06.230Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T05:46:06.231Z SystemCheck completed
+2026-03-02T05:54:28.066Z SystemCheck started
+2026-03-02T05:54:28.068Z ⚠️ schema.prisma is missing
+   → Recommended next step: Restore schema.prisma. Prisma cannot generate a client without it.
+2026-03-02T05:54:28.126Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T05:54:28.127Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T05:54:28.128Z SystemCheck completed
+2026-03-02T06:42:31.064Z SystemCheck started
+2026-03-02T06:42:31.069Z ⚠️ schema.prisma is missing
+   → Recommended next step: Restore schema.prisma. Prisma cannot generate a client without it.
+2026-03-02T06:42:31.161Z ⚠️ server.js failed to import: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:'
+   → Recommended next step: Fix the import error. ED will continue but backend may crash.
+2026-03-02T06:42:31.163Z ⚠️ Missing /health endpoint
+   → Recommended next step: Add a health route so ED can monitor backend stability.
+2026-03-02T06:42:31.165Z SystemCheck completed
