@@ -1,0 +1,66 @@
+{
+  "name": "the-grants-master",
+  "version": "1.0.0",
+  "description": "Modular agentic workflow engine for grant writing and SaaS deployment.",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:agents": "esbuild src/index.js --bundle --platform=node --outfile=dist/index.js",
+    "build:frontend": "cd app/frontend && npm run build",
+    "build:backend": "cd app/backend && npm run build",
+    "deploy:vercel": "vercel --prod",
+    "deploy:railway": "railway up",
+    "deploy:bundle": "tar -czvf grants-master-bundle.tar.gz dist app",
+    "backend": "node server.js",
+    "test": "jest tests/api",
+    "test:e2e": "playwright test tests/e2e",
+    "ed:autopatch": "ts-node src/ed/edAutoPatch.ts",
+    "preflight": "node ../scripts/preflight.mjs",
+    "preflight:fix": "node ../scripts/preflight.mjs --fix",
+    "check:i18n": "node scripts/check-translations.js",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.17.0",
+    "@sendgrid/mail": "^8.1.6",
+    "@tanstack/react-query": "^5.95.2",
+    "cors": "^2.8.5",
+    "dayjs": "^1.11.19",
+    "express": "^5.2.1",
+    "i18next": "^25.8.0",
+    "react": ">=18.0.0",
+    "react-dom": "^19.2.3",
+    "react-i18next": "^16.5.3",
+    "react-router-dom": "^7.11.0",
+    "uuid": "^13.0.0",
+    "zustand": "^5.0.12"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  },
+  "keywords": [
+    "agents",
+    "workflow-engine",
+    "grant-writing",
+    "ai-saas"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.2",
+    "autoprefixer": "^10.4.23",
+    "chalk": "^5.6.2",
+    "postcss": "^8.5.6",
+    "prisma": "^5.17.0",
+    "tailwindcss": "^4.1.18",
+    "ts-node": "^10.9.2",
+    "vite": "^7.3.1"
+  },
+  "type": "module"
+}
