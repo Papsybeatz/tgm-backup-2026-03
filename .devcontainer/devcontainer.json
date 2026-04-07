@@ -5,13 +5,9 @@
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
-    },
-    "ghcr.io/devcontainers/features/postgres:1": {
-      "version": "15",
-      "password": "postgres"
     }
   },
-  "postCreateCommand": "if [ -f package.json ]; then npm install; fi",
+  "postCreateCommand": "apt-get update && apt-get install -y postgresql-15 && service postgresql start && su - postgres -c \"psql -c \\\"ALTER USER postgres PASSWORD 'postgres';\\\"\" && if [ -f package.json ]; then npm install; fi",
   "customizations": {
     "vscode": {
       "extensions": [
