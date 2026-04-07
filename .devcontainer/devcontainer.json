@@ -1,18 +1,27 @@
 {
-  "name": "GrantsMaster",
+  "name": "TGM Backend Dev",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
-  "postCreateCommand": "npm install && npx prisma generate",
-  "customizations": {
-    "vscode": {
-      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    },
+    "ghcr.io/devcontainers/features/postgres:1": {
+      "version": "15",
+      "password": "postgres"
     }
   },
-  "ports": [
-    { "port": 5173, "visibility": "public", "onForward": "notify" },
-    { "port": 3000, "visibility": "public", "onForward": "notify" }
-  ],
-  "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+  "postCreateCommand": "if [ -f package.json ]; then npm install; fi",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Prisma.prisma",
+        "ms-azuretools.vscode-docker",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
   },
-  "workspaceFolder": "/workspaces/GrantsMasterVite"
+  "forwardPorts": [3000, 5432],
+  "remoteUser": "node"
 }
