@@ -1,0 +1,14 @@
+{
+  "en": {
+    "welcome": "Welcome to GrantsMaster!",
+    "pricing": "Pricing",
+    "login": "Login",
+    "signup": "Sign Up"
+  },
+  "es": {
+    "welcome": "¡Bienvenido a GrantsMaster!",
+    "pricing": "Precios",
+    "login": "Iniciar sesión",
+    "signup": "Regístrate"
+  }
+}

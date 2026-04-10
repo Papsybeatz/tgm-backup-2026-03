@@ -1,0 +1,52 @@
+GrantsMaster Landing Page – Design Brief
+========================================
+
+1. Hero Section
+---------------
+- Headline: GrantsMaster
+- Subheadline: The fastest, smartest way to draft, validate, and win more grants. AI-powered. Team-ready. Effortless.
+- Primary CTA: “Get Started Free” (button, prominent, rounded, blue)
+- Trust Signals: “✓ No credit card required” and “✓ Cancel anytime” (smaller, below CTA)
+
+2. Trust Badges / Partners
+--------------------------
+- Text: “Trusted by agencies, nonprofits, and consultants”
+- Badges: Placeholder icons (🏆 🤝 💼) for awards, partnerships, or client logos
+
+3. Feature Highlights
+---------------------
+- List (with icons):
+  - ⚡ AI-powered drafting for any grant
+  - 🛡️ Built-in validation for compliance
+  - 👥 Team & agency ready collaboration
+  - 📄 Export to PDF or Word in one click
+  - 🧠 Agent refinement for Pro+ plans
+
+4. Pricing Preview
+------------------
+- Section Title: Plans & Pricing
+- Cards (5):
+  - Free: $0/mo – 5 drafts/mo, Basic validator
+  - Starter: $19.99/mo – 5 drafts/mo, Downloadable proposals, 1 team seat
+  - Pro: $49/mo – Unlimited drafts, Advanced agent guidance, Analytics dashboard
+  - Agency Starter: $79/mo – Up to 10 seats, Unlimited drafts, 5 client workspaces
+  - Agency Unlimited: $249/mo – Unlimited seats, Unlimited drafts, Full white-label
+- Secondary CTA: “See All Features & Pricing” (button, below cards)
+
+5. Contact & FAQs
+-----------------
+- Contact Sales Button: “Contact Sales” (dark, prominent)
+- FAQs Section: Placeholder for common questions
+
+6. Language Selector
+--------------------
+- Floating at top-right, always visible (EN/ES toggle)
+
+Visual Style
+------------
+- Modern, clean, lots of whitespace
+- Blue (#004aad) and dark gray (#2d3a4b) as primary colors
+- Rounded corners, subtle gradients, and soft drop shadows
+- Responsive layout for desktop and mobile
+
+This brief can be imported or copy-pasted into Figma as a reference for layout, copy, and UI elements.

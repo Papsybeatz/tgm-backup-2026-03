@@ -1,0 +1,45 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  tier      String
+  createdAt DateTime @default(now())
+  lastLogin DateTime
+  drafts    Draft[]
+  sessions  Session[]
+}
+
+model Session {
+  token     String   @id
+  email     String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  user      User     @relation(fields: [email], references: [email])
+}
+
+model Draft {
+  id              String   @id @default(uuid())
+  userEmail       String
+  title           String
+  content         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  tierAtCreation  String
+  user            User     @relation(fields: [userEmail], references: [email])
+}
+// Prisma schema for invites table
+model Invite {
+  id         String   @id @default(uuid())
+  email      String
+  inviterId  String
+  tier       String
+  status     String   // "pending" | "accepted" | "cancelled"
+  sentAt     DateTime
+  acceptedAt DateTime?
+}

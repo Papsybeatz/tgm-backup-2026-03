@@ -1,16 +1,6 @@
 {
   "name": "TGM Backend Dev",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "20"
-    },
-    "ghcr.io/devcontainers/features/postgres:1": {
-      "version": "15",
-      "password": "postgres"
-    }
-  },
   "postCreateCommand": "npm install",
   "customizations": {
     "vscode": {
