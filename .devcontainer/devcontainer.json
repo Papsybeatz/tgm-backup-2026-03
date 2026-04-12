@@ -12,6 +12,5 @@
       ]
     }
   },
-  "forwardPorts": [3000, 5432],
-  "remoteUser": "node"
+  "forwardPorts": [3000]
 }

@@ -28,6 +28,16 @@ const TIER_PERMISSIONS = {
     teamSeats: 5,
     inviteRequired: true
   },
+  lifetime: {
+    grantDrafts: Infinity,
+    validatorRuns: Infinity,
+    memory: true,
+    download: true,
+    teamSeats: Infinity,
+    prioritySupport: true,
+    lifetime: true,
+    inviteRequired: false
+  },
   agency: {
     grantDrafts: Infinity,
     validatorRuns: Infinity,

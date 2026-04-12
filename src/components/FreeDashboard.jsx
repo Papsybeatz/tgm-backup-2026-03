@@ -5,13 +5,13 @@ import useDrafts from '../hooks/useDrafts';
 import { useUser } from './UserContext';
 
 export default function FreeDashboard() {
-    const handleLogout = () => {
-      setUser(null);
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    };
   const navigate = useNavigate();
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
   const location = useLocation();
   const [showSuccess, setShowSuccess] = useState(false);
   const userContext = useUser() || {};
@@ -46,7 +46,9 @@ export default function FreeDashboard() {
 
   return (
     <div style={{ maxWidth: 500, margin: '2rem auto', padding: '2rem', border: '1px solid #eee', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', background: '#fff', position: 'relative' }} data-testid="dashboard-free-root">
-      <button onClick={handleLogout} style={{ position: 'absolute', top: 16, right: 16, background: '#dc3545', color: '#fff', border: 'none', borderRadius: 4, padding: '0.5rem 1rem', cursor: 'pointer' }}>Logout</button>
+      <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 8 }}>
+        <button onClick={handleLogout} style={{ background: '#dc3545', color: '#fff', border: 'none', borderRadius: 4, padding: '0.5rem 1rem', cursor: 'pointer' }}>Logout</button>
+      </div>
       {showSuccess && (
         <div style={{ background: '#d4edda', color: '#155724', padding: '1rem', borderRadius: 4, marginBottom: '1rem', textAlign: 'center', fontWeight: 'bold' }}>
           Signup successful! Welcome to Grants Master Free.
@@ -78,7 +80,7 @@ export default function FreeDashboard() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
         <button
           style={{ background: '#007bff', color: '#fff', border: 'none', borderRadius: 4, padding: '0.75rem 2rem', fontSize: '1rem', cursor: 'pointer', width: 220 }}
-          onClick={() => navigate('/draft')}
+          onClick={() => navigate('/workspace/new-draft')}
         >
           Start Writing
         </button>

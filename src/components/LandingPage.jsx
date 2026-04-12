@@ -1,14 +1,16 @@
-
-
-import React, { useState } from "react";
+import React from "react";
 import LanguageSelector from './LanguageSelector';
-import useTestAI from '../hooks/useTestAI';
-import { useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import TierBadge from './TierBadge';
+import DebugPanel from './DebugPanel';
+import SkinToggle from './SkinToggle.jsx';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // Vite environment flag to control whether pricing is visible on the landing page.
 // Set VITE_SHOW_PRICING=true to show pricing (default: hidden).
 const showPricing = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_SHOW_PRICING === 'true';
+// Vite flag to enable debug panel
+const showDebug = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ENABLE_DEBUG === 'true';
 
 const FeatureCard = ({ title, description }) => (
   <div className="rounded-2xl bg-white p-5 shadow-sm shadow-slate-200">
@@ -31,9 +33,9 @@ const PricingCard = ({ name, price, tagline, features, highlighted }) => (
     </span>
     <div className="mt-2 flex items-baseline gap-1">
       <span className="text-2xl font-bold text-slate-900">{price}</span>
+      <span className="text-xs text-slate-500">/mo</span>
     </div>
     <span className="mt-1 text-xs text-slate-500">{tagline}</span>
-    import DebugPanel from './DebugPanel';
 
     <ul className="mt-4 space-y-1 text-xs text-slate-600">
       {features.map((f) => (
@@ -42,7 +44,7 @@ const PricingCard = ({ name, price, tagline, features, highlighted }) => (
     </ul>
 
     <button
-      const { data, error, isLoading, refetch, isFetching } = useTestAI({ enabled: false }); // This line remains unchanged
+      className={
         `mt-5 w-full rounded-full px-3 py-2 text-xs font-semibold ` +
         (highlighted
           ? "bg-[#004aad] text-white hover:bg-blue-700"
@@ -59,33 +61,13 @@ const FaqItem = ({ question, answer }) => (
     <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-medium text-slate-800">
       <span>{question}</span>
       <span className="text-slate-400 group-open:rotate-90">›</span>
-      // Debug panel is rendered only when the Vite feature flag is enabled.
-      const showDebug = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ENABLE_DEBUG === 'true';
     </summary>
     <p className="mt-2 text-xs text-slate-600">{answer}</p>
   </details>
 );
 
 const LandingPage = () => {
-  const queryClient = useQueryClient();
-  const [localError, setLocalError] = useState(null);
-  const { data, error, isLoading, refetch, isFetching } = useTestAI({ enabled: false });
-
-  const handleTestAI = async () => {
-    setLocalError(null);
-    // store previous cache to restore on error
-    const previous = queryClient.getQueryData(['test-ai']);
-    // optimistic placeholder so UI feels instant
-    queryClient.setQueryData(['test-ai'], { response: 'Thinking…' });
-    try {
-      await refetch();
-    } catch (err) {
-      // restore previous cache and show error
-      queryClient.setQueryData(['test-ai'], previous);
-      setLocalError(err?.message || 'Request failed');
-    }
-  };
-
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* NAVBAR */}
@@ -98,22 +80,26 @@ const LandingPage = () => {
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4">
             {showPricing && (
-              <button className="text-sm text-slate-600 hover:text-slate-900">
+              <Link to="/pricing" className="text-sm text-slate-600 hover:text-slate-900">
                 Pricing
-              </button>
+              </Link>
             )}
-            <button className="text-sm text-slate-600 hover:text-slate-900">
+            <button onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-slate-600 hover:text-slate-900">
               FAQ
             </button>
             {/* Language Selector */}
             <div className="flex items-center gap-1 text-sm">
               <LanguageSelector />
             </div>
-            <button className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-medium hover:bg-slate-100">
-              Log in
-            </button>
+            <SkinToggle />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <TierBadge />
+              <Link to="/login" className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-medium hover:bg-slate-100">
+                Log in
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -123,84 +109,34 @@ const LandingPage = () => {
         <section className="bg-gradient-to-b from-white to-slate-50">
           <div className="mx-auto flex max-w-6xl flex-col items-center px-4 py-16 text-center md:py-20">
             <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
-              The fastest, smartest way to draft, validate, and win more grants.
+              {t('hero_title') || "The fastest, smartest way to draft, validate, and win more grants."}
             </h1>
             <p className="mt-4 max-w-2xl text-base text-slate-600 md:text-lg">
-              GrantsMaster is an AI‑powered grant‑writing agent for nonprofits,
-              agencies, and consultants—built to remove barriers to funding.
+              {t('hero_subtitle') || "GrantsMaster is an AI‑powered grant‑writing agent for nonprofits, agencies, and consultants—built to remove barriers to funding."}
             </p>
 
             <div className="mt-8 flex flex-col items-center gap-3 md:flex-row">
-              <button className="rounded-full bg-[#004aad] px-6 py-3 text-sm font-semibold text-white shadow-md shadow-blue-500/30 hover:bg-blue-700">
-                Get Started Free
-              </button>
-              <button
-                onClick={handleTestAI}
-                disabled={isFetching}
-                className={
-                  `ml-3 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium ` +
-                  (isFetching
-                    ? 'border-slate-200 bg-slate-100 text-slate-500 cursor-wait'
-                    : 'border-slate-200 bg-white hover:bg-slate-50')
-                }
-              >
-                {isFetching ? (
-                  <>
-                    <svg className="h-4 w-4 animate-spin text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                    </svg>
-                    Testing…
-                  </>
-                ) : (
-                  'Test AI'
-                )}
-              </button>
+              <Link to="/pricing" className="rounded-full bg-[#004aad] px-6 py-3 text-sm font-semibold text-white shadow-md shadow-blue-500/30 hover:bg-blue-700">
+                {t('get_started') || "Get Started Free"}
+              </Link>
+              <Link to="/contact" className="rounded-full border border-[#004aad] px-6 py-3 text-sm font-medium text-[#004aad] hover:bg-[#004aad] hover:text-white">
+                Contact Us
+              </Link>
+              {showDebug && <DebugPanel />}
               <div className="flex flex-col text-xs text-slate-500 md:flex-row md:items-center md:gap-3">
-                <span>✓ No credit card required</span>
-                <span>✓ Cancel anytime</span>
+                <span>✓ {t('no_credit_card') || "No credit card required"}</span>
+                <span>✓ {t('cancel_anytime') || "Cancel anytime"}</span>
               </div>
             </div>
 
             {/* Trust badges */}
             <div className="mt-10 flex flex-col items-center gap-3 text-xs text-slate-500 md:text-sm">
-              <span>Trusted by agencies, nonprofits, and consultants</span>
+              <span>{t('trusted_by') || "Trusted by agencies, nonprofits, and consultants"}</span>
               <div className="flex gap-4 text-2xl">
                 <span>🏆</span>
                 <span>🤝</span>
                 <span>💼</span>
               </div>
-              {localError && (
-                <div className="mt-4 max-w-xl rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 shadow-sm">
-                  <strong className="block text-xs">Error</strong>
-                  <div className="mt-1">{localError || (error && error.message)}</div>
-                </div>
-              )}
-
-              <AnimatePresence>
-                {data && data.response && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.32, ease: 'easeOut' }}
-                    className="mt-4 max-w-xl rounded-md border bg-white p-3 text-sm text-slate-700 shadow-sm"
-                    key="ai-response"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 text-green-700">
-                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </div>
-                      <div>
-                        <strong className="block text-xs text-slate-500">AI test response</strong>
-                        <div className="mt-1">{data.response}</div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           </div>
         </section>
@@ -341,6 +277,7 @@ const LandingPage = () => {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-slate-500 md:flex-row">
           <span>© {new Date().getFullYear()} GrantsMaster. All rights reserved.</span>
           <div className="flex gap-4">
+            <Link to="/contact" className="hover:text-slate-700">Contact</Link>
             <button className="hover:text-slate-700">Privacy</button>
             <button className="hover:text-slate-700">Terms</button>
           </div>
@@ -351,4 +288,3 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
-

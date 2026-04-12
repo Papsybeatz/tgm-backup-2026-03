@@ -8,16 +8,25 @@ export default function useDrafts() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!user?.email) return;
-    setLoading(true);
-    fetch(`/api/drafts?email=${encodeURIComponent(user.email)}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-      .then(res => res.ok ? res.json() : Promise.reject('Failed to load drafts'))
-      .then(data => setDrafts(data.drafts || []))
-      .catch(() => setError('Could not load drafts'))
-      .finally(() => setLoading(false));
-  }, [user?.email, token]);
+    const load = async () => {
+      if (!token) return;
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/drafts`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error('Failed to load drafts');
+        const data = await res.json();
+        setDrafts(data.drafts || []);
+      } catch (e) {
+        setError('Could not load drafts');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+    // eslint-disable-next-line
+  }, [token]);
 
   return { drafts, loading, error };
 }

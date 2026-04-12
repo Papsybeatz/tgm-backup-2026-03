@@ -5,10 +5,12 @@
 const validator = require('validator');
 
 function stripHtml(input) {
-  return validator.stripLow(validator.escape(validator.whitelist(input, 'a-zA-Z0-9@._- ')));
+  if (!input) return '';
+  return validator.escape(input).replace(/[<>]/g, '');
 }
 
 function sanitizeInput(input, maxLength = 256) {
+  if (!input) return '';
   let sanitized = stripHtml(input);
   sanitized = sanitized.substring(0, maxLength);
   return sanitized;

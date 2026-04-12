@@ -48,26 +48,25 @@ app.post('/api/auth/login', (req, res) => {
 
 const https = require('https');
 
-// Test AI endpoint using OpenAI API
+// Test AI endpoint using Groq API
 app.get('/api/test-ai', async (req, res) => {
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
-    console.log('Testing OpenAI with key starting:', apiKey?.substring(0, 15));
+    const apiKey = process.env.GROQ_API_KEY;
+    console.log('Testing Groq with key starting:', apiKey?.substring(0, 15));
     
     const postData = JSON.stringify({
       messages: [{ role: "user", content: "Hello" }],
-      model: "gpt-4o-mini",
-      max_tokens: 10
+      model: "llama-3.1-8b-instant",
+      max_tokens: 50
     });
 
     const options = {
-      hostname: 'api.openai.com',
-      path: '/v1/chat/completions',
+      hostname: 'api.groq.com',
+      path: '/openai/v1/chat/completions',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'OpenAI-Organization': 'org-GrantsMaster-Prod'
+        'Authorization': `Bearer ${apiKey}`
       }
     };
 
@@ -83,11 +82,11 @@ app.get('/api/test-ai', async (req, res) => {
     });
 
     const parsed = JSON.parse(result);
-    console.log('OpenAI response:', JSON.stringify(parsed, null, 2));
+    console.log('Groq response:', JSON.stringify(parsed, null, 2));
     const response = parsed.choices?.[0]?.message?.content || 'No response';
     res.json({ success: true, response });
   } catch (error) {
-    console.error('OpenAI error:', error.message);
+    console.error('Groq error:', error.message);
     res.json({ success: false, error: error.message });
   }
 });
@@ -103,24 +102,23 @@ app.post('/api/drafts', async (req, res) => {
   console.log(`Draft submitted: ${draftId} by ${email || 'unknown'}`);
 
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     const prompt = `You are a professional grant writer. Generate a well-structured grant proposal draft based on the following input:\n\n${content}`;
     
     const postData = JSON.stringify({
       messages: [{ role: "user", content: prompt }],
-      model: "gpt-4o-mini",
+      model: "llama-3.1-8b-instant",
       temperature: 0.7,
       max_tokens: 2000
     });
 
     const options = {
-      hostname: 'api.openai.com',
-      path: '/v1/chat/completions',
+      hostname: 'api.groq.com',
+      path: '/openai/v1/chat/completions',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'OpenAI-Organization': 'org-GrantsMaster-Prod'
+        'Authorization': `Bearer ${apiKey}`
       }
     };
 
@@ -136,7 +134,7 @@ app.post('/api/drafts', async (req, res) => {
     });
 
     const parsed = JSON.parse(result);
-    console.log('OpenAI draft response:', JSON.stringify(parsed, null, 2));
+    console.log('Groq draft response:', JSON.stringify(parsed, null, 2));
     const generatedDraft = parsed.choices?.[0]?.message?.content || "Draft generation failed. Please try again.";
 
     console.log(`Draft ${draftId} generated successfully`);

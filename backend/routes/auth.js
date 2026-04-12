@@ -14,16 +14,17 @@ router.post('/login', async (req, res) => {
   let user = await prisma.user.findUnique({ where: { email } });
   const now = new Date();
   if (!user) {
+    const randomPass = require('crypto').randomBytes(16).toString('hex');
     user = await prisma.user.create({
       data: {
         email,
-        tier: 'free',
-        createdAt: now,
-        lastLogin: now,
+        password: randomPass,
+        tier: 'free'
       },
     });
   } else {
-    await prisma.user.update({ where: { email }, data: { lastLogin: now } });
+    // touch the user to update `updatedAt`
+    await prisma.user.update({ where: { email }, data: { tier: user.tier } });
     user = await prisma.user.findUnique({ where: { email } });
   }
   // Generate session token
@@ -37,7 +38,14 @@ router.post('/login', async (req, res) => {
       expiresAt: new Date(expiresAt),
     },
   });
-  res.json({ token, email: user.email, tier: user.tier });
+  // Set HTTP-only secure cookie for browser clients
+  try {
+    const maxAge = new Date(expiresAt).getTime() - Date.now();
+    res.cookie('session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge });
+  } catch (e) {
+    // ignore cookie set errors
+  }
+  res.json({ token, email: user.email, tier: user.tier, createdAt: user.createdAt, updatedAt: user.updatedAt });
 });
 
 // POST /api/auth/logout
@@ -50,14 +58,17 @@ router.post('/logout', async (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', async (req, res) => {
+  // Accept Bearer token or HTTP-only cookie named 'session'
+  let token = null;
   const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ success: false, message: 'Missing or invalid token.' });
-  const token = auth.replace('Bearer ', '');
+  if (auth && auth.startsWith('Bearer ')) token = auth.replace('Bearer ', '');
+  if (!token && req.cookies && req.cookies.session) token = req.cookies.session;
+  if (!token) return res.status(401).json({ success: false, message: 'Missing or invalid token.' });
   const session = await prisma.session.findUnique({ where: { token } });
   if (!session || new Date() > session.expiresAt) return res.status(401).json({ success: false, message: 'Session expired.' });
   const user = await prisma.user.findUnique({ where: { email: session.email } });
   if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
-  res.json({ email: user.email, tier: user.tier, createdAt: user.createdAt, lastLogin: user.lastLogin });
+  res.json({ email: user.email, tier: user.tier, createdAt: user.createdAt, updatedAt: user.updatedAt });
 });
 
 module.exports = router;

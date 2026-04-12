@@ -2,16 +2,17 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from './UserContext';
+import TierBadge from './TierBadge';
 import './StarterDashboard.css';
 
 const ProDashboard = () => {
-    const handleLogout = () => {
-      setUser(null);
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    };
   const navigate = useNavigate();
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
   const location = useLocation();
   const userContext = useUser();
   const user = userContext && typeof userContext === 'object' && 'user' in userContext ? userContext.user : null;
@@ -32,10 +33,15 @@ const ProDashboard = () => {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '700px', margin: 'auto', position: 'relative' }} data-testid="dashboard-pro-root">
-      <button onClick={handleLogout} style={{ position: 'absolute', top: 16, right: 16, background: '#dc3545', color: '#fff', border: 'none', borderRadius: 4, padding: '0.5rem 1rem', cursor: 'pointer' }}>Logout</button>
+      <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 8 }}>
+        <button onClick={() => navigate('/')} style={{ background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 4, padding: '0.5rem 1rem', cursor: 'pointer' }}>Home</button>
+        <button onClick={handleLogout} style={{ background: '#dc3545', color: '#fff', border: 'none', borderRadius: 4, padding: '0.5rem 1rem', cursor: 'pointer' }}>Logout</button>
+      </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>Pro Dashboard</h1>
-        <span style={{ background: '#007bff', color: '#fff', borderRadius: 4, padding: '0.25rem 0.75rem', fontWeight: 'bold' }}>Tier: Pro</span>
+        <div>
+          <TierBadge tierLabel="Tier: Pro" />
+        </div>
       </div>
       {showSuccess && (
         <div style={{ background: '#d4edda', color: '#155724', padding: '1rem', borderRadius: 4, margin: '1rem 0', textAlign: 'center', fontWeight: 'bold' }}>

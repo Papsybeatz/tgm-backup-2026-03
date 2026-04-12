@@ -11,7 +11,6 @@ export default function DraftEditor() {
   const { saving, saved, draftId: autosavedId, onBlur } = useAutosave({
     content: text,
     title,
-    email: user?.email,
     draftId,
   });
 
@@ -27,10 +26,13 @@ export default function DraftEditor() {
     }
     setGenerating(true);
     try {
+      const headers = { 'Content-Type': 'application/json' };
+      const token = localStorage.getItem('token');
+      if (token) headers.Authorization = `Bearer ${token}`;
       const res = await fetch('/api/drafts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, content: text, email: user?.email })
+        headers,
+        body: JSON.stringify({ title, content: text })
       });
       const data = await res.json();
       if (res.ok && data.success) {

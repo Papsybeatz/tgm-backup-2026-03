@@ -2,151 +2,105 @@
 const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
-const { requireAuth } = require('../middleware/roleAuth');
-const User = require('../models/User');
+// Webhooks should be publicly accessible (signature verified); do not requireAuth
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 const SIGNING_SECRET = process.env.LEMONSQUEEZY_SIGNING_SECRET;
 
-function verifySignature(payload, signature, secret) {
-  const hash = crypto
-    .createHmac('sha256', secret)
-    .update(payload)
-    .digest('hex');
-  return hash === signature;
-}
+const TIER_MAP = {
+  STARTER: 'starter',
+  PRO: 'pro',
+  AGENCY_STARTER: 'agency_starter',
+  AGENCY_UNLIMITED: 'agency_unlimited',
+  LIFETIME: 'lifetime'
+};
 
-router.post('/lemon-webhook', requireAuth, express.raw({ type: 'application/json' }), (req, res) => {
-  const signature = req.headers['x-signature'];
-  const rawBody = req.body.toString();
+const LIFETIME_VARIANT_ID = process.env.LEMONSQUEEZY_LIFETIME_VARIANT_ID || '963478';
 
-  // Logging for dev
-  console.log('[WEBHOOK] Raw payload:', rawBody);
-  console.log('[WEBHOOK] X-Signature:', signature);
-  const computed = crypto.createHmac('sha256', SIGNING_SECRET).update(rawBody).digest('hex');
-  console.log('[WEBHOOK] Computed signature:', computed);
+router.post('/lemon-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const rawBody = (typeof req.body === 'string') ? req.body : (req.body && typeof req.body.toString === 'function' ? req.body.toString() : null);
+  const signature = req.headers['x-signature'] || req.headers['x-lemon-signature'] || req.headers['x-lemon-squeezy-signature'];
 
-  const isValid = verifySignature(rawBody, signature, SIGNING_SECRET);
-  console.log('[WEBHOOK] Signature valid:', isValid);
-
-  if (!isValid) {
-    console.warn('[WEBHOOK] Signature verification failed');
-    return res.status(403).send('Invalid signature');
+  // verify signature when secret available
+  if (SIGNING_SECRET) {
+    const hmacInput = JSON.stringify(req.body);
+    const computed = crypto.createHmac('sha256', SIGNING_SECRET).update(hmacInput).digest('hex');
+    if (!signature || computed !== signature) {
+      console.warn('[LEMON] signature mismatch', { provided: signature, computed });
+      try { console.log('[LEMON] rawBody sample:', (rawBody && rawBody.slice ? rawBody.slice(0,200) : JSON.stringify(req.body).slice(0,200))); } catch(e) {}
+      return res.status(403).send('Invalid signature');
+    }
   }
 
-  const data = JSON.parse(rawBody);
-  console.log('[WEBHOOK] Parsed payload:', data);
+  let payload;
+  // prefer parsed body when available (express.json may have already parsed it)
+  payload = req.body;
 
-  const event = data.event_name;
-  const customerEmail = data.data?.customer_email;
-  const customerId = data.data?.customer_id;
+  const eventType = payload.event || payload.event_name || payload.type;
 
-  console.log(`[WEBHOOK] Event: ${event}`);
-  console.log(`[WEBHOOK] Customer Email: ${customerEmail}`);
-  console.log(`[WEBHOOK] Customer ID: ${customerId}`);
+  // Handle lifetime one-time purchase
+  if (eventType === 'order_created' || eventType === 'order.completed') {
+    // LemonSqueezy order shape
+    const order = payload.data?.attributes || payload.data || payload;
+    const variantId = order.variant_id || order.variant?.id || null;
+    const email = order.user_email || order.customer_email || order.customer?.email || payload.data?.customer_email;
 
-  // ...existing business logic...
-  if (event === 'order_created' || event === 'subscription_created') {
-    // Detect product and tier
-    const productId = data.data?.product_id;
-    // Replace with your actual product IDs from LemonSqueezy
-    const PRO_PRODUCT_ID = 'PRO_PRODUCT_ID';
-    const AGENCY_STARTER_ID = 'AGENCY_STARTER_ID';
-    const AGENCY_UNLIMITED_ID = 'AGENCY_UNLIMITED_ID';
-    let newTier = 'starter';
-    let updateFields = {};
-    if (productId === PRO_PRODUCT_ID) {
-      newTier = 'pro';
-      updateFields = { proActivatedAt: new Date() };
-      console.log(`[WEBHOOK] Unlocking Pro tier for ${customerEmail || customerId}`);
-    } else if (productId === AGENCY_STARTER_ID) {
-      newTier = 'agency_starter';
-      updateFields = {
-        agencyActivatedAt: new Date(),
-        maxSeats: 10,
-        maxWorkspaces: 5
+    if (String(variantId) === String(LIFETIME_VARIANT_ID)) {
+      const update = {
+        tier: TIER_MAP.LIFETIME,
+        subscriptionStatus: 'active',
+        subscriptionType: 'one_time',
+        subscriptionId: String(order.id || order.order_id || ''),
+        provider: 'lemonsqueezy'
       };
-      console.log(`🎉 Unlocking Agency Starter tier for ${customerEmail || customerId}`);
-    } else if (productId === AGENCY_UNLIMITED_ID) {
-      newTier = 'agency_unlimited';
-      updateFields = {
-        agencyActivatedAt: new Date(),
-        maxSeats: Infinity,
-        maxWorkspaces: Infinity
-      };
-      console.log(`🎉 Unlocking Agency Unlimited tier for ${customerEmail || customerId}`);
-    } else {
-      console.log(`🎉 Unlocking Starter tier for ${customerEmail || customerId}`);
-    }
 
-    // Try to update by email first
-    if (customerEmail) {
-      User.findOneAndUpdate(
-        { email: customerEmail },
-        { tier: newTier, ...updateFields },
-        { new: true },
-        (err, updatedUser) => {
-          if (err) {
-            console.error('❌ DB update failed (email):', err);
-            return res.status(500).send('DB error');
+      if (email) {
+        await upsertPrismaOnly(email, update);
+        return res.status(200).send('ok');
+      }
+      // Try by customer id if no email — lookup in Prisma
+      const customerId = order.customer_id || order.customer?.id || payload.data?.customer_id;
+      if (customerId) {
+        try {
+          const pUser = await prisma.user.findFirst({ where: { lemonCustomerId: String(customerId) } });
+          if (pUser && pUser.email) {
+            await upsertPrismaOnly(pUser.email, update);
+            return res.status(200).send('ok');
           }
-          if (updatedUser) {
-            console.log(`✅ User upgraded to ${newTier}:`, updatedUser.email);
-            return res.status(200).send('Webhook processed');
-          } else if (customerId) {
-            // Fallback: try by LemonSqueezy customerId
-            User.findOneAndUpdate(
-              { lemonCustomerId: customerId },
-              { tier: newTier, ...updateFields },
-              { new: true },
-              (err2, updatedUser2) => {
-                if (err2) {
-                  console.error('❌ DB update failed (customerId):', err2);
-                  return res.status(500).send('DB error');
-                }
-                if (updatedUser2) {
-                  console.log(`✅ User upgraded to ${newTier} by customerId:`, updatedUser2.email || updatedUser2.lemonCustomerId);
-                  return res.status(200).send('Webhook processed');
-                } else {
-                  console.warn('❌ No user found for email or customerId');
-                  return res.status(404).send('User not found');
-                }
-              }
-            );
-          } else {
-            console.warn('❌ No user found for email, and no customerId provided');
-            return res.status(404).send('User not found');
-          }
+        } catch (e) {
+          console.error('[LEMON] prisma lookup/update failed', e);
+          return res.status(500).send('DB error');
         }
-      );
-    } else if (customerId) {
-      // No email, try by customerId only
-      User.findOneAndUpdate(
-        { lemonCustomerId: customerId },
-        { tier: newTier, ...updateFields },
-        { new: true },
-        (err, updatedUser) => {
-          if (err) {
-            console.error('❌ DB update failed (customerId):', err);
-            return res.status(500).send('DB error');
-          }
-          if (updatedUser) {
-            console.log(`✅ User upgraded to ${newTier} by customerId:`, updatedUser.email || updatedUser.lemonCustomerId);
-            return res.status(200).send('Webhook processed');
-          } else {
-            console.warn('❌ No user found for customerId');
-            return res.status(404).send('User not found');
-          }
-        }
-      );
-    } else {
-      console.warn('❌ No customerEmail or customerId provided');
-      return res.status(400).send('Missing customer info');
+      }
+      return res.status(404).send('User not found');
     }
-    return; // prevent further response
   }
 
-  console.log('ℹ️ Unhandled event type:', event);
-  res.status(200).send('Event ignored');
+  // Optional: refund handling
+  if (eventType === 'order_refunded' || eventType === 'refund.created') {
+    const eventId = payload.data?.id || payload.data?.attributes?.id || null;
+    if (eventId) {
+      try {
+        await prisma.user.updateMany({ where: { subscriptionId: String(eventId) }, data: { tier: 'free', subscriptionStatus: 'canceled', subscriptionType: 'none' } });
+      } catch (e) {
+        console.error('[LEMON] refund handler failed', e);
+      }
+    }
+    return res.status(200).send('ok');
+  }
+
+  console.log('[LEMON] Unhandled event', eventType);
+  return res.status(200).send('ignored');
 });
+
+async function upsertPrismaOnly(email, update) {
+  const randomPass = crypto.randomBytes(16).toString('hex');
+  try {
+    await prisma.user.upsert({ where: { email }, update, create: Object.assign({ email, password: randomPass }, update) });
+  } catch (e) {
+    console.error('[PRISMA] upsert failed (lemon):', e);
+  }
+}
 
 module.exports = router;
