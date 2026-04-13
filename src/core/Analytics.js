@@ -9,26 +9,42 @@ function getSessionId() {
   let sid = sessionStorage.getItem('gm_sessionId');
   if (!sid) {
     sid = Math.random().toString(36).substr(2, 12);
-    sessionStorage.setItem('gm_sessionId', sid);
-  }
-  return sid;
+      if (POSTHOG_KEY) {
+        try {
+          if (window.posthog && typeof window.posthog.capture === 'function') {
+            window.posthog.capture(name, event);
+          }
+        } catch (e) {
+          if (process.env.NODE_ENV !== 'production') console.warn('PostHog capture failed', e.message);
+        }
+      }
 }
 
 export function trackEvent(name, payload = {}, user = {}) {
-  try {
-    const event = {
-      name,
+        try {
+          if (typeof window.plausible === 'function') {
+            // Use a shallow payload to minimize risk of proxied property access in privacy browsers
+            const safePayload = { props: { name: event.name, userId: event.userId, tier: event.tier } };
+            window.plausible(name, safePayload);
+          }
+        } catch (e) {
+          if (process.env.NODE_ENV !== 'production') console.warn('Plausible tracking failed', e.message);
+        }
       payload,
       userId: user.userId || 'anon',
       tier: user.tier || 'unknown',
       sessionId: getSessionId(),
-      timestamp: new Date().toISOString()
-    };
-
-    // Send to PostHog (guarded)
-    try {
-      if (POSTHOG_KEY && typeof window !== 'undefined' && window.posthog && typeof window.posthog.capture === 'function') {
-        window.posthog.capture(name, event);
+        try {
+          fetch(ANALYTICS_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(event)
+          }).catch((e) => {
+            if (process.env.NODE_ENV !== 'production') console.warn('Analytics POST failed', e.message);
+          });
+        } catch (e) {
+          if (process.env.NODE_ENV !== 'production') console.warn('Analytics endpoint call failed', e.message);
+        }
       }
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') console.warn('PostHog capture failed', e.message);
