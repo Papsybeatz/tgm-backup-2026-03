@@ -15,41 +15,59 @@ function getSessionId() {
 }
 
 export function trackEvent(name, payload = {}, user = {}) {
-  const event = {
-    name,
-    payload,
-    userId: user.userId || 'anon',
-    tier: user.tier || 'unknown',
-    sessionId: getSessionId(),
-    timestamp: new Date().toISOString()
-  };
-  // Send to PostHog
-  if (POSTHOG_KEY && window.posthog) {
-    window.posthog.capture(name, event);
-  }
-  // Send to Plausible
-  if (PLAUSIBLE_DOMAIN) {
+  try {
+    const event = {
+      name,
+      payload,
+      userId: user.userId || 'anon',
+      tier: user.tier || 'unknown',
+      sessionId: getSessionId(),
+      timestamp: new Date().toISOString()
+    };
+
+    // Send to PostHog (guarded)
     try {
-      if (typeof window.plausible === 'function') {
-        window.plausible(name, { props: event });
+      if (POSTHOG_KEY && typeof window !== 'undefined' && window.posthog && typeof window.posthog.capture === 'function') {
+        window.posthog.capture(name, event);
       }
     } catch (e) {
-      // Swallow analytics errors so they don't break the app (e.g., tracking prevention)
-      if (process.env.NODE_ENV !== 'production') console.warn('Plausible tracking failed', e.message);
+      if (process.env.NODE_ENV !== 'production') console.warn('PostHog capture failed', e.message);
     }
-  }
-  // Send to backend (optional)
-  if (ANALYTICS_ENDPOINT) {
-    fetch(ANALYTICS_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(event)
-    });
-  }
-  // Optionally log to console in dev
-  if (process.env.NODE_ENV !== 'production') {
-    // eslint-disable-next-line
-    console.log('[Analytics]', name, event);
+
+    // Send to Plausible (guarded)
+    if (PLAUSIBLE_DOMAIN) {
+      try {
+        if (typeof window !== 'undefined' && typeof window.plausible === 'function') {
+          window.plausible(name, { props: event });
+        }
+      } catch (e) {
+        if (process.env.NODE_ENV !== 'production') console.warn('Plausible tracking failed', e.message);
+      }
+    }
+
+    // Send to backend (optional) with guard
+    if (ANALYTICS_ENDPOINT && typeof fetch === 'function') {
+      try {
+        fetch(ANALYTICS_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(event)
+        }).catch((e) => {
+          if (process.env.NODE_ENV !== 'production') console.warn('Analytics endpoint failed', e.message);
+        });
+      } catch (e) {
+        if (process.env.NODE_ENV !== 'production') console.warn('Analytics fetch failed', e.message);
+      }
+    }
+
+    // Optionally log to console in dev
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line
+      console.log('[Analytics]', name, event);
+    }
+  } catch (e) {
+    // Prevent analytics failures from breaking the app
+    if (process.env.NODE_ENV !== 'production') console.warn('trackEvent failed', e.message);
   }
 }
 
