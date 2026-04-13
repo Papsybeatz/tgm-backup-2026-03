@@ -28,8 +28,15 @@ export function trackEvent(name, payload = {}, user = {}) {
     window.posthog.capture(name, event);
   }
   // Send to Plausible
-  if (PLAUSIBLE_DOMAIN && window.plausible) {
-    window.plausible(name, { props: event });
+  if (PLAUSIBLE_DOMAIN) {
+    try {
+      if (typeof window.plausible === 'function') {
+        window.plausible(name, { props: event });
+      }
+    } catch (e) {
+      // Swallow analytics errors so they don't break the app (e.g., tracking prevention)
+      if (process.env.NODE_ENV !== 'production') console.warn('Plausible tracking failed', e.message);
+    }
   }
   // Send to backend (optional)
   if (ANALYTICS_ENDPOINT) {
