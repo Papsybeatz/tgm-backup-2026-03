@@ -150,8 +150,8 @@ const LoginPage = () => {
           }}>Sign in to continue to your workspace</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 20 }}>
+        <form onSubmit={handleSubmit} data-testid="login-form">
+          <div style={{ marginBottom: 20 }} data-testid="login-page-root">
             <label style={labelStyle}>Email</label>
             <input
               type="email"
@@ -161,10 +161,11 @@ const LoginPage = () => {
               required
               disabled={status === 'loading'}
               placeholder="you@example.com"
+              data-testid="login-email"
             />
           </div>
           
-          <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 24 }} data-testid="login-password-container">
             <label style={labelStyle}>Password</label>
             <input
               type="password"
@@ -174,6 +175,7 @@ const LoginPage = () => {
               required
               disabled={status === 'loading'}
               placeholder="••••••••"
+              data-testid="login-password"
             />
           </div>
 
@@ -194,6 +196,7 @@ const LoginPage = () => {
           <button
             type="submit"
             disabled={status === 'loading'}
+            data-testid="login-submit"
             style={{
               width: '100%',
               padding: 14,

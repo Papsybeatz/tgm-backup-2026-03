@@ -1,6 +1,6 @@
-// Example Playwright test for launch readiness (frontend)
 
-const { test, expect } = require('@playwright/test');
+// Example Playwright test for launch readiness (frontend)
+import { test, expect } from '@playwright/test';
 
 test.describe('Launch Readiness', () => {
     test.beforeEach(async () => {

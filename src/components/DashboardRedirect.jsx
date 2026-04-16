@@ -7,8 +7,5 @@ export default function DashboardRedirect() {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  const tier = user.tier || 'free';
-  // normalize agency tier names used elsewhere
-  const path = tier === 'free' ? '/dashboard/free' : tier === 'agency_starter' ? '/dashboard/agency-starter' : tier === 'agency_unlimited' ? '/dashboard/agency-unlimited' : `/dashboard/${tier}`;
-  return <Navigate to={path} replace />;
+  return <Navigate to="/dashboard" replace />;
 }

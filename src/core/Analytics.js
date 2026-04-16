@@ -1,6 +1,3 @@
-// Analytics.js
-// Analytics and conversion tracking for The Grants Master
-
 const ANALYTICS_ENDPOINT = import.meta.env.VITE_ANALYTICS_ENDPOINT || '';
 const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY || '';
 const PLAUSIBLE_DOMAIN = import.meta.env.VITE_PLAUSIBLE_DOMAIN || '';
@@ -9,45 +6,31 @@ function getSessionId() {
   let sid = sessionStorage.getItem('gm_sessionId');
   if (!sid) {
     sid = Math.random().toString(36).substr(2, 12);
-      if (POSTHOG_KEY) {
-        try {
-          if (window.posthog && typeof window.posthog.capture === 'function') {
-            window.posthog.capture(name, event);
-          }
-        } catch (e) {
-          if (process.env.NODE_ENV !== 'production') console.warn('PostHog capture failed', e.message);
-        }
-      }
+    sessionStorage.setItem('gm_sessionId', sid);
+  }
+  return sid;
 }
 
 export function trackEvent(name, payload = {}, user = {}) {
-        try {
-          if (typeof window.plausible === 'function') {
-            // Use a shallow payload to minimize risk of proxied property access in privacy browsers
-            const safePayload = { props: { name: event.name, userId: event.userId, tier: event.tier } };
-            window.plausible(name, safePayload);
-          }
-        } catch (e) {
-          if (process.env.NODE_ENV !== 'production') console.warn('Plausible tracking failed', e.message);
-        }
-      payload,
+  try {
+    const event = {
+      name,
+      ...payload,
       userId: user.userId || 'anon',
       tier: user.tier || 'unknown',
       sessionId: getSessionId(),
-        try {
-          fetch(ANALYTICS_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(event)
-          }).catch((e) => {
-            if (process.env.NODE_ENV !== 'production') console.warn('Analytics POST failed', e.message);
-          });
-        } catch (e) {
-          if (process.env.NODE_ENV !== 'production') console.warn('Analytics endpoint call failed', e.message);
+      timestamp: new Date().toISOString()
+    };
+
+    // Send to PostHog (guarded)
+    if (POSTHOG_KEY) {
+      try {
+        if (typeof window !== 'undefined' && window.posthog && typeof window.posthog.capture === 'function') {
+          window.posthog.capture(name, event);
         }
+      } catch (e) {
+        if (process.env.NODE_ENV !== 'production') console.warn('PostHog capture failed', e.message);
       }
-    } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.warn('PostHog capture failed', e.message);
     }
 
     // Send to Plausible (guarded)
@@ -78,7 +61,6 @@ export function trackEvent(name, payload = {}, user = {}) {
 
     // Optionally log to console in dev
     if (process.env.NODE_ENV !== 'production') {
-      // eslint-disable-next-line
       console.log('[Analytics]', name, event);
     }
   } catch (e) {

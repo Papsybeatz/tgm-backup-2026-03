@@ -1,10 +1,30 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import { hasFeature } from '../config/tiers';
+import { useUser } from './UserContext';
 
-export default function ProtectedRoute({ children }) {
-  const { token, loading } = useAuth();
-  if (loading) return null;
-  if (!token) return <Navigate to="/login" replace />;
+export function ProtectedRoute({ feature, children }) {
+  const userContext = useUser();
+  const user = userContext?.user;
+  const tier = user?.tier || 'free';
+
+  if (!hasFeature(tier, feature)) {
+    return <Navigate to="/upgrade" replace />;
+  }
+
   return children;
 }
+
+export function TierRoute({ allowedTiers, children }) {
+  const userContext = useUser();
+  const user = userContext?.user;
+  const tier = user?.tier || 'free';
+
+  if (!allowedTiers.includes(tier)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
+
+export default ProtectedRoute;
