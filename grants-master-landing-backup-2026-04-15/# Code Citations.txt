@@ -1,0 +1,168 @@
+# Code Citations
+
+## License: unknown
+https://github.com/ABRARALVINIRAB/employee-management-frontend/blob/a4cb06422010800264bd632882f04a04dd7eb81b/src/pages/Login/Login.tsx
+
+```
+Found it. After login, `navigate('/dashboard')` navigates to `/dashboard` but the router expects `/:lang/dashboard`. Fix `LoginPage.jsx`:
+
+````javascript
+// filepath: d:\Grantsmasterlanding\grants-master-landing\GrantsMasterVite\src\pages\LoginPage.jsx
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+
+export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const { lang } = useParams();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await login(email);
+      navigate(`/${lang}/dashboard`);
+    } catch (err) {
+      setError('Login failed. Please check your email.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="login-page">
+      <form onSubmit={handleSubmit}>
+        <h2>Login</h2>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+        />
+        <button type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
+        {error && <div className="error">{error}</div>}
+      </form>
+    </div>
+  );
+}
+````
+
+Press **`Ctrl+S
+```
+
+
+## License: unknown
+https://github.com/ABRARALVINIRAB/employee-management-frontend/blob/a4cb06422010800264bd632882f04a04dd7eb81b/src/pages/Login/Login.tsx
+
+```
+Found it. After login, `navigate('/dashboard')` navigates to `/dashboard` but the router expects `/:lang/dashboard`. Fix `LoginPage.jsx`:
+
+````javascript
+// filepath: d:\Grantsmasterlanding\grants-master-landing\GrantsMasterVite\src\pages\LoginPage.jsx
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+
+export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const { lang } = useParams();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await login(email);
+      navigate(`/${lang}/dashboard`);
+    } catch (err) {
+      setError('Login failed. Please check your email.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="login-page">
+      <form onSubmit={handleSubmit}>
+        <h2>Login</h2>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+        />
+        <button type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
+        {error && <div className="error">{error}</div>}
+      </form>
+    </div>
+  );
+}
+````
+
+Press **`Ctrl+S
+```
+
+
+## License: unknown
+https://github.com/ABRARALVINIRAB/employee-management-frontend/blob/a4cb06422010800264bd632882f04a04dd7eb81b/src/pages/Login/Login.tsx
+
+```
+Found it. After login, `navigate('/dashboard')` navigates to `/dashboard` but the router expects `/:lang/dashboard`. Fix `LoginPage.jsx`:
+
+````javascript
+// filepath: d:\Grantsmasterlanding\grants-master-landing\GrantsMasterVite\src\pages\LoginPage.jsx
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+
+export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const { lang } = useParams();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await login(email);
+      navigate(`/${lang}/dashboard`);
+    } catch (err) {
+      setError('Login failed. Please check your email.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="login-page">
+      <form onSubmit={handleSubmit}>
+        <h2>Login</h2>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+        />
+        <button type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
+        {error && <div className="error">{error}</div>}
+      </form>
+    </div>
+  );
+}
+````
+
+Press **`Ctrl+S
+

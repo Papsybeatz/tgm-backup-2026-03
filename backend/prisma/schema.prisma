@@ -1,0 +1,65 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  password           String
+  name               String?
+
+  tier               String   @default("free")
+  subscriptionStatus String   @default("inactive")
+  subscriptionType   String   @default("none")
+  subscriptionId     String?
+  provider           String?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  drafts    Draft[]
+  sessions  Session[]
+}
+
+model Session {
+  token     String   @id
+  email     String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  user      User     @relation(fields: [email], references: [email])
+}
+
+model Draft {
+  id              String   @id @default(uuid())
+  userId          String
+  title           String
+  content         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  tierAtCreation  String
+  user            User     @relation(fields: [userId], references: [id])
+  versions        DraftVersion[]
+}
+// Prisma schema for invites table
+model Invite {
+  id         String   @id @default(uuid())
+  email      String
+  inviterId  String
+  tier       String
+  status     String   // "pending" | "accepted" | "cancelled"
+  sentAt     DateTime
+  acceptedAt DateTime?
+}
+
+model DraftVersion {
+  id        String   @id @default(cuid())
+  draftId   String
+  content   String
+  createdAt DateTime @default(now())
+
+  draft     Draft    @relation(fields: [draftId], references: [id])
+}

@@ -1,0 +1,104 @@
+@import "./styles/theme.css";
+@import "tailwindcss";
+
+/* Default Skin - Clean SaaS */
+.skin-default {
+  --bg: #f9fafb;
+  --card: #ffffff;
+  --text: #111827;
+  --text-muted: #6b7280;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --border: #e5e7eb;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Futuristic Skin - AI Glassmorphism */
+.skin-futuristic {
+  --bg: #0a0a0f;
+  --card: rgba(20, 20, 30, 0.7);
+  --text: #e5e7eb;
+  --text-muted: #9ca3af;
+  --accent: #00f0ff;
+  --accent-hover: #00c4cc;
+  --border: rgba(255, 255, 255, 0.1);
+  --shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+  --shadow-lg: 0 0 40px rgba(0, 240, 255, 0.2);
+  backdrop-filter: blur(20px);
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.skin-futuristic body {
+  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0a0a0f 100%);
+}
+
+/* Card styles */
+.skin-futuristic .card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+}
+
+.skin-futuristic .card:hover {
+  border-color: rgba(0, 240, 255, 0.3);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Button styles */
+.skin-futuristic .btn-primary {
+  background: linear-gradient(135deg, #00f0ff 0%, #0080ff 100%);
+  color: #000;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.skin-futuristic .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+}
+
+/* Glass effect */
+.skin-futuristic .glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glow accent */
+.skin-futuristic .glow {
+  position: relative;
+}
+
+.skin-futuristic .glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #00f0ff, #0080ff, #00f0ff);
+  background-size: 200% 200%;
+  animation: glowPulse 3s ease infinite;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.skin-futuristic .glow:hover::before {
+  opacity: 1;
+}
+
+@keyframes glowPulse {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}

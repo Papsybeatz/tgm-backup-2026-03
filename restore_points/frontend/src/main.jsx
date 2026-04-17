@@ -1,0 +1,20 @@
+import React from 'react';
+import './i18n';
+import { UserProvider } from './components/UserContext';
+import { AuthProvider } from './context/AuthContext';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import ErrorBoundary from './components/ErrorBoundary';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <ErrorBoundary>
+      <AuthProvider>
+        <UserProvider>
+          <App />
+        </UserProvider>
+      </AuthProvider>
+    </ErrorBoundary>
+  </React.StrictMode>
+);

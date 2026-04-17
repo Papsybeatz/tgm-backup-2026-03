@@ -1,0 +1,62 @@
+.debugPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 380px;
+  height: 100vh;
+  background: #181c24;
+  color: #f3f3f3;
+  z-index: 2000;
+  box-shadow: -2px 0 12px rgba(0,0,0,0.18);
+  font-family: 'Fira Mono', monospace, monospace;
+  overflow-y: auto;
+  border-left: 2px solid #222;
+}
+.debugHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #23283a;
+  padding: 1rem 1.2rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-bottom: 1px solid #222;
+}
+.debugSection {
+  padding: 1rem 1.2rem 0.5rem 1.2rem;
+  border-bottom: 1px solid #23283a;
+}
+.debugSection h4 {
+  margin: 0 0 0.5rem 0;
+  cursor: pointer;
+  color: #7ecfff;
+  font-size: 1rem;
+}
+.debugItem {
+  background: #23283a;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.7rem;
+  font-size: 0.97rem;
+  color: #e3e3e3;
+  word-break: break-word;
+}
+.debugError {
+  color: #ff5c5c;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+button.debugItem {
+  background: #2d3347;
+  color: #7ecfff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  margin: 0.3rem 0.5rem 0.3rem 0;
+  cursor: pointer;
+  font-size: 0.97rem;
+  transition: background 0.2s;
+}
+button.debugItem:hover {
+  background: #3a425c;
+}
