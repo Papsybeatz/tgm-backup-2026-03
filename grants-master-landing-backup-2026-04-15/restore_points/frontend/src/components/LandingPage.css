@@ -1,0 +1,155 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+.landing-header {
+  background-color: #003366;
+  color: white;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.landing-header h1 {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+
+.landing-header p {
+  font-size: 1.2em;
+  margin-bottom: 30px;
+}
+
+.cta-button {
+  background-color: #003366;
+  color: white;
+  padding: 14px 28px;
+  font-size: 1em;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
+  transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+  background-color: #00264d;
+}
+
+.tab-nav {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  background: #fff;
+  border-bottom: 2px solid #D4AF37;
+  padding: 0 0 10px 0;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  font-size: 1.1em;
+  padding: 12px 24px;
+  cursor: pointer;
+  color: #003366;
+  border-radius: 6px 6px 0 0;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab-btn.active, .tab-btn:hover {
+  background: #fffdf5;
+  color: #D4AF37;
+  font-weight: bold;
+  border-bottom: 2px solid #D4AF37;
+}
+
+.landing-root section {
+  padding: 60px 20px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.features {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.feature {
+  flex: 1;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+hr.gold {
+  border: none;
+  height: 2px;
+  background-color: #D4AF37;
+  margin: 40px 0;
+}
+
+.pricing {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.tier {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.tier.lifetime {
+  border: 2px solid #D4AF37;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+  background-color: #fffdf5;
+}
+
+.tier h3 {
+  margin-top: 0;
+}
+
+.email-capture {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.email-capture input {
+  padding: 10px;
+  width: 250px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.email-capture button {
+  margin-left: 10px;
+  padding: 10px 20px;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+footer {
+  border-top: 2px solid #D4AF37;
+  padding: 20px;
+  text-align: center;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.faq-list {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.faq-item {
+  margin-bottom: 24px;
+}

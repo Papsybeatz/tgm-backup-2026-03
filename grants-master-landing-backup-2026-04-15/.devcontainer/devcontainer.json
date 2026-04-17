@@ -1,0 +1,23 @@
+{
+  "name": "TGM Backend Dev",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
+  "postCreateCommand": "apt-get update && apt-get install -y postgresql-15 && service postgresql start && su - postgres -c \"psql -c \\\"ALTER USER postgres PASSWORD 'postgres';\\\"\" && if [ -f package.json ]; then npm install; fi",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Prisma.prisma",
+        "ms-azuretools.vscode-docker",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "forwardPorts": [3000, 5432],
+  "remoteUser": "node"
+}

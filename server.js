@@ -194,6 +194,11 @@ app.get('/api/whitelabel/header', (req, res) => {
   res.json({ success: true, header: { logo: brand ? `${brand} Logo` : 'Grants Master', tagline: brand ? `Prepared by ${brand}` : 'Professional Grant Solutions', website: brand ? `www.${brand.toLowerCase()}.com` : 'www.grantsmaster.com' } });
 });
 
+// Catch-all route for SPA (React Router)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
+});
+
 export default app;
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

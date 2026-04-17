@@ -1,0 +1,118 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum InviteStatus {
+  pending
+  accepted
+  cancelled
+}
+
+enum SubscriptionStatus {
+  active
+  trialing
+  past_due
+  canceled
+}
+
+enum Tier {
+  free
+  starter
+  professional
+  business
+  enterprise
+}
+
+model User {
+  id                 String        @id @default(uuid())
+  email              String        @unique
+  name               String?
+  onboardingCompleted Boolean      @default(false)
+  tier               Tier          @default(free)
+  createdAt          DateTime      @default(now())
+  lastLogin          DateTime
+  drafts             Draft[]
+  sessions           Session[]
+  grants             Grant[]
+  subscriptions      Subscription[]
+  invitesSent        Invite[]      @relation("UserInvites")
+  profile            Profile?
+}
+
+model Grant {
+  id             String   @id @default(uuid())
+  userId         String
+  title          String
+  status         String
+  workspaceState Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lastEditedAt   DateTime
+  user           User     @relation(fields: [userId], references: [id])
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String
+  user                 User               @relation(fields: [userId], references: [id])
+  stripeCustomerId     String
+  stripePriceId        String
+  stripeSubscriptionId String
+  status               SubscriptionStatus
+  currentPeriodEnd     DateTime
+  tier                 Tier
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+}
+
+model Draft {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  title          String
+  content        String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  tierAtCreation Tier
+}
+
+model Invite {
+  id         String      @id @default(uuid())
+  email      String
+  inviterId  String
+  inviter    User        @relation("UserInvites", fields: [inviterId], references: [id])
+  tier       Tier
+  status     InviteStatus
+  sentAt     DateTime
+  acceptedAt DateTime?
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  organizationName String?
+  mission          String?
+  website          String?
+  address          String?
+  city             String?
+  state             String?
+  country          String?
+  ein              String?
+  sector           String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
