@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from './UserContext';
 
+async function safeJson(res) {
+  const text = await res.text();
+  if (!text) throw new Error('Empty response from server');
+  try { return JSON.parse(text); } catch { throw new Error(text || 'Server error'); }
+}
+
 export default function SignupPage() {
   const navigate = useNavigate();
   const { setUser } = useUser();
@@ -14,34 +20,27 @@ export default function SignupPage() {
     setMessage('');
 
     if (!form.email || !form.password || !form.confirmPassword) {
-      setStatus('error');
-      setMessage('Please fill in all fields.');
-      return;
+      setStatus('error'); setMessage('Please fill in all fields.'); return;
     }
     if (form.password !== form.confirmPassword) {
-      setStatus('error');
-      setMessage('Passwords do not match.');
-      return;
+      setStatus('error'); setMessage('Passwords do not match.'); return;
     }
     if (form.password.length < 6) {
-      setStatus('error');
-      setMessage('Password must be at least 6 characters.');
-      return;
+      setStatus('error'); setMessage('Password must be at least 6 characters.'); return;
     }
 
     setStatus('loading');
     try {
-      const res = await fetch('/api/signup', {
+      // Backend auto-creates user on first login
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, password: form.password })
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Signup failed');
-      }
-      const data = await res.json();
-      const userObj = { email: form.email, tier: data.tier || 'free' };
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.message || 'Signup failed');
+
+      const userObj = { email: data.email, tier: data.tier || 'free' };
       setUser(userObj);
       localStorage.setItem('user', JSON.stringify(userObj));
       localStorage.setItem('token', data.token);
@@ -69,9 +68,7 @@ export default function SignupPage() {
       {/* Hero header */}
       <div style={{
         background: 'linear-gradient(135deg, var(--tgm-navy) 0%, var(--tgm-blue) 100%)',
-        padding: '48px 24px 56px',
-        textAlign: 'center',
-        color: '#fff',
+        padding: '48px 24px 56px', textAlign: 'center', color: '#fff',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 16 }}>
           <div style={{
@@ -120,64 +117,38 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--tgm-text)', marginBottom: 8 }}>
-                Email
-              </label>
-              <input
-                type="email"
-                value={form.email}
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--tgm-text)', marginBottom: 8 }}>Email</label>
+              <input type="email" value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
-                placeholder="Enter your email"
-                style={inputStyle}
+                placeholder="Enter your email" style={inputStyle}
                 onFocus={e => e.target.style.borderColor = 'var(--tgm-gold)'}
-                onBlur={e => e.target.style.borderColor = 'var(--tgm-border)'}
-              />
+                onBlur={e => e.target.style.borderColor = 'var(--tgm-border)'} />
             </div>
-
             <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--tgm-text)', marginBottom: 8 }}>
-                Password
-              </label>
-              <input
-                type="password"
-                value={form.password}
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--tgm-text)', marginBottom: 8 }}>Password</label>
+              <input type="password" value={form.password}
                 onChange={e => setForm({ ...form, password: e.target.value })}
-                placeholder="Create a password"
-                style={inputStyle}
+                placeholder="Create a password" style={inputStyle}
                 onFocus={e => e.target.style.borderColor = 'var(--tgm-gold)'}
-                onBlur={e => e.target.style.borderColor = 'var(--tgm-border)'}
-              />
+                onBlur={e => e.target.style.borderColor = 'var(--tgm-border)'} />
             </div>
-
             <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--tgm-text)', marginBottom: 8 }}>
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                value={form.confirmPassword}
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--tgm-text)', marginBottom: 8 }}>Confirm Password</label>
+              <input type="password" value={form.confirmPassword}
                 onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
-                placeholder="Re-enter your password"
-                style={inputStyle}
+                placeholder="Re-enter your password" style={inputStyle}
                 onFocus={e => e.target.style.borderColor = 'var(--tgm-gold)'}
-                onBlur={e => e.target.style.borderColor = 'var(--tgm-border)'}
-              />
+                onBlur={e => e.target.style.borderColor = 'var(--tgm-border)'} />
             </div>
-
-            <button
-              type="submit"
-              disabled={status === 'loading'}
-              style={{
-                width: '100%', padding: '14px',
-                background: 'var(--tgm-gold)',
-                border: 'none', borderRadius: 'var(--tgm-radius-md)',
-                color: 'var(--tgm-navy)', fontSize: 16, fontWeight: 700,
-                cursor: status === 'loading' ? 'not-allowed' : 'pointer',
-                opacity: status === 'loading' ? 0.7 : 1,
-                boxShadow: 'var(--tgm-shadow-md)',
-                transition: 'opacity .2s',
-              }}
-            >
+            <button type="submit" disabled={status === 'loading'} style={{
+              width: '100%', padding: '14px',
+              background: 'var(--tgm-gold)', border: 'none',
+              borderRadius: 'var(--tgm-radius-md)',
+              color: 'var(--tgm-navy)', fontSize: 16, fontWeight: 700,
+              cursor: status === 'loading' ? 'not-allowed' : 'pointer',
+              opacity: status === 'loading' ? 0.7 : 1,
+              boxShadow: 'var(--tgm-shadow-md)', transition: 'opacity .2s',
+            }}>
               {status === 'loading' ? 'Creating Account…' : 'Create Account'}
             </button>
           </form>
@@ -187,10 +158,7 @@ export default function SignupPage() {
               Already have an account?{' '}
               <Link to="/login" style={{ color: 'var(--tgm-blue)', fontWeight: 700 }}>Sign in</Link>
             </p>
-            <a href="/reset-password" style={{ color: 'var(--tgm-blue)', fontWeight: 600, fontSize: 14 }}>
-              Forgot your password?
-            </a>
-            <div style={{ marginTop: 16, color: 'var(--tgm-muted)', fontSize: 13, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ marginTop: 12, color: 'var(--tgm-muted)', fontSize: 13, display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span>✓ No credit card required</span>
               <span>✓ Cancel anytime</span>
             </div>
