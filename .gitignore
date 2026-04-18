@@ -144,3 +144,6 @@ grants-master-landing-backup-2026-04-15/nul
 node_modules/
 .esbuild-out/
 dev-server.mjs
+backend/prisma/prisma/
+backend/node_modules/
+backend/prisma/dev.db
