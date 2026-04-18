@@ -15,6 +15,11 @@ import AppLayout from './components/AppLayout';
 import OnboardingPage from './components/OnboardingPage';
 import UnifiedDashboard from './components/UnifiedDashboard';
 import DraftPage from './components/DraftPage';
+import WorkspaceDetail from './components/WorkspaceDetail';
+import WorkspaceDraftEditor from './components/WorkspaceDraftEditor';
+import DocumentViewer from './components/DocumentViewer';
+import TeamPanel from './components/TeamPanel';
+import FunderMatch from './components/FunderMatch';
 
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useUser } from './components/UserContext';
@@ -43,8 +48,12 @@ function App() {
             {/* App — AppLayout wrapper */}
             <Route path="/onboarding" element={<AppLayout><RequireAuth><OnboardingPage /></RequireAuth></AppLayout>} />
             <Route path="/dashboard" element={<AppLayout><RequireAuth><UnifiedDashboard /></RequireAuth></AppLayout>} />
-            <Route path="/workspace/new-draft" element={<AppLayout><RequireAuth><DraftPage /></RequireAuth></AppLayout>} />
-            <Route path="/workspace/matching" element={<AppLayout><RequireAuth><ProtectedRoute feature="matching_engine"><DraftPage /></ProtectedRoute></RequireAuth></AppLayout>} />
+            <Route path="/workspace/new-draft" element={<AppLayout><RequireAuth><WorkspaceDraftEditor /></RequireAuth></AppLayout>} />
+            <Route path="/workspace/:id" element={<AppLayout><RequireAuth><WorkspaceDetail /></RequireAuth></AppLayout>} />
+            <Route path="/workspace/:id/documents" element={<AppLayout><RequireAuth><DocumentViewer /></RequireAuth></AppLayout>} />
+            <Route path="/workspace/team" element={<AppLayout><RequireAuth><TeamPanel /></RequireAuth></AppLayout>} />
+            <Route path="/workspace/funderMatch" element={<AppLayout><RequireAuth><FunderMatch /></RequireAuth></AppLayout>} />
+            <Route path="/workspace/matching" element={<AppLayout><RequireAuth><FunderMatch /></RequireAuth></AppLayout>} />
             <Route path="/workspace/scoring" element={<AppLayout><RequireAuth><ProtectedRoute feature="scoring_basic"><DraftPage /></ProtectedRoute></RequireAuth></AppLayout>} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
