@@ -24,12 +24,14 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="card" style={{ borderColor: '#DC2626', margin: 'var(--space-lg)' }}>
-          <div className="card-header text-error">Something went wrong — attempting auto-repair…</div>
-          <div className="card-body">
-            <pre className="text-sm text-muted">{this.state.error && this.state.error.toString()}</pre>
-            <pre className="text-sm text-muted">{this.state.errorInfo && this.state.errorInfo.componentStack}</pre>
-          </div>
+        <div style={{ padding: '2rem', margin: '2rem', background: '#fee2e2', border: '2px solid #dc2626', borderRadius: '8px', fontFamily: 'monospace' }}>
+          <h2 style={{ color: '#dc2626', marginTop: 0 }}>App Error</h2>
+          <pre style={{ whiteSpace: 'pre-wrap', color: '#7f1d1d', fontSize: '13px' }}>
+            {this.state.error && this.state.error.toString()}
+          </pre>
+          <pre style={{ whiteSpace: 'pre-wrap', color: '#991b1b', fontSize: '12px' }}>
+            {this.state.errorInfo && this.state.errorInfo.componentStack}
+          </pre>
         </div>
       );
     }
