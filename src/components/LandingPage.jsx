@@ -1,290 +1,204 @@
-import React from "react";
-import LanguageSelector from './LanguageSelector';
-import TierBadge from './TierBadge';
-import DebugPanel from './DebugPanel';
-import SkinToggle from './SkinToggle.jsx';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import LanguageSelector from './LanguageSelector';
 
-// Vite environment flag to control whether pricing is visible on the landing page.
-// Set VITE_SHOW_PRICING=true to show pricing (default: hidden).
-const showPricing = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_SHOW_PRICING === 'true';
-// Vite flag to enable debug panel
-const showDebug = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ENABLE_DEBUG === 'true';
-
-const FeatureCard = ({ title, description }) => (
-  <div className="rounded-2xl bg-white p-5 shadow-sm shadow-slate-200">
-    <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-    <p className="mt-2 text-sm text-slate-600">{description}</p>
-  </div>
-);
-
-const PricingCard = ({ name, price, tagline, features, highlighted }) => (
-  <div
-    className={
-      `flex flex-col rounded-2xl border p-4 text-sm ` +
-      (highlighted
-        ? "border-[#004aad] bg-white shadow-md shadow-blue-500/20"
-        : "border-slate-200 bg-white")
-    }
-  >
-    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-      {name}
-    </span>
-    <div className="mt-2 flex items-baseline gap-1">
-      <span className="text-2xl font-bold text-slate-900">{price}</span>
-      <span className="text-xs text-slate-500">/mo</span>
-    </div>
-    <span className="mt-1 text-xs text-slate-500">{tagline}</span>
-
-    <ul className="mt-4 space-y-1 text-xs text-slate-600">
-      {features.map((f) => (
-        <li key={f}>• {f}</li>
-      ))}
-    </ul>
-
-    <button
-      className={
-        `mt-5 w-full rounded-full px-3 py-2 text-xs font-semibold ` +
-        (highlighted
-          ? "bg-[#004aad] text-white hover:bg-blue-700"
-          : "bg-slate-900 text-white hover:bg-slate-800")
-      }
-    >
-      Choose {name}
-    </button>
-  </div>
-);
-
-const FaqItem = ({ question, answer }) => (
-  <details className="group rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-    <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-medium text-slate-800">
-      <span>{question}</span>
-      <span className="text-slate-400 group-open:rotate-90">›</span>
-    </summary>
-    <p className="mt-2 text-xs text-slate-600">{answer}</p>
-  </details>
-);
-
-const LandingPage = () => {
+export default function LandingPage() {
   const { t } = useTranslation();
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* NAVBAR */}
-      <header className="w-full border-b border-slate-200 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-[#004aad]" />
-            <span className="text-lg font-semibold tracking-tight">
-              GrantsMaster
-            </span>
-          </div>
+  const navigate = useNavigate();
 
-            <div className="flex items-center gap-4">
-            {showPricing && (
-              <Link to="/pricing" className="text-sm text-slate-600 hover:text-slate-900">
-                Pricing
-              </Link>
-            )}
-            <button onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-slate-600 hover:text-slate-900">
-              FAQ
-            </button>
-            {/* Language Selector */}
-            <div className="flex items-center gap-1 text-sm">
-              <LanguageSelector />
+  const features = [
+    { title: 'AI-Powered Drafting', desc: 'Generate funder-ready grant proposals in minutes, not weeks.' },
+    { title: 'Compliance Validation', desc: 'Automatically check your draft against funder requirements.' },
+    { title: 'Team Collaboration', desc: 'Invite your team, assign sections, and review together.' },
+    { title: 'Matching Engine', desc: 'Find the right grants for your mission from thousands of sources.' },
+    { title: 'Scoring Engine', desc: 'Get an AI score on your draft before you submit.' },
+    { title: 'Analytics Dashboard', desc: 'Track submissions, win rates, and funding pipeline.' },
+  ];
+
+  const testimonials = [
+    { quote: '"We won our first grant in 3 weeks using TGM."', author: 'Nonprofit Director, Atlanta' },
+    { quote: '"The AI engine writes better than our consultants."', author: 'Agency Owner, New York' },
+    { quote: '"The best grant writing tool on the market."', author: 'Grant Consultant, Chicago' },
+  ];
+
+  return (
+    <div className="w-full min-h-screen bg-white text-gray-900">
+
+      {/* NAV */}
+      <nav className="sticky top-0 z-50 bg-[#0A0F1A]/95 backdrop-blur border-b border-white/10">
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#E8D28C] flex items-center justify-center shadow-md">
+              <span className="text-[#0A0F1A] font-bold text-sm">GM</span>
             </div>
-            <SkinToggle />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <TierBadge />
-              <Link to="/login" className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-medium hover:bg-slate-100">
-                Log in
-              </Link>
-            </div>
+            <span className="text-white font-bold text-lg tracking-tight">GrantsMaster</span>
+          </div>
+          <div className="hidden md:flex items-center gap-6 text-sm text-gray-300">
+            <a href="#features" className="hover:text-[#D4AF37] transition">Features</a>
+            <a href="#testimonials" className="hover:text-[#D4AF37] transition">Testimonials</a>
+            <Link to="/contact" className="hover:text-[#D4AF37] transition">Contact</Link>
+          </div>
+          <div className="flex items-center gap-3">
+            <LanguageSelector />
+            <Link to="/login" className="px-4 py-2 text-sm text-white hover:text-[#D4AF37] transition">Login</Link>
+            <Link to="/signup" className="px-4 py-2 rounded-lg bg-[#D4AF37] text-[#0A0F1A] text-sm font-bold shadow hover:shadow-lg transition">
+              Get Started Free
+            </Link>
           </div>
         </div>
-      </header>
+      </nav>
 
       {/* HERO */}
-      <main>
-        <section className="bg-gradient-to-b from-white to-slate-50">
-          <div className="mx-auto flex max-w-6xl flex-col items-center px-4 py-16 text-center md:py-20">
-            <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
-              {t('hero_title') || "The fastest, smartest way to draft, validate, and win more grants."}
+      <section className="bg-gradient-to-br from-[#0A0F1A] to-[#003A8C] text-white py-24 px-6">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+          <div>
+            <p className="text-[#E8D28C] font-semibold mb-3 flex items-center gap-2">
+              <span>🏆</span> Award-Winning Grant Writing Platform
+            </p>
+            <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
+              The fastest, smartest way to draft and win more grants.
             </h1>
-            <p className="mt-4 max-w-2xl text-base text-slate-600 md:text-lg">
-              {t('hero_subtitle') || "GrantsMaster is an AI‑powered grant‑writing agent for nonprofits, agencies, and consultants—built to remove barriers to funding."}
+            <p className="text-lg text-[#E8D28C] mb-8">
+              AI-powered grant writing built for nonprofits, agencies, and consultants.
             </p>
-
-            <div className="mt-8 flex flex-col items-center gap-3 md:flex-row">
-              <Link to="/pricing" className="rounded-full bg-[#004aad] px-6 py-3 text-sm font-semibold text-white shadow-md shadow-blue-500/30 hover:bg-blue-700">
-                {t('get_started') || "Get Started Free"}
-              </Link>
-              <Link to="/contact" className="rounded-full border border-[#004aad] px-6 py-3 text-sm font-medium text-[#004aad] hover:bg-[#004aad] hover:text-white">
-                Contact Us
-              </Link>
-              {showDebug && <DebugPanel />}
-              <div className="flex flex-col text-xs text-slate-500 md:flex-row md:items-center md:gap-3">
-                <span>✓ {t('no_credit_card') || "No credit card required"}</span>
-                <span>✓ {t('cancel_anytime') || "Cancel anytime"}</span>
-              </div>
+            <div className="flex flex-wrap gap-4">
+              <button
+                onClick={() => navigate('/signup')}
+                className="px-6 py-3 rounded-lg bg-[#D4AF37] text-[#0A0F1A] font-semibold shadow-md hover:shadow-xl transition"
+              >
+                Get Started Free
+              </button>
+              <button className="px-6 py-3 rounded-lg bg-white/10 border border-white/30 text-white hover:bg-white/20 transition">
+                Watch Demo
+              </button>
             </div>
-
-            {/* Trust badges */}
-            <div className="mt-10 flex flex-col items-center gap-3 text-xs text-slate-500 md:text-sm">
-              <span>{t('trusted_by') || "Trusted by agencies, nonprofits, and consultants"}</span>
-              <div className="flex gap-4 text-2xl">
-                <span>🏆</span>
-                <span>🤝</span>
-                <span>💼</span>
-              </div>
-            </div>
+            <p className="mt-4 text-sm text-gray-400">No credit card required · Cancel anytime</p>
           </div>
-        </section>
 
-        {/* FEATURE HIGHLIGHTS */}
-        <section className="border-t border-slate-200 bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
-            <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900">
-              Built for real‑world grant work
-            </h2>
-            <p className="mt-2 text-center text-sm text-slate-600">
-              Everything you need to go from idea to funder‑ready proposal in minutes.
-            </p>
-
-            <div className="mt-10 grid gap-6 md:grid-cols-3">
-              <FeatureCard
-                title="AI‑powered drafting"
-                description="Generate tailored grant drafts in minutes, not weeks, using your organization’s real context."
-              />
-              <FeatureCard
-                title="Compliance validation"
-                description="Built‑in checks to align with funder requirements and reduce rejection risk."
-              />
-              <FeatureCard
-                title="Team collaboration"
-                description="Invite teammates or clients, comment on drafts, and keep everything in one workspace."
-              />
-              <FeatureCard
-                title="Export to PDF/Word"
-                description="Download polished proposals ready to submit or share with stakeholders."
-              />
-              <FeatureCard
-                title="Agent refinement (Pro+)"
-                description="Use advanced guidance to iteratively improve clarity, alignment, and impact."
-              />
-            </div>
-          </div>
-        </section>
-
-        {showPricing && (
-          <section id="pricing" className="bg-slate-50">
-            <div className="mx-auto max-w-6xl px-4 py-14 md:py-18">
-              <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900">
-                Plans & Pricing
-              </h2>
-              <p className="mt-2 text-center text-sm text-slate-600">
-                Start free, then scale as your grant pipeline grows.
+          {/* AI Preview Card */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 shadow-xl border border-white/20">
+            <p className="text-[#E8D28C] font-semibold mb-3 text-sm">✦ AI Draft Preview</p>
+            <div className="bg-white text-gray-800 p-5 rounded-lg shadow-md mb-4">
+              <p className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Grant: Community Health Initiative</p>
+              <p className="text-sm text-gray-700 leading-relaxed italic">
+                "Our organization seeks funding to expand access to preventive healthcare services in underserved communities. Through evidence-based interventions and community partnerships…"
               </p>
-
-              <div className="mt-10 grid gap-6 md:grid-cols-5">
-                <PricingCard
-                  name="Free"
-                  price="$0"
-                  tagline="Get started"
-                  features={[
-                    "5 drafts per month",
-                    "Basic validator",
-                  ]}
-                />
-                <PricingCard
-                  name="Starter"
-                  price="$19.99"
-                  tagline="For solo founders"
-                  features={[
-                    "5 drafts per month",
-                    "Downloadable proposals",
-                    "1 team seat",
-                  ]}
-                />
-                <PricingCard
-                  name="Pro"
-                  price="$49"
-                  tagline="Most popular"
-                  highlighted
-                  features={[
-                    "Unlimited drafts",
-                    "Advanced agent guidance",
-                    "Analytics dashboard",
-                  ]}
-                />
-                <PricingCard
-                  name="Agency Starter"
-                  price="$79"
-                  tagline="For small teams"
-                  features={[
-                    "Up to 10 seats",
-                    "Unlimited drafts",
-                    "5 client workspaces",
-                  ]}
-                />
-                <PricingCard
-                  name="Agency Unlimited"
-                  price="$249"
-                  tagline="Scale without limits"
-                  features={[
-                    "Unlimited seats",
-                    "Unlimited drafts",
-                    "Full white‑label",
-                  ]}
-                />
-              </div>
-
-              <div className="mt-8 text-center">
-                <button className="text-sm font-medium text-[#004aad] hover:underline">
-                  See all features & pricing
-                </button>
-              </div>
             </div>
-          </section>
-        )}
-
-        {/* FAQ */}
-        <section id="faq" className="border-t border-slate-200 bg-white">
-          <div className="mx-auto max-w-5xl px-4 py-14 md:py-18">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              FAQs
-            </h3>
-            <div className="mt-4 space-y-3">
-              <FaqItem
-                question="Is GrantsMaster a replacement for human grant writers?"
-                answer="No. It’s a force multiplier—helping teams move faster, explore more opportunities, and polish drafts before submission."
-              />
-              <FaqItem
-                question="Can small nonprofits really use the free plan?"
-                answer="Yes. The free tier is designed specifically so small, under‑resourced organizations can still access quality drafts."
-              />
-              <FaqItem
-                question="Do you support agencies and consultants?"
-                answer="Absolutely. Agency plans include multiple seats, client workspaces, and white‑label options."
-              />
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
+              <span className="text-xs text-gray-300">AI is generating your draft…</span>
             </div>
-          </div>
-        </section>
-      </main>
-
-      {/* FOOTER */}
-      <footer className="border-t border-slate-200 bg-slate-50">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-slate-500 md:flex-row">
-          <span>© {new Date().getFullYear()} GrantsMaster. All rights reserved.</span>
-          <div className="flex gap-4">
-            <Link to="/contact" className="hover:text-slate-700">Contact</Link>
-            <button className="hover:text-slate-700">Privacy</button>
-            <button className="hover:text-slate-700">Terms</button>
           </div>
         </div>
+      </section>
+
+      {/* VALUE STRIP */}
+      <section className="py-16 bg-[#F7F9FB] border-t-4 border-[#D4AF37]">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8 text-center px-6">
+          {[
+            { title: 'AI-Powered Drafting', icon: '✍️' },
+            { title: 'Compliance Validation', icon: '✅' },
+            { title: 'Team Collaboration', icon: '👥' },
+          ].map(({ title, icon }) => (
+            <div key={title} className="p-6 bg-white rounded-xl shadow-sm border-t-4 border-[#D4AF37]">
+              <div className="text-3xl mb-3">{icon}</div>
+              <h3 className="text-lg font-semibold text-[#003A8C] mb-2">{title}</h3>
+              <p className="text-gray-600 text-sm">Built to help you move from idea to funder-ready proposal.</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FEATURE GRID */}
+      <section id="features" className="py-20 bg-white px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-[#D4AF37] font-semibold mb-2">Everything you need</p>
+            <h2 className="text-3xl font-bold text-[#0A0F1A]">Built for grant winners</h2>
+            <p className="text-gray-600 mt-2 max-w-xl mx-auto">Every tool you need to research, draft, validate, and win grants — in one platform.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {features.map(({ title, desc }) => (
+              <div key={title} className="p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#D4AF37]/40 transition">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#E8D28C] mb-4" />
+                <h3 className="font-semibold text-[#003A8C] mb-2">{title}</h3>
+                <p className="text-sm text-gray-600">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AI ENGINE SECTION */}
+      <section className="py-20 bg-[#0A0F1A] text-white text-center px-6">
+        <p className="text-[#D4AF37] font-semibold mb-2">Trusted by award committees and funding reviewers nationwide</p>
+        <h2 className="text-3xl font-bold text-[#D4AF37] mb-4">Powered by the GrantsMaster AI Engine</h2>
+        <p className="text-gray-300 max-w-2xl mx-auto mb-10">
+          Generate tailored drafts, refine clarity, and align with funder requirements — all in one intelligent workflow.
+        </p>
+        <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-6 text-left">
+          {[
+            { stat: '10x', label: 'Faster than manual drafting' },
+            { stat: '94%', label: 'Funder alignment score' },
+            { stat: '$2M+', label: 'Grants won by our users' },
+          ].map(({ stat, label }) => (
+            <div key={stat} className="bg-white/10 rounded-xl p-6 border border-white/10">
+              <p className="text-3xl font-bold text-[#D4AF37] mb-1">{stat}</p>
+              <p className="text-gray-300 text-sm">{label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section id="testimonials" className="py-20 bg-white px-6">
+        <div className="max-w-6xl mx-auto text-center mb-12">
+          <h2 className="text-3xl font-bold text-[#003A8C]">What Users Say</h2>
+          <p className="text-gray-600 mt-2">Real stories from organizations winning more grants with TGM.</p>
+        </div>
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
+          {testimonials.map(({ quote, author }) => (
+            <div key={author} className="bg-white p-6 rounded-xl shadow-md border border-[#D4AF37]/40">
+              <p className="text-gray-700 italic mb-4">{quote}</p>
+              <p className="text-sm font-semibold text-[#003A8C]">— {author}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="py-20 bg-gradient-to-br from-[#003A8C] to-[#0A0F1A] text-white text-center px-6">
+        <p className="text-[#D4AF37] font-semibold mb-2">Join thousands using the award-winning GrantsMaster platform</p>
+        <h2 className="text-4xl font-bold mb-4">Ready to win more grants?</h2>
+        <p className="text-gray-300 mb-8 max-w-xl mx-auto">Start free today. No credit card required.</p>
+        <button
+          onClick={() => navigate('/signup')}
+          className="px-10 py-4 bg-[#D4AF37] text-[#0A0F1A] rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl transition"
+        >
+          Get Started Free
+        </button>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="bg-[#0A0F1A] text-gray-400 py-10 px-6">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded-md bg-gradient-to-br from-[#D4AF37] to-[#E8D28C] flex items-center justify-center">
+              <span className="text-[#0A0F1A] font-bold text-xs">GM</span>
+            </div>
+            <span className="text-white font-semibold">GrantsMaster</span>
+          </div>
+          <div className="flex gap-6 text-sm">
+            <Link to="/pricing" className="hover:text-[#D4AF37] transition">Pricing</Link>
+            <Link to="/contact" className="hover:text-[#D4AF37] transition">Contact</Link>
+            <Link to="/login" className="hover:text-[#D4AF37] transition">Login</Link>
+            <Link to="/signup" className="hover:text-[#D4AF37] transition">Sign Up</Link>
+          </div>
+          <p className="text-xs">© {new Date().getFullYear()} GrantsMaster. All rights reserved.</p>
+        </div>
       </footer>
+
     </div>
   );
-};
-
-export default LandingPage;
+}
