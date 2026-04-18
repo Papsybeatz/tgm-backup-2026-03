@@ -6,11 +6,7 @@ const LanguageSelector = ({ className = '' }) => {
 
   const changeLanguage = (lng) => {
     localStorage.setItem('language', lng);
-    i18n.changeLanguage(lng).then(() => {
-      window.location.reload();
-    }).catch(err => {
-      console.error('LanguageSelector: Error:', err);
-    });
+    i18n.changeLanguage(lng);
   };
 
   const currentLang = i18n.language || localStorage.getItem('language') || 'en';

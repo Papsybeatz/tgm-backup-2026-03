@@ -7,21 +7,19 @@ const resources = Object.keys(translations).reduce((acc, lang) => {
   return acc;
 }, {});
 
+const savedLang = localStorage.getItem('language') || 'en';
+
 i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'en',
+    lng: savedLang,
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false,
     },
     react: {
       useSuspense: false,
-    },
-    detection: {
-      order: [],
-      caches: [],
     },
   });
 
