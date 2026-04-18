@@ -141,3 +141,6 @@ vite.config.ts.timestamp-*
 # Embedded repos and special files
 grants-master-landing-backup-2026-04-15/grants-master-landing
 grants-master-landing-backup-2026-04-15/nul
+node_modules/
+.esbuild-out/
+dev-server.mjs
