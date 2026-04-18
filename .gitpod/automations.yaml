@@ -1,0 +1,13 @@
+services:
+  backend:
+    name: Backend API
+    description: Express + Prisma backend on port 4000
+    commands:
+      start: cd /workspaces/tgm-backup-2026-03/backend && node server.js
+      ready: curl -sf http://localhost:4000/api/auth/me || true
+  frontend:
+    name: Frontend Dev Server
+    description: Vite dev server on port 5173
+    commands:
+      start: cd /workspaces/tgm-backup-2026-03 && npm run dev -- --host 0.0.0.0 --port 5173
+      ready: curl -sf http://localhost:5173 || true
