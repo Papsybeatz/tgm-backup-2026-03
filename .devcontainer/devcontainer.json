@@ -1,7 +1,8 @@
 {
-  "name": "TGM Backend Dev",
+  "name": "TGM Dev",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "npm install && cd backend && npm install && npx prisma generate && npx prisma db push",
+  "postStartCommand": "cd /workspaces/tgm-backup-2026-03/backend && nohup node server.js > /tmp/backend.log 2>&1 &",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -12,5 +13,5 @@
       ]
     }
   },
-  "forwardPorts": [3000, 8080, 4000]
+  "forwardPorts": [4000, 5173]
 }
