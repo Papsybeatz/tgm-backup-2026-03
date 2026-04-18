@@ -12,6 +12,8 @@ export default function SignupPage() {
   const navigate = useNavigate();
   const { setUser } = useUser();
   const [form, setForm] = useState({ email: '', password: '', confirmPassword: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
 
@@ -126,19 +128,37 @@ export default function SignupPage() {
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--tgm-text)', marginBottom: 8 }}>Password</label>
-              <input type="password" value={form.password}
-                onChange={e => setForm({ ...form, password: e.target.value })}
-                placeholder="Create a password" style={inputStyle}
-                onFocus={e => e.target.style.borderColor = 'var(--tgm-gold)'}
-                onBlur={e => e.target.style.borderColor = 'var(--tgm-border)'} />
+              <div style={{ position: 'relative' }}>
+                <input type={showPassword ? 'text' : 'password'} value={form.password}
+                  onChange={e => setForm({ ...form, password: e.target.value })}
+                  placeholder="Create a password" style={{ ...inputStyle, paddingRight: 44 }}
+                  onFocus={e => e.target.style.borderColor = 'var(--tgm-gold)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--tgm-border)'} />
+                <button type="button" onClick={() => setShowPassword(v => !v)} style={{
+                  position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                  color: 'var(--tgm-muted)', fontSize: 18, lineHeight: 1,
+                }} tabIndex={-1} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--tgm-text)', marginBottom: 8 }}>Confirm Password</label>
-              <input type="password" value={form.confirmPassword}
-                onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
-                placeholder="Re-enter your password" style={inputStyle}
-                onFocus={e => e.target.style.borderColor = 'var(--tgm-gold)'}
-                onBlur={e => e.target.style.borderColor = 'var(--tgm-border)'} />
+              <div style={{ position: 'relative' }}>
+                <input type={showConfirm ? 'text' : 'password'} value={form.confirmPassword}
+                  onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
+                  placeholder="Re-enter your password" style={{ ...inputStyle, paddingRight: 44 }}
+                  onFocus={e => e.target.style.borderColor = 'var(--tgm-gold)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--tgm-border)'} />
+                <button type="button" onClick={() => setShowConfirm(v => !v)} style={{
+                  position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                  color: 'var(--tgm-muted)', fontSize: 18, lineHeight: 1,
+                }} tabIndex={-1} aria-label={showConfirm ? 'Hide password' : 'Show password'}>
+                  {showConfirm ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
             <button type="submit" disabled={status === 'loading'} style={{
               width: '100%', padding: '14px',

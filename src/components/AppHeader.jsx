@@ -9,13 +9,16 @@ const LANGUAGES = [
 ];
 
 function LangSwitcher() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const current = i18n.language?.slice(0, 2) || 'en';
 
   const change = (code) => {
     i18n.changeLanguage(code);
     localStorage.setItem('language', code);
   };
+
+  // Subscribing to t() ensures re-render on language change
+  void t;
 
   return (
     <div style={{ display: 'flex', gap: 3 }}>

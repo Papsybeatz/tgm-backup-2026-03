@@ -4,16 +4,19 @@ import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 
 export default function LandingPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
+  // Re-render when language changes
+  const lang = i18n.language;
+
   const features = [
-    { title: 'AI-Powered Drafting', desc: 'Generate funder-ready grant proposals in minutes, not weeks.' },
-    { title: 'Compliance Validation', desc: 'Automatically check your draft against funder requirements.' },
-    { title: 'Team Collaboration', desc: 'Invite your team, assign sections, and review together.' },
-    { title: 'Matching Engine', desc: 'Find the right grants for your mission from thousands of sources.' },
-    { title: 'Scoring Engine', desc: 'Get an AI score on your draft before you submit.' },
-    { title: 'Analytics Dashboard', desc: 'Track submissions, win rates, and funding pipeline.' },
+    { title: t('ai_drafting', 'AI-Powered Drafting'), desc: 'Generate funder-ready grant proposals in minutes, not weeks.' },
+    { title: t('compliance', 'Compliance Validation'), desc: 'Automatically check your draft against funder requirements.' },
+    { title: t('collaboration', 'Team Collaboration'), desc: 'Invite your team, assign sections, and review together.' },
+    { title: t('refinement', 'Matching Engine'), desc: 'Find the right grants for your mission from thousands of sources.' },
+    { title: t('export', 'Scoring Engine'), desc: 'Get an AI score on your draft before you submit.' },
+    { title: t('features', 'Analytics Dashboard'), desc: 'Track submissions, win rates, and funding pipeline.' },
   ];
 
   const testimonials = [
@@ -41,9 +44,9 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <LanguageSelector />
-            <Link to="/login" className="px-4 py-2 text-sm text-white hover:text-[#D4AF37] transition">Login</Link>
+            <Link to="/login" className="px-4 py-2 text-sm text-white hover:text-[#D4AF37] transition">{t('login', 'Login')}</Link>
             <Link to="/signup" className="px-4 py-2 rounded-lg bg-[#D4AF37] text-[#0A0F1A] text-sm font-bold shadow hover:shadow-lg transition">
-              Get Started Free
+              {t('get_started', 'Get Started Free')}
             </Link>
           </div>
         </div>
@@ -57,23 +60,23 @@ export default function LandingPage() {
               <span>🏆</span> Award-Winning Grant Writing Platform
             </p>
             <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
-              The fastest, smartest way to draft and win more grants.
+              {t('hero_title', 'The fastest, smartest way to draft and win more grants.')}
             </h1>
             <p className="text-lg text-[#E8D28C] mb-8">
-              AI-powered grant writing built for nonprofits, agencies, and consultants.
+              {t('hero_subtitle', 'AI-powered grant writing built for nonprofits, agencies, and consultants.')}
             </p>
             <div className="flex flex-wrap gap-4">
               <button
                 onClick={() => navigate('/signup')}
                 className="px-6 py-3 rounded-lg bg-[#D4AF37] text-[#0A0F1A] font-semibold shadow-md hover:shadow-xl transition"
               >
-                Get Started Free
+                {t('get_started', 'Get Started Free')}
               </button>
               <button className="px-6 py-3 rounded-lg bg-white/10 border border-white/30 text-white hover:bg-white/20 transition">
                 Watch Demo
               </button>
             </div>
-            <p className="mt-4 text-sm text-gray-400">No credit card required · Cancel anytime</p>
+            <p className="mt-4 text-sm text-gray-400">{t('no_credit_card', 'No credit card required')} · {t('cancel_anytime', 'Cancel anytime')}</p>
           </div>
 
           {/* AI Preview Card */}
@@ -176,7 +179,7 @@ export default function LandingPage() {
           onClick={() => navigate('/signup')}
           className="px-10 py-4 bg-[#D4AF37] text-[#0A0F1A] rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl transition"
         >
-          Get Started Free
+          {t('get_started', 'Get Started Free')}
         </button>
       </section>
 
