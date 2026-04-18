@@ -12,6 +12,7 @@
     "test:e2e": "playwright test tests/e2e"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "@tanstack/react-query": "^5.99.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -28,6 +29,7 @@
     "@tailwindcss/postcss": "^4.2.2",
     "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.5.0",
+    "prisma": "^5.22.0",
     "tailwindcss": "^4.2.2",
     "vite": "^7.3.1"
   },
