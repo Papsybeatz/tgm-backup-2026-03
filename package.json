@@ -14,6 +14,11 @@
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@tanstack/react-query": "^5.99.0",
+    "@tiptap/extension-character-count": "^3.22.4",
+    "@tiptap/extension-placeholder": "^3.22.4",
+    "@tiptap/pm": "^3.22.4",
+    "@tiptap/react": "^3.22.4",
+    "@tiptap/starter-kit": "^3.22.4",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

@@ -100,6 +100,8 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/team', teamInvitesRoutes);
 app.use('/api/auth', authRoutes);
+const aiRoutes = require('./routes/ai');
+app.use('/api/ai', aiRoutes);
 app.use('/api/drafts', draftsRoutes);
 app.use('/api/founder', founderAuditRoutes);
 
