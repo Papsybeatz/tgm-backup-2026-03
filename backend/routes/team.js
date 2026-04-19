@@ -15,13 +15,22 @@ router.get('/status', (req, res) => {
   res.json(team);
 });
 
-router.post('/add', (req, res) => {
+router.post('/add', async (req, res) => {
   const { sanitizeInput } = require('../utils/sanitize');
+  const sendInviteEmail = require('../utils/sendInviteEmail');
   const email = sanitizeInput(req.body.email);
+  const inviterName = req.body.inviterName || 'A GrantsMaster user';
   if (!email) return res.json({ success: false, message: 'Email required.' });
+
   team.pendingInvites.push({ email, status: 'pending' });
-  // TODO: send invite email
-  res.json({ success: true });
+
+  const inviteLink = `${process.env.APP_URL || 'https://grantsmaster.com'}/signup?invite=${encodeURIComponent(email)}`;
+  try {
+    await sendInviteEmail(email, inviterName, inviteLink);
+    res.json({ success: true, message: `Invite sent to ${email}` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 router.post('/remove', (req, res) => {

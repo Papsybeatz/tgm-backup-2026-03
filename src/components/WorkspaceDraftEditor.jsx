@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -30,9 +30,14 @@ function ToolBtn({ onClick, active, children, title }) {
 
 export default function WorkspaceDraftEditor({ title: propTitle = 'New Grant Draft' }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useUser() || {};
-  const [draftTitle, setDraftTitle] = useState(propTitle);
-  const [aiStatus, setAiStatus] = useState('idle'); // idle | loading | error
+
+  // Support opening an existing draft passed via router state
+  const existingDraft = location?.state;
+  const [draftTitle, setDraftTitle] = useState(existingDraft?.title || propTitle);
+  const [draftId, setDraftId] = useState(existingDraft?.draftId || null);
+  const [aiStatus, setAiStatus] = useState('idle');
   const [aiMsg, setAiMsg] = useState('');
   const [saved, setSaved] = useState(false);
 
@@ -44,7 +49,7 @@ export default function WorkspaceDraftEditor({ title: propTitle = 'New Grant Dra
       }),
       CharacterCount,
     ],
-    content: '',
+    content: existingDraft?.content || '',
     editorProps: {
       attributes: {
         style: 'min-height:480px; padding:24px; outline:none; font-size:15px; line-height:1.8; color:#1A202C;',
@@ -58,17 +63,28 @@ export default function WorkspaceDraftEditor({ title: propTitle = 'New Grant Dra
     const content = editor.getHTML();
     const token = localStorage.getItem('token');
     try {
-      await fetch('/api/drafts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ title: draftTitle, content }),
-      });
+      let res;
+      if (draftId) {
+        res = await fetch(`/api/drafts/${draftId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ title: draftTitle, content }),
+        });
+      } else {
+        res = await fetch('/api/drafts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ title: draftTitle, content }),
+        });
+        const data = await res.json();
+        if (data.draft?.id) setDraftId(data.draft.id);
+      }
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch {
       setSaved(false);
     }
-  }, [editor, draftTitle]);
+  }, [editor, draftTitle, draftId]);
 
   /* ── Generate full draft from prompt ── */
   const handleGenerate = useCallback(async () => {
