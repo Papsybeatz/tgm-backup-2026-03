@@ -3,13 +3,14 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const router = express.Router();
+const { getPlausibleStats } = require('../utils/plausible');
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.FOUNDER_EMAIL || 'Clotteythomas41@gmail.com';
 const LIFETIME_CAP = 200;
 
 let metricsCache = null;
 let cacheTime = 0;
-const CACHE_TTL = 60_000; // 60 seconds
+const CACHE_TTL = 60_000;
 
 function adminOnly(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -32,53 +33,20 @@ async function loadMetrics() {
   const now = new Date();
   const startOfDay = new Date(now.setHours(0, 0, 0, 0));
   const startOf7d = new Date(now - 7 * 24 * 60 * 60 * 1000);
-  const startOf30d = new Date(now - 30 * 24 * 60 * 60 * 1000);
 
-  const [
-    subscriptions,
-    aiUsage,
-    recentSignups,
-    errors,
-    lifetimeClaimed,
-    newSignups7d,
-    todayDrafts,
-    activeSubscriptions,
-  ] = await prisma.$transaction([
-    prisma.user.groupBy({
-      by: ['tier'],
-      _count: { tier: true },
-    }),
-    prisma.aiLog.groupBy({
-      by: ['action'],
-      _count: { action: true },
-    }),
-    prisma.user.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-      select: { id: true, email: true, name: true, tier: true, createdAt: true },
-    }),
-    prisma.errorLog.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-    }),
-    prisma.lifetimeTier.count({ where: { claimed: true } }),
-    prisma.user.count({ where: { createdAt: { gte: startOf7d } } }),
-    prisma.aiLog.count({
-      where: { action: 'generate', createdAt: { gte: startOfDay } },
-    }),
-    prisma.user.count({ where: { tier: { not: 'free' } } }),
-  ]);
+  const [subscriptions, aiUsage, recentSignups, errors, lifetimeClaimed, newSignups7d, todayDrafts, activeSubscriptions] = 
+    await prisma.$transaction([
+      prisma.user.groupBy({ by: ['tier'], _count: { tier: true } }),
+      prisma.aiLog.groupBy({ by: ['action'], _count: { action: true } }),
+      prisma.user.findMany({ orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, email: true, name: true, tier: true, createdAt: true } }),
+      prisma.errorLog.findMany({ orderBy: { createdAt: 'desc' }, take: 20 }),
+      prisma.lifetimeTier.count({ where: { claimed: true } }),
+      prisma.user.count({ where: { createdAt: { gte: startOf7d } } }),
+      prisma.aiLog.count({ where: { action: 'generate', createdAt: { gte: startOfDay } } }),
+      prisma.user.count({ where: { tier: { not: 'free' } } }),
+    ]);
 
-  return {
-    subscriptions,
-    aiUsage,
-    recentSignups,
-    errors,
-    newSignups7d,
-    activeSubscriptions,
-    todayDrafts,
-    lifetimeClaimed,
-  };
+  return { subscriptions, aiUsage, recentSignups, errors, lifetimeClaimed, newSignups7d, todayDrafts, activeSubscriptions };
 }
 
 router.get('/metrics', adminOnly, async (req, res) => {
@@ -89,42 +57,26 @@ router.get('/metrics', adminOnly, async (req, res) => {
       return res.json(metricsCache);
     }
 
-    const metrics = await loadMetrics();
+    const [dbMetrics, visitors] = await Promise.all([loadMetrics(), getPlausibleStats()]);
 
     metricsCache = {
-      visitors: {
-        last24h: Math.floor(Math.random() * 50) + 10,
-        last7d: Math.floor(Math.random() * 200) + 50,
-        last30d: Math.floor(Math.random() * 800) + 200,
-      },
+      visitors,
       system: {
-        totalUsers: metrics.subscriptions.reduce((a, b) => a + (b._count?.tier || 0), 0),
-        newSignups7d: metrics.newSignups7d,
-        activeSubscriptions: metrics.activeSubscriptions,
-        draftsLast24h: Math.floor(Math.random() * 20),
-        aiDraftsToday: metrics.todayDrafts,
-        lifetimeTierCount: metrics.lifetimeClaimed,
+        newSignups7d: dbMetrics.newSignups7d,
+        activeSubscriptions: dbMetrics.activeSubscriptions,
+        aiDraftsToday: dbMetrics.todayDrafts,
+        lifetimeTierCount: dbMetrics.lifetimeClaimed,
         lifetimeTierCap: LIFETIME_CAP,
-        lifetimeTierRemaining: LIFETIME_CAP - metrics.lifetimeClaimed,
+        lifetimeTierRemaining: LIFETIME_CAP - dbMetrics.lifetimeClaimed,
       },
-      subscriptionsByTier: metrics.subscriptions,
-      aiUsage: metrics.aiUsage,
-      recentSignups: metrics.recentSignups.map(u => ({
-        id: u.id,
-        email: u.email,
-        name: u.name || 'N/A',
-        tier: u.tier,
-        createdAt: u.createdAt.toISOString(),
+      subscriptionsByTier: dbMetrics.subscriptions,
+      aiUsage: dbMetrics.aiUsage,
+      recentSignups: dbMetrics.recentSignups.map(u => ({
+        id: u.id, email: u.email, name: u.name || 'N/A', tier: u.tier, createdAt: u.createdAt.toISOString()
       })),
-      errors: metrics.errors.map(e => ({
-        id: e.id,
-        message: e.message,
-        endpoint: e.endpoint,
-        severity: e.severity,
-        userId: e.userId,
-        createdAt: e.createdAt.toISOString(),
+      errors: dbMetrics.errors.map(e => ({
+        id: e.id, message: e.message, endpoint: e.endpoint, severity: e.severity, userId: e.userId, createdAt: e.createdAt.toISOString()
       })),
-      timeseries: generateTimeseries(30),
     };
 
     cacheTime = now;
@@ -135,23 +87,10 @@ router.get('/metrics', adminOnly, async (req, res) => {
   }
 });
 
-function generateTimeseries(days) {
-  const series = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    series.push({
-      date: date.toISOString().split('T')[0],
-      visitors: Math.floor(Math.random() * 30) + 5,
-      pageviews: Math.floor(Math.random() * 80) + 10,
-    });
-  }
-  return series;
-}
-
 router.delete('/cache', adminOnly, (req, res) => {
   metricsCache = null;
   cacheTime = 0;
+  require('../utils/plausible').clearPlausibleCache();
   res.json({ success: true, message: 'Cache cleared' });
 });
 
