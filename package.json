@@ -8,6 +8,7 @@
     "start": "node server.js",
     "dev": "vite",
     "build": "vite build",
+    "preview": "vite preview",
     "test": "jest tests/api",
     "test:e2e": "playwright test tests/e2e"
   },

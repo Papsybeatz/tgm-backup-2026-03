@@ -63,3 +63,26 @@ model DraftVersion {
 
   draft     Draft    @relation(fields: [draftId], references: [id])
 }
+
+model AiLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String   // "generate" | "improve" | "template" | "score"
+  createdAt DateTime @default(now())
+}
+
+model ErrorLog {
+  id        String   @id @default(cuid())
+  message   String
+  endpoint String?
+  userId   String?
+  severity String   @default("info") // "critical" | "warning" | "info"
+  createdAt DateTime @default(now())
+}
+
+model LifetimeTier {
+  id        String   @id @default(cuid())
+  count     Int      @default(0)
+  maxCap   Int      @default(200)
+  updatedAt DateTime @updatedAt
+}

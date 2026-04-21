@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 const router = express.Router();
 
 const requireAuth = require('../middleware/auth');
-const { TIERS, hasFeature } = require('../middleware/tierAuth');
+const { logAiAction } = require('../utils/logging');
 
 console.log('[DRAFTS ROUTE] loaded from file:', __filename);
 
@@ -14,27 +14,12 @@ router.post('/', requireAuth, async (req, res) => {
   console.log('[DRAFTS] CREATE (auth)', { user: req.user && { id: req.user.id, email: req.user.email }, bodySample: req.body && { title: req.body.title } });
   const { title, content } = req.body;
   if (!content) return res.status(400).json({ success: false, message: 'Missing content.' });
-
-  // Enforce draft limit for free tier
-  const userTier = req.user.tier || 'free';
-  const tierConfig = TIERS[userTier] || TIERS.free;
-  const draftLimit = tierConfig.limits?.drafts;
-  if (draftLimit !== undefined && draftLimit !== Infinity) {
-    const count = await prisma.draft.count({ where: { userId: req.user.id } });
-    if (count >= draftLimit) {
-      return res.status(403).json({
-        success: false,
-        message: `Draft limit reached for ${userTier} tier (${draftLimit} drafts). Upgrade to create more.`,
-        currentTier: userTier,
-        limit: draftLimit,
-      });
-    }
-  }
-
   try {
     const draft = await prisma.draft.create({
       data: { userId: req.user.id, title: title || '', content, tierAtCreation: req.user.tier || 'free' },
     });
+    // Log AI action for tracking
+    await logAiAction(req.user.id, 'generate');
     // versioning snapshot
     try { await prisma.draftVersion.create({ data: { draftId: draft.id, content: draft.content } }); } catch (e) { console.warn('[DRAFTS] versioning create error', e && e.message ? e.message : e); }
     return res.json({ success: true, draft });

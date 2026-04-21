@@ -13,15 +13,69 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static(distPath));
 
-const users = [];
-const upgrades = [];
+// API routes
+app.post('/api/auth/signup', (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
+  if (users.find(u => u.email === email)) return res.status(400).json({ message: 'Email already registered' });
+  const newUser = { email, password, tier: 'free', createdAt: new Date() };
+  users.push(newUser);
+  res.json({ email: newUser.email, tier: newUser.tier, token: 'mock-token-' + Date.now(), message: 'Signup successful.' });
+});
 
-app.post('/api/auth/login', (req, res) => {
+// Password Reset Request
+app.post('/api/auth/password-reset-request', (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: 'Email required' });
   const user = users.find(u => u.email === email);
-  if (!user) return res.status(401).json({ message: 'Invalid credentials' });
-  res.json({ email: user.email, tier: user.tier || 'free', token: 'mock-token', message: 'Login successful.' });
+  if (!user) return res.status(404).json({ message: 'If email exists, reset link sent' });
+  const resetToken = 'reset-' + Date.now();
+  passwordResets.push({ email, token: resetToken, expires: Date.now() + 3600000 });
+  res.json({ message: 'If email exists, reset link sent', token: resetToken });
+});
+
+// Password Reset Confirm
+app.post('/api/auth/password-reset-confirm', (req, res) => {
+  const { token, newPassword } = req.body;
+  const reset = passwordResets.find(r => r.token === token && r.expires > Date.now());
+  if (!reset) return res.status(400).json({ message: 'Invalid or expired token' });
+  const user = users.find(u => u.email === reset.email);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+  user.password = newPassword;
+  passwordResets.splice(passwordResets.indexOf(reset), 1);
+  res.json({ message: 'Password reset successful' });
+});
+
+// Get drafts
+app.get('/api/drafts', (req, res) => {
+  res.json({ drafts: drafts.filter(d => d.draftId) });
+});
+
+// Create draft
+app.post('/api/drafts', (req, res) => {
+  const { title, content } = req.body;
+  const draft = { id: drafts.length + 1, title: title || 'Untitled', content: content || '', createdAt: new Date() };
+  drafts.push(draft);
+  res.json({ success: true, draftId: draft.id, draft });
+});
+
+// Get user usage
+app.get('/api/usage', (req, res) => {
+  res.json({ draftsUsed: drafts.length, scoringUsed: 0, matchingUsed: 0 });
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const { email, password } = req.body;
+  if (!email) return res.status(400).json({ message: 'Email required' });
+  
+  // Find or create user (mock - for testing)
+  let user = users.find(u => u.email === email);
+  if (!user) {
+    user = { email, password, tier: 'free', createdAt: new Date() };
+    users.push(user);
+  }
+  
+  res.json({ email: user.email, tier: user.tier, token: 'mock-token-' + Date.now(), message: 'Login successful.' });
 });
 
 app.post('/api/upgrade/starter', (req, res) => {
@@ -195,7 +249,7 @@ app.get('/api/whitelabel/header', (req, res) => {
 });
 
 // Catch-all route for SPA (React Router)
-app.get('*', (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
