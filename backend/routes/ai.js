@@ -2,6 +2,7 @@ const express = require('express');
 const https = require('https');
 const router = express.Router();
 const requireAuth = require('../middleware/auth');
+const { logError, logAiAction } = require('../utils/logger');
 
 /* ── Groq API call (returns plain text) ── */
 async function groqChat(messages, maxTokens = 1800) {
@@ -130,9 +131,10 @@ Be specific, compelling, and funder-focused. Use formal but accessible language.
         throw e;
       }
     }
+    logAiAction('draft_generated', { email: req.user?.email, promptLength: prompt.length, usedGroq: !draft.includes('AI-enhanced') });
     return res.json({ draft });
   } catch (err) {
-    console.error('[AI DRAFT]', err.message);
+    logError('AI_DRAFT', err, { email: req.user?.email });
     return res.status(500).json({ message: err.message || 'AI generation failed' });
   }
 });
@@ -161,9 +163,10 @@ Return the improved content as HTML using <h2>, <h3>, <p>, <ul>, <li> tags. Outp
         throw e;
       }
     }
+    logAiAction('draft_improved', { email: req.user?.email, contentLength: content.length });
     return res.json({ output });
   } catch (err) {
-    console.error('[AI IMPROVE]', err.message);
+    logError('AI_IMPROVE', err, { email: req.user?.email });
     return res.status(500).json({ message: err.message || 'AI improve failed' });
   }
 });

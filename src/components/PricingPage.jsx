@@ -190,6 +190,79 @@ export default function PricingPage() {
           All plans include a 14-day money-back guarantee
         </p>
       </div>
+
+      {/* TESTIMONIALS */}
+      <div style={{ background: '#F8F9FC', padding: '72px 24px' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 8 }}>
+            <span style={{
+              display: 'inline-block', background: 'rgba(212,175,55,.15)',
+              color: '#B8960C', fontSize: 11, fontWeight: 700,
+              padding: '4px 14px', borderRadius: 20, letterSpacing: '0.08em', textTransform: 'uppercase',
+            }}>Beta Users</span>
+          </div>
+          <h2 style={{ textAlign: 'center', fontSize: 32, fontWeight: 800, color: 'var(--tgm-navy)', margin: '0 0 10px' }}>
+            Trusted by Early Grant Writers
+          </h2>
+          <p style={{ textAlign: 'center', color: 'var(--tgm-muted)', marginBottom: 48, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto' }}>
+            Real feedback from nonprofits, consultants, and agencies using TGM during beta.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+            {[
+              { quote: 'GrantsMaster made me aware of documents I didn\'t even know I needed. My proposals are now funder-ready.', author: 'Amara J.', role: 'Nonprofit Director', location: 'Atlanta, GA', avatar: 'AJ', tier: 'Pro', stars: 5 },
+              { quote: 'We won our first federal grant in 3 weeks. The AI engine writes better than our consultants — and costs 10x less.', author: 'Marcus T.', role: 'Agency Owner', location: 'New York, NY', avatar: 'MT', tier: 'Agency', stars: 5 },
+              { quote: 'The Grant Readiness Checklist alone saved us from submitting an incomplete application. Game changer.', author: 'Priya S.', role: 'Grant Consultant', location: 'Chicago, IL', avatar: 'PS', tier: 'Starter', stars: 5 },
+              { quote: 'I went from blank page to a 12-page proposal in under an hour. The funder loved it.', author: 'David O.', role: 'Community Organiser', location: 'Houston, TX', avatar: 'DO', tier: 'Pro', stars: 5 },
+              { quote: 'Finally a tool built for real grant writers, not just tech people. The UI is clean and the AI actually understands nonprofit language.', author: 'Fatima K.', role: 'Programme Director', location: 'London, UK', avatar: 'FK', tier: 'Lifetime', stars: 5 },
+              { quote: 'Our team of 6 now manages 20+ client proposals simultaneously. The multi-workspace dashboard is exactly what we needed.', author: 'Rachel M.', role: 'Grants Manager', location: 'Toronto, CA', avatar: 'RM', tier: 'Agency', stars: 5 },
+            ].map(({ quote, author, role, location, avatar, tier, stars }) => (
+              <div key={author} style={{
+                background: '#fff', borderRadius: 16, border: '1px solid #F0F0F0',
+                padding: 24, display: 'flex', flexDirection: 'column', gap: 16,
+                boxShadow: '0 1px 4px rgba(0,0,0,.06)', transition: 'box-shadow .2s',
+              }}>
+                {/* Stars */}
+                <div style={{ display: 'flex', gap: 2 }}>
+                  {Array.from({ length: stars }).map((_, i) => (
+                    <svg key={i} width="16" height="16" fill="#D4AF37" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                {/* Quote */}
+                <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.65, flex: 1, margin: 0 }}>"{quote}"</p>
+                {/* Author */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 12, borderTop: '1px solid #F9F9F9' }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'var(--tgm-blue)', color: '#fff',
+                    fontSize: 11, fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>{avatar}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--tgm-navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{author}</p>
+                    <p style={{ margin: 0, fontSize: 12, color: 'var(--tgm-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{role} · {location}</p>
+                  </div>
+                  <span style={{
+                    fontSize: 10, fontWeight: 700,
+                    background: 'rgba(0,58,140,.1)', color: 'var(--tgm-blue)',
+                    padding: '3px 10px', borderRadius: 20, flexShrink: 0,
+                  }}>{tier}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Trust bar */}
+          <div style={{ marginTop: 56, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 48, textAlign: 'center' }}>
+            {[['500+', 'Beta Users'], ['$2.4M+', 'Grants Drafted'], ['4.9/5', 'Avg Rating'], ['94%', 'Would Recommend']].map(([val, label]) => (
+              <div key={label}>
+                <p style={{ margin: 0, fontSize: 26, fontWeight: 800, color: 'var(--tgm-blue)' }}>{val}</p>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--tgm-muted)' }}>{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

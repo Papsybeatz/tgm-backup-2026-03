@@ -68,7 +68,7 @@ app.get('/api/test-ai', async (req, res) => {
 // MongoDB support removed — using Prisma for persistence where applicable
 
 const founderAuditRoutes = require('./routes/founderAudit');
-const adminMetricsRoutes = require('./routes/adminMetrics');
+const adminRoutes = require('./routes/admin');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
@@ -107,7 +107,7 @@ const documentsRoutes = require('./routes/documents');
 app.use('/api/documents', documentsRoutes);
 app.use('/api/drafts', draftsRoutes);
 app.use('/api/founder', founderAuditRoutes);
-app.use('/api/admin', adminMetricsRoutes);
+app.use('/api/admin', adminRoutes);
 
 const upload = multer();
 app.post('/api/upload', uploadLimiter, upload.single('file'), (req, res) => {

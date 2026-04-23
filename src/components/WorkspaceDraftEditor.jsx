@@ -1,5 +1,27 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+
+const CHECKLIST = [
+  { id: 'inc',      label: 'Certificate of Incorporation',   tip: 'Proves your organisation is legally registered.' },
+  { id: 'irs',      label: 'IRS 501(c)(3) Letter',           tip: 'Required by most US federal and private funders.' },
+  { id: 'board',    label: 'Board Member List',              tip: 'Shows governance structure and credibility.' },
+  { id: 'budget',   label: 'Organisational Budget',          tip: 'Demonstrates financial management capacity.' },
+  { id: 'fin',      label: 'Past Financial Statements',      tip: 'Audited statements build funder confidence.' },
+  { id: 'prog',     label: 'Programme Description',          tip: 'Clear description of what you do and for whom.' },
+  { id: 'me',       label: 'Monitoring & Evaluation Plan',   tip: 'Shows how you measure and report impact.' },
+  { id: 'impact',   label: 'Impact Metrics',                 tip: 'Quantified outcomes from past work.' },
+  { id: 'photos',   label: 'Photos / Evidence',              tip: 'Visual proof of your work in the field.' },
+  { id: 'reports',  label: 'Past Grant Reports',             tip: 'Demonstrates accountability to previous funders.' },
+];
+
+const TIPS = [
+  { title: 'Strong Problem Statement',  body: 'Use data to quantify the problem. Funders fund solutions to proven problems, not assumptions.' },
+  { title: 'Measurable Outcomes',       body: 'Replace vague goals ("help youth") with specific targets ("serve 200 youth, 80% improve grades").' },
+  { title: 'Budget Structure',          body: 'Break costs into personnel, programme, overhead. Show cost-per-beneficiary where possible.' },
+  { title: 'Sustainability Plan',       body: 'Explain how the programme continues after the grant ends. Funders hate one-and-done projects.' },
+  { title: 'Demonstrate Credibility',   body: 'Cite past successes, partnerships, and team qualifications. Trust is earned before funding.' },
+  { title: 'Align With Funder Goals',   body: 'Mirror the funder\'s language and priorities. Read their guidelines 3 times before writing.' },
+];
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -148,6 +170,12 @@ export default function WorkspaceDraftEditor({ title: propTitle = 'New Grant Dra
 
   const words = editor?.storage?.characterCount?.words() ?? 0;
   const chars = editor?.storage?.characterCount?.characters() ?? 0;
+  const [checkedItems, setCheckedItems] = useState({});
+  const [activeTip, setActiveTip] = useState(null);
+  const [sidebarTab, setSidebarTab] = useState('checklist'); // 'checklist' | 'tips'
+
+  const toggleCheck = (id) => setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
+  const checkedCount = Object.values(checkedItems).filter(Boolean).length;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--tgm-bg)' }}>
@@ -157,7 +185,7 @@ export default function WorkspaceDraftEditor({ title: propTitle = 'New Grant Dra
         background: 'linear-gradient(135deg, var(--tgm-navy) 0%, var(--tgm-blue) 100%)',
         padding: '28px 32px', color: '#fff',
       }}>
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <button onClick={() => navigate('/dashboard')} style={{
             background: 'none', border: 'none', color: 'var(--tgm-gold-light)',
             fontSize: 13, cursor: 'pointer', padding: 0, marginBottom: 12,
@@ -178,8 +206,15 @@ export default function WorkspaceDraftEditor({ title: propTitle = 'New Grant Dra
         </div>
       </div>
 
-      {/* Editor */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 24px' }}>
+      {/* Editor + Sidebar — responsive: stacks on mobile */}
+      <style>{`
+        @media (max-width: 768px) {
+          .tgm-editor-layout { grid-template-columns: 1fr !important; }
+          .tgm-editor-sidebar { display: none !important; }
+          .tgm-toolbar { flex-wrap: wrap !important; }
+        }
+      `}</style>
+      <div className="tgm-editor-layout" style={{ maxWidth: 1280, margin: '0 auto', padding: '24px 16px', display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
         <div style={{
           background: 'var(--tgm-surface)',
           borderRadius: 'var(--tgm-radius-lg)',
@@ -279,6 +314,149 @@ export default function WorkspaceDraftEditor({ title: propTitle = 'New Grant Dra
           }}>
             <span>{words} words · {chars} characters</span>
             <span style={{ color: 'var(--tgm-gold)', fontWeight: 600 }}>✦ GrantsMaster AI Engine</span>
+          </div>
+        </div>
+
+        {/* ── SIDEBAR ── */}
+        <div className="tgm-editor-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* Tab switcher */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr',
+            background: 'var(--tgm-surface)', borderRadius: 'var(--tgm-radius-md)',
+            border: '1px solid var(--tgm-border)', overflow: 'hidden',
+          }}>
+            {[['checklist','📋 Checklist'],['tips','💡 Tips']].map(([key, label]) => (
+              <button key={key} onClick={() => setSidebarTab(key)} style={{
+                padding: '10px', fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer',
+                background: sidebarTab === key ? 'var(--tgm-navy)' : 'transparent',
+                color: sidebarTab === key ? '#fff' : 'var(--tgm-muted)',
+                transition: 'all .15s',
+              }}>{label}</button>
+            ))}
+          </div>
+
+          {/* Grant Readiness Checklist */}
+          {sidebarTab === 'checklist' && (
+            <div style={{
+              background: 'var(--tgm-surface)', borderRadius: 'var(--tgm-radius-lg)',
+              border: '1px solid var(--tgm-border)', boxShadow: 'var(--tgm-shadow-sm)',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                padding: '14px 16px', borderBottom: '1px solid var(--tgm-border)',
+                background: 'linear-gradient(135deg, var(--tgm-navy), var(--tgm-blue))',
+              }}>
+                <h3 style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 700, color: '#fff' }}>Grant Readiness Checklist</h3>
+                <p style={{ margin: 0, fontSize: 11, color: 'var(--tgm-gold-light)' }}>
+                  {checkedCount}/{CHECKLIST.length} documents ready
+                </p>
+                {/* Progress bar */}
+                <div style={{ marginTop: 8, height: 4, background: 'rgba(255,255,255,.15)', borderRadius: 2 }}>
+                  <div style={{
+                    height: '100%', borderRadius: 2, background: 'var(--tgm-gold)',
+                    width: `${(checkedCount / CHECKLIST.length) * 100}%`,
+                    transition: 'width .3s ease',
+                  }} />
+                </div>
+              </div>
+              <div style={{ padding: '8px 0' }}>
+                {CHECKLIST.map(item => (
+                  <div key={item.id} style={{
+                    display: 'flex', alignItems: 'flex-start', gap: 10,
+                    padding: '10px 16px', cursor: 'pointer',
+                    transition: 'background .15s',
+                  }}
+                    onMouseOver={e => e.currentTarget.style.background = 'var(--tgm-bg)'}
+                    onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    onClick={() => toggleCheck(item.id)}
+                  >
+                    <div style={{
+                      width: 18, height: 18, borderRadius: 5, flexShrink: 0, marginTop: 1,
+                      border: checkedItems[item.id] ? 'none' : '2px solid var(--tgm-border)',
+                      background: checkedItems[item.id] ? 'var(--tgm-gold)' : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 11, color: 'var(--tgm-navy)', fontWeight: 800,
+                      transition: 'all .15s',
+                    }}>{checkedItems[item.id] ? '✓' : ''}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{
+                        margin: '0 0 2px', fontSize: 12, fontWeight: 600,
+                        color: checkedItems[item.id] ? 'var(--tgm-muted)' : 'var(--tgm-navy)',
+                        textDecoration: checkedItems[item.id] ? 'line-through' : 'none',
+                      }}>{item.label}</p>
+                      <p style={{ margin: 0, fontSize: 11, color: 'var(--tgm-muted)', lineHeight: 1.4 }}>{item.tip}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Grant Writing Tips */}
+          {sidebarTab === 'tips' && (
+            <div style={{
+              background: 'var(--tgm-surface)', borderRadius: 'var(--tgm-radius-lg)',
+              border: '1px solid var(--tgm-border)', boxShadow: 'var(--tgm-shadow-sm)',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                padding: '14px 16px', borderBottom: '1px solid var(--tgm-border)',
+                background: 'linear-gradient(135deg, var(--tgm-navy), var(--tgm-blue))',
+              }}>
+                <h3 style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 700, color: '#fff' }}>Grant Writing Tips</h3>
+                <p style={{ margin: 0, fontSize: 11, color: 'var(--tgm-gold-light)' }}>Click any tip to expand</p>
+              </div>
+              <div style={{ padding: '8px 0' }}>
+                {TIPS.map((tip, i) => (
+                  <div key={i}>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '12px 16px', cursor: 'pointer', transition: 'background .15s',
+                    }}
+                      onMouseOver={e => e.currentTarget.style.background = 'var(--tgm-bg)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                      onClick={() => setActiveTip(activeTip === i ? null : i)}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{
+                          width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                          background: 'rgba(212,175,55,.15)', border: '1px solid rgba(212,175,55,.3)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 11, fontWeight: 800, color: 'var(--tgm-gold)',
+                        }}>{i + 1}</span>
+                        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--tgm-navy)' }}>{tip.title}</p>
+                      </div>
+                      <span style={{ color: 'var(--tgm-muted)', fontSize: 14, transition: 'transform .2s', transform: activeTip === i ? 'rotate(90deg)' : 'none' }}>›</span>
+                    </div>
+                    {activeTip === i && (
+                      <div style={{
+                        padding: '0 16px 14px 46px',
+                        fontSize: 12, color: 'var(--tgm-muted)', lineHeight: 1.6,
+                        borderBottom: i < TIPS.length - 1 ? '1px solid var(--tgm-border)' : 'none',
+                      }}>{tip.body}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Quick action */}
+          <div style={{
+            background: 'linear-gradient(135deg, var(--tgm-navy), var(--tgm-blue))',
+            borderRadius: 'var(--tgm-radius-md)', padding: '16px',
+            border: '1px solid rgba(212,175,55,.2)',
+          }}>
+            <p style={{ margin: '0 0 4px', fontSize: 12, fontWeight: 700, color: 'var(--tgm-gold)' }}>✦ AI Engine Ready</p>
+            <p style={{ margin: '0 0 12px', fontSize: 11, color: 'rgba(255,255,255,.6)', lineHeight: 1.5 }}>
+              Describe your mission and click Generate Draft for a complete proposal.
+            </p>
+            <button onClick={handleGenerate} disabled={aiStatus === 'loading'} style={{
+              width: '100%', padding: '9px', borderRadius: 8,
+              background: 'var(--tgm-gold)', border: 'none',
+              color: 'var(--tgm-navy)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+            }}>{aiStatus === 'loading' ? '✦ Generating…' : '✦ Generate Draft'}</button>
           </div>
         </div>
       </div>

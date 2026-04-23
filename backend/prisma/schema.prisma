@@ -1,6 +1,7 @@
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -11,12 +12,15 @@ model User {
   email              String   @unique
   password           String
   name               String?
+  role               String   @default("user")
 
   tier               String   @default("free")
   subscriptionStatus String   @default("inactive")
   subscriptionType   String   @default("none")
   subscriptionId     String?
   provider           String?
+  lemonCustomerId    String?
+  stripeCustomerId   String?
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt

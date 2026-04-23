@@ -1,106 +1,156 @@
-
 const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
-// Webhooks should be publicly accessible (signature verified); do not requireAuth
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const SIGNING_SECRET = process.env.LEMONSQUEEZY_SIGNING_SECRET;
 
-const TIER_MAP = {
-  STARTER: 'starter',
-  PRO: 'pro',
-  AGENCY_STARTER: 'agency_starter',
-  AGENCY_UNLIMITED: 'agency_unlimited',
-  LIFETIME: 'lifetime'
+// Variant ID → internal tier key
+const VARIANT_TIER_MAP = {
+  '1562436': 'lifetime',
+  '1562526': 'starter',
+  '1562476': 'pro',
+  '1198257': 'agency_starter',
+  '1198313': 'agency_unlimited',
 };
 
-const LIFETIME_VARIANT_ID = process.env.LEMONSQUEEZY_LIFETIME_VARIANT_ID || '963478';
+const LIFETIME_VARIANT_ID = '1562436';
+const LIFETIME_CAP = 200;
 
-router.post('/lemon-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const rawBody = (typeof req.body === 'string') ? req.body : (req.body && typeof req.body.toString === 'function' ? req.body.toString() : null);
-  const signature = req.headers['x-signature'] || req.headers['x-lemon-signature'] || req.headers['x-lemon-squeezy-signature'];
+function verifySignature(rawBody, signature) {
+  if (!SIGNING_SECRET) return true;
+  const computed = crypto.createHmac('sha256', SIGNING_SECRET).update(rawBody).digest('hex');
+  return computed === signature;
+}
 
-  // verify signature when secret available
-  if (SIGNING_SECRET) {
-    const hmacInput = JSON.stringify(req.body);
-    const computed = crypto.createHmac('sha256', SIGNING_SECRET).update(hmacInput).digest('hex');
-    if (!signature || computed !== signature) {
-      console.warn('[LEMON] signature mismatch', { provided: signature, computed });
-      try { console.log('[LEMON] rawBody sample:', (rawBody && rawBody.slice ? rawBody.slice(0,200) : JSON.stringify(req.body).slice(0,200))); } catch(e) {}
-      return res.status(403).send('Invalid signature');
-    }
+async function upsertUser(email, update) {
+  const randomPass = crypto.randomBytes(16).toString('hex');
+  try {
+    await prisma.user.upsert({
+      where: { email },
+      update,
+      create: Object.assign({ email, password: randomPass, role: 'user' }, update),
+    });
+    console.log('[LEMON] upserted user', email, JSON.stringify(update));
+  } catch (e) {
+    console.error('[LEMON] upsert failed for', email, e.message);
+  }
+}
+
+router.post('/lemon-webhook', express.raw({ type: '*/*' }), async (req, res) => {
+  const rawBody = req.body instanceof Buffer ? req.body.toString('utf8') : String(req.body);
+  const signature =
+    req.headers['x-signature'] ||
+    req.headers['x-lemon-signature'] ||
+    req.headers['x-lemon-squeezy-signature'] || '';
+
+  if (!verifySignature(rawBody, signature)) {
+    console.warn('[LEMON] signature mismatch — rejected');
+    return res.status(403).send('Invalid signature');
   }
 
   let payload;
-  // prefer parsed body when available (express.json may have already parsed it)
-  payload = req.body;
+  try { payload = JSON.parse(rawBody); }
+  catch (e) { return res.status(400).send('Invalid JSON'); }
 
-  const eventType = payload.event || payload.event_name || payload.type;
+  const eventName = payload.meta?.event_name || payload.event_name || payload.event || '';
+  const attrs = payload.data?.attributes || {};
+  const email = attrs.user_email || attrs.customer_email || payload.data?.customer_email || null;
+  const variantId = String(attrs.variant_id || attrs.first_subscription_item?.variant_id || '');
+  const subscriptionId = String(payload.data?.id || attrs.subscription_id || '');
+  const customerId = String(attrs.customer_id || payload.data?.customer_id || '');
+  const tier = VARIANT_TIER_MAP[variantId] || null;
 
-  // Handle lifetime one-time purchase
-  if (eventType === 'order_created' || eventType === 'order.completed') {
-    // LemonSqueezy order shape
-    const order = payload.data?.attributes || payload.data || payload;
-    const variantId = order.variant_id || order.variant?.id || null;
-    const email = order.user_email || order.customer_email || order.customer?.email || payload.data?.customer_email;
+  console.log('[LEMON] event:', eventName, '| variant:', variantId, '| tier:', tier, '| email:', email);
 
-    if (String(variantId) === String(LIFETIME_VARIANT_ID)) {
-      const update = {
-        tier: TIER_MAP.LIFETIME,
-        subscriptionStatus: 'active',
-        subscriptionType: 'one_time',
-        subscriptionId: String(order.id || order.order_id || ''),
-        provider: 'lemonsqueezy'
-      };
-
-      if (email) {
-        await upsertPrismaOnly(email, update);
-        return res.status(200).send('ok');
+  // subscription_created
+  if (eventName === 'subscription_created') {
+    if (!tier) return res.status(200).send('unknown variant');
+    if (variantId === LIFETIME_VARIANT_ID) {
+      const count = await prisma.user.count({ where: { tier: 'lifetime' } });
+      if (count >= LIFETIME_CAP) {
+        console.warn('[LEMON] lifetime cap reached for', email);
+        return res.status(200).send('lifetime cap reached');
       }
-      // Try by customer id if no email — lookup in Prisma
-      const customerId = order.customer_id || order.customer?.id || payload.data?.customer_id;
-      if (customerId) {
-        try {
-          const pUser = await prisma.user.findFirst({ where: { lemonCustomerId: String(customerId) } });
-          if (pUser && pUser.email) {
-            await upsertPrismaOnly(pUser.email, update);
-            return res.status(200).send('ok');
-          }
-        } catch (e) {
-          console.error('[LEMON] prisma lookup/update failed', e);
-          return res.status(500).send('DB error');
-        }
-      }
-      return res.status(404).send('User not found');
     }
+    if (!email) return res.status(400).send('missing email');
+    await upsertUser(email, {
+      tier,
+      subscriptionStatus: 'active',
+      subscriptionType: variantId === LIFETIME_VARIANT_ID ? 'one_time' : 'recurring',
+      subscriptionId,
+      lemonCustomerId: customerId,
+      provider: 'lemonsqueezy',
+    });
+    return res.status(200).send('ok');
   }
 
-  // Optional: refund handling
-  if (eventType === 'order_refunded' || eventType === 'refund.created') {
-    const eventId = payload.data?.id || payload.data?.attributes?.id || null;
-    if (eventId) {
+  // subscription_updated (plan change, renewal)
+  if (eventName === 'subscription_updated') {
+    const status = attrs.status || 'active';
+    const newVariantId = String(attrs.variant_id || attrs.first_subscription_item?.variant_id || '');
+    const newTier = VARIANT_TIER_MAP[newVariantId] || null;
+    if (subscriptionId) {
       try {
-        await prisma.user.updateMany({ where: { subscriptionId: String(eventId) }, data: { tier: 'free', subscriptionStatus: 'canceled', subscriptionType: 'none' } });
-      } catch (e) {
-        console.error('[LEMON] refund handler failed', e);
+        await prisma.user.updateMany({
+          where: { subscriptionId },
+          data: { subscriptionStatus: status, ...(newTier ? { tier: newTier } : {}) },
+        });
+      } catch (e) { console.error('[LEMON] subscription_updated error', e.message); }
+    }
+    return res.status(200).send('ok');
+  }
+
+  // subscription_cancelled / expired / paused
+  if (['subscription_cancelled','subscription_expired','subscription_paused'].includes(eventName)) {
+    if (subscriptionId) {
+      try {
+        await prisma.user.updateMany({
+          where: { subscriptionId },
+          data: {
+            tier: 'free',
+            subscriptionStatus: eventName === 'subscription_paused' ? 'paused' : 'canceled',
+            subscriptionType: 'none',
+          },
+        });
+      } catch (e) { console.error('[LEMON]', eventName, 'error', e.message); }
+    }
+    return res.status(200).send('ok');
+  }
+
+  // order_created (lifetime one-time fallback)
+  if (eventName === 'order_created' || eventName === 'order_completed') {
+    const oVariantId = String(attrs.variant_id || payload.data?.attributes?.first_order_item?.variant_id || '');
+    if (oVariantId === LIFETIME_VARIANT_ID) {
+      const count = await prisma.user.count({ where: { tier: 'lifetime' } });
+      if (count >= LIFETIME_CAP) return res.status(200).send('lifetime cap reached');
+      const oEmail = attrs.user_email || attrs.customer_email || email;
+      if (oEmail) {
+        await upsertUser(oEmail, {
+          tier: 'lifetime', subscriptionStatus: 'active', subscriptionType: 'one_time',
+          subscriptionId: String(payload.data?.id || ''), lemonCustomerId: customerId, provider: 'lemonsqueezy',
+        });
       }
     }
     return res.status(200).send('ok');
   }
 
-  console.log('[LEMON] Unhandled event', eventType);
+  // refund
+  if (eventName === 'order_refunded' || eventName === 'refund_created') {
+    if (subscriptionId) {
+      try {
+        await prisma.user.updateMany({
+          where: { subscriptionId },
+          data: { tier: 'free', subscriptionStatus: 'refunded', subscriptionType: 'none' },
+        });
+      } catch (e) { console.error('[LEMON] refund error', e.message); }
+    }
+    return res.status(200).send('ok');
+  }
+
+  console.log('[LEMON] unhandled event:', eventName);
   return res.status(200).send('ignored');
 });
-
-async function upsertPrismaOnly(email, update) {
-  const randomPass = crypto.randomBytes(16).toString('hex');
-  try {
-    await prisma.user.upsert({ where: { email }, update, create: Object.assign({ email, password: randomPass }, update) });
-  } catch (e) {
-    console.error('[PRISMA] upsert failed (lemon):', e);
-  }
-}
 
 module.exports = router;

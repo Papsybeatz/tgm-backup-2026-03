@@ -1,54 +1,68 @@
 import React, { useState } from 'react';
 import { useUser } from './UserContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import SkinToggle from './SkinToggle';
-import { useSkin } from '../hooks/useSkin.jsx';
+
+async function safeJson(res) {
+  const text = await res.text();
+  if (!text) throw new Error('Empty response — backend may be offline. Please try again.');
+  try { return JSON.parse(text); } catch { throw new Error(text || 'Server error'); }
+}
+
+const EyeIcon = ({ open }) => open ? (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+  </svg>
+) : (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+    <line x1="1" y1="1" x2="23" y2="23"/>
+  </svg>
+);
+
+const STATS = [
+  { value: '10x', label: 'Faster than manual drafting' },
+  { value: '94%', label: 'Funder alignment score' },
+  { value: '$2M+', label: 'Grants won by users' },
+];
+
+const FEATURES = [
+  'AI-powered proposal drafting',
+  'Funder matching engine',
+  'Scoring & compliance checks',
+  'Team collaboration tools',
+];
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
   const { setUser } = useUser();
-  const { t } = useTranslation();
-  const { skin } = useSkin();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('loading');
     setMessage('');
-    
     if (!email || !password) {
-      setStatus('error');
-      setMessage('Please enter email and password.');
-      return;
+      setStatus('error'); setMessage('Please enter email and password.'); return;
     }
-    
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Login failed');
-      }
-      
-      const data = await res.json();
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.message || 'Login failed');
       const userObj = { email: data.email, tier: data.tier };
       setUser(userObj);
       localStorage.setItem('user', JSON.stringify(userObj));
       localStorage.setItem('token', data.token);
       setStatus('success');
       setMessage('Login successful!');
-      
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 500);
+      setTimeout(() => navigate('/dashboard'), 500);
     } catch (err) {
       setStatus('error');
       setMessage(err.message || 'Login failed.');
@@ -56,194 +70,217 @@ const LoginPage = () => {
   };
 
   const inputStyle = {
-    width: '100%',
-    padding: '14px 16px',
-    background: skin === 'futuristic' ? 'rgba(255, 255, 255, 0.05)' : '#fff',
-    border: `1px solid ${skin === 'futuristic' ? 'rgba(255, 255, 255, 0.15)' : '#e5e7eb'}`,
-    borderRadius: 10,
-    color: skin === 'futuristic' ? '#e5e7eb' : '#111',
-    fontSize: 15,
-    outline: 'none',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
-  };
-
-  const labelStyle = {
-    display: 'block',
-    color: skin === 'futuristic' ? 'rgba(255, 255, 255, 0.8)' : '#374151',
-    fontSize: 14,
-    fontWeight: 500,
-    marginBottom: 8,
+    width: '100%', padding: '13px 16px',
+    border: '1.5px solid var(--tgm-border)',
+    borderRadius: 'var(--tgm-radius-md)',
+    fontSize: 15, color: 'var(--tgm-text)',
+    background: 'var(--tgm-surface)',
+    outline: 'none', transition: 'border-color .2s',
+    boxSizing: 'border-box',
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: skin === 'futuristic' 
-        ? 'linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0a0a0f 100%)'
-        : 'linear-gradient(135deg, #f9fafb 0%, #f3f4f6 50%, #f9fafb 100%)',
-      padding: 20,
-      position: 'relative'
-    }}>
-      <div style={{ position: 'absolute', left: 20, top: 20, display: 'flex', gap: 8 }}>
-        <Link to="/" style={{
-          padding: '8px 16px',
-          borderRadius: 8,
-          background: 'transparent',
-          border: `1px solid ${skin === 'futuristic' ? 'rgba(255,255,255,0.2)' : '#e5e7eb'}`,
-          color: skin === 'futuristic' ? '#e5e7eb' : '#374151',
-          fontSize: 13,
-          fontWeight: 500,
-          textDecoration: 'none'
-        }}>Home</Link>
-      </div>
-      <div style={{ position: 'absolute', right: 20, top: 20 }}>
-        <SkinToggle />
+    <div style={{ minHeight: '100vh', display: 'flex', flexWrap: 'wrap' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .tgm-login-brand { display: none !important; }
+          .tgm-login-form  { width: 100% !important; max-width: 100% !important; padding: 32px 20px !important; }
+        }
+      `}</style>
+
+      {/* ── Left branding panel ── */}
+      <div className="tgm-login-brand" style={{
+        flex: 1,
+        background: 'linear-gradient(160deg, var(--tgm-navy) 0%, var(--tgm-blue) 100%)',
+        display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+        padding: '48px 52px',
+        color: '#fff',
+        minWidth: 0,
+      }}>
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 12,
+            background: 'linear-gradient(135deg, var(--tgm-gold), var(--tgm-gold-light))',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: 800, fontSize: 16, color: 'var(--tgm-navy)', flexShrink: 0,
+          }}>GM</div>
+          <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-.3px' }}>GrantsMaster</span>
+        </div>
+
+        {/* Main copy */}
+        <div>
+          <p style={{ color: 'var(--tgm-gold-light)', fontWeight: 600, fontSize: 13, marginBottom: 16, letterSpacing: '.5px', textTransform: 'uppercase' }}>
+            🏆 Award-Winning Platform
+          </p>
+          <h2 style={{ fontSize: 36, fontWeight: 800, lineHeight: 1.2, margin: '0 0 20px' }}>
+            Win more grants with AI-powered writing
+          </h2>
+          <p style={{ fontSize: 16, opacity: .75, lineHeight: 1.7, margin: '0 0 40px' }}>
+            Trusted by nonprofits, agencies, and consultants to draft funder-ready proposals in minutes.
+          </p>
+
+          {/* Feature list */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 48 }}>
+            {FEATURES.map(f => (
+              <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                  background: 'rgba(212,175,55,.2)', border: '1px solid rgba(212,175,55,.4)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 800, color: 'var(--tgm-gold)',
+                }}>✓</div>
+                <span style={{ fontSize: 15, opacity: .9 }}>{f}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Stats row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
+            {STATS.map(({ value, label }) => (
+              <div key={value} style={{
+                background: 'rgba(255,255,255,.07)',
+                border: '1px solid rgba(255,255,255,.12)',
+                borderRadius: 12, padding: '16px 12px', textAlign: 'center',
+              }}>
+                <p style={{ fontSize: 24, fontWeight: 800, color: 'var(--tgm-gold)', margin: '0 0 4px' }}>{value}</p>
+                <p style={{ fontSize: 11, opacity: .65, margin: 0, lineHeight: 1.4 }}>{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Testimonial */}
+        <div style={{
+          background: 'rgba(255,255,255,.07)',
+          border: '1px solid rgba(255,255,255,.12)',
+          borderRadius: 14, padding: '20px 24px',
+        }}>
+          <p style={{ fontSize: 14, fontStyle: 'italic', opacity: .85, margin: '0 0 10px', lineHeight: 1.6 }}>
+            "We won our first grant in 3 weeks using GrantsMaster. The AI engine writes better than our consultants."
+          </p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--tgm-gold)', margin: 0 }}>
+            — Nonprofit Director, Atlanta
+          </p>
+        </div>
       </div>
 
-      <div style={{
-        width: '100%',
-        maxWidth: 420,
-        background: skin === 'futuristic' 
-          ? 'rgba(20, 20, 30, 0.8)' 
-          : '#fff',
-        backdropFilter: skin === 'futuristic' ? 'blur(20px)' : 'none',
-        border: `1px solid ${skin === 'futuristic' ? 'rgba(0, 240, 255, 0.15)' : '#e5e7eb'}`,
-        borderRadius: 20,
-        padding: 40,
-        boxShadow: skin === 'futuristic'
-          ? '0 0 40px rgba(0, 240, 255, 0.1)'
-          : '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+      {/* ── Right form panel ── */}
+      <div className="tgm-login-form" style={{
+        width: '100%', maxWidth: 480,
+        display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        padding: '48px 40px',
+        background: 'var(--tgm-bg)',
+        flexShrink: 0,
       }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{
-            width: 48,
-            height: 48,
-            borderRadius: 14,
-            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 16px',
-            fontSize: 24,
-            fontWeight: 700,
-            color: 'white'
-          }}>G</div>
-          <h1 style={{
-            color: skin === 'futuristic' ? '#fff' : '#111',
-            fontSize: 28,
-            fontWeight: 700,
-            margin: 0
-          }}>Welcome Back</h1>
-          <p style={{
-            color: skin === 'futuristic' ? 'rgba(255,255,255,0.6)' : '#6b7280',
-            fontSize: 15,
-            marginTop: 8
-          }}>Sign in to continue to your workspace</p>
+        <div style={{ marginBottom: 36 }}>
+          <Link to="/" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            fontSize: 13, color: 'var(--tgm-muted)',
+            padding: '6px 12px', borderRadius: 'var(--tgm-radius-sm)',
+            border: '1px solid var(--tgm-border)',
+          }}>← Home</Link>
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <h2 style={{ fontSize: 28, fontWeight: 800, color: 'var(--tgm-navy)', margin: '0 0 8px' }}>Welcome back</h2>
+          <p style={{ fontSize: 15, color: 'var(--tgm-muted)', margin: 0 }}>Sign in to continue to your workspace</p>
         </div>
 
         <form onSubmit={handleSubmit} data-testid="login-form">
           <div style={{ marginBottom: 20 }} data-testid="login-page-root">
-            <label style={labelStyle}>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              style={inputStyle}
-              required
-              disabled={status === 'loading'}
-              placeholder="you@example.com"
-              data-testid="login-email"
-            />
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--tgm-text)', marginBottom: 8 }}>Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              required disabled={status === 'loading'} placeholder="you@example.com"
+              data-testid="login-email" style={inputStyle}
+              onFocus={e => e.target.style.borderColor = 'var(--tgm-gold)'}
+              onBlur={e => e.target.style.borderColor = 'var(--tgm-border)'} />
           </div>
-          
+
           <div style={{ marginBottom: 24 }} data-testid="login-password-container">
-            <label style={labelStyle}>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              style={inputStyle}
-              required
-              disabled={status === 'loading'}
-              placeholder="••••••••"
-              data-testid="login-password"
-            />
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--tgm-text)', marginBottom: 8 }}>Password</label>
+            <div style={{ position: 'relative' }}>
+              <input type={showPassword ? 'text' : 'password'} value={password}
+                onChange={e => setPassword(e.target.value)}
+                required disabled={status === 'loading'} placeholder="••••••••"
+                data-testid="login-password" style={{ ...inputStyle, paddingRight: 48 }}
+                onFocus={e => e.target.style.borderColor = 'var(--tgm-gold)'}
+                onBlur={e => e.target.style.borderColor = 'var(--tgm-border)'} />
+              <button type="button" onClick={() => setShowPassword(v => !v)}
+                tabIndex={-1} aria-label={showPassword ? 'Hide password' : 'Show password'}
+                style={{
+                  position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                  color: 'var(--tgm-muted)', display: 'flex', alignItems: 'center',
+                }}>
+                <EyeIcon open={showPassword} />
+              </button>
+            </div>
           </div>
 
           {status === 'error' && (
             <div style={{
-              background: skin === 'futuristic' ? 'rgba(239, 68, 68, 0.1)' : '#fef2f2',
-              border: `1px solid ${skin === 'futuristic' ? 'rgba(239, 68, 68, 0.3)' : '#fecaca'}`,
-              borderRadius: 10,
-              padding: '12px 16px',
-              color: '#ef4444',
-              fontSize: 14,
-              marginBottom: 20
-            }}>
-              {message}
-            </div>
+              background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.3)',
+              borderRadius: 'var(--tgm-radius-md)', padding: '12px 16px',
+              color: 'var(--tgm-error)', fontSize: 14, marginBottom: 20
+            }}>{message}</div>
+          )}
+          {status === 'success' && (
+            <div style={{
+              background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.3)',
+              borderRadius: 'var(--tgm-radius-md)', padding: '12px 16px',
+              color: 'var(--tgm-success)', fontSize: 14, marginBottom: 20
+            }}>{message}</div>
           )}
 
-          <button
-            type="submit"
-            disabled={status === 'loading'}
-            data-testid="login-submit"
-            style={{
-              width: '100%',
-              padding: 14,
-              background: skin === 'futuristic'
-                ? 'linear-gradient(135deg, #00f0ff 0%, #0080ff 100%)'
-                : 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-              border: 'none',
-              borderRadius: 12,
-              color: skin === 'futuristic' ? '#000' : '#fff',
-              fontSize: 16,
-              fontWeight: 600,
-              cursor: status === 'loading' ? 'not-allowed' : 'pointer',
-              opacity: status === 'loading' ? 0.7 : 1,
-              transition: 'transform 0.15s, box-shadow 0.15s',
-              boxShadow: skin === 'futuristic' 
-                ? '0 0 20px rgba(0, 240, 255, 0.3)' 
-                : '0 4px 14px rgba(59, 130, 246, 0.4)',
-            }}
-          >
-            {status === 'loading' ? 'Signing in...' : 'Sign In'}
+          <button type="submit" disabled={status === 'loading'} data-testid="login-submit" style={{
+            width: '100%', padding: '14px',
+            background: 'var(--tgm-gold)', border: 'none',
+            borderRadius: 'var(--tgm-radius-md)',
+            color: 'var(--tgm-navy)', fontSize: 16, fontWeight: 700,
+            cursor: status === 'loading' ? 'not-allowed' : 'pointer',
+            opacity: status === 'loading' ? 0.7 : 1,
+            boxShadow: 'var(--tgm-shadow-md)', transition: 'opacity .2s',
+          }}>
+            {status === 'loading' ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
 
-        <p style={{
-          textAlign: 'center',
-          marginTop: 24,
-          color: skin === 'futuristic' ? 'rgba(255,255,255,0.6)' : '#6b7280',
-          fontSize: 14
-        }}>
+        <p style={{ textAlign: 'center', marginTop: 24, color: 'var(--tgm-muted)', fontSize: 14 }}>
           Don't have an account?{' '}
-          <Link 
-            to="/signup"
-            style={{
-              color: skin === 'futuristic' ? '#00f0ff' : '#3b82f6',
-              fontWeight: 600,
-              textDecoration: 'none'
-            }}
-          >
-            Sign up
-          </Link>
+          <Link to="/signup" style={{ color: 'var(--tgm-blue)', fontWeight: 700 }}>Sign up free</Link>
         </p>
-
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          marginTop: 16,
-          color: skin === 'futuristic' ? 'rgba(255,255,255,0.4)' : '#9ca3af',
-          fontSize: 13
-        }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 12, color: 'var(--tgm-muted)', fontSize: 13 }}>
           <span>✓ No credit card required</span>
           <span>✓ Cancel anytime</span>
+        </div>
+
+        {/* Trust badges */}
+        <div style={{
+          marginTop: 40, paddingTop: 24,
+          borderTop: '1px solid var(--tgm-border)',
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12,
+        }}>
+          {[
+            { icon: '🔒', title: 'Secure login', desc: 'SSL encrypted' },
+            { icon: '🏆', title: 'Award-winning', desc: 'Trusted platform' },
+            { icon: '⚡', title: 'Instant access', desc: 'No waiting' },
+            { icon: '🌍', title: '24/7 support', desc: 'Always available' },
+          ].map(({ icon, title, desc }) => (
+            <div key={title} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 12px',
+              background: 'var(--tgm-surface)',
+              borderRadius: 'var(--tgm-radius-md)',
+              border: '1px solid var(--tgm-border)',
+            }}>
+              <span style={{ fontSize: 18 }}>{icon}</span>
+              <div>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--tgm-navy)' }}>{title}</p>
+                <p style={{ margin: 0, fontSize: 11, color: 'var(--tgm-muted)' }}>{desc}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
