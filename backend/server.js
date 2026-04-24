@@ -22,6 +22,14 @@ const { agentLimiter, uploadLimiter } = require('./middleware/rateLimit');
 const requireAuth = require('./middleware/auth');
 const { requireFeature } = require('./middleware/tierAuth');
 
+// Health check endpoint — used by Railway and monitoring systems
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    timestamp: Date.now(),
+  });
+});
+
 // Test AI endpoint using Groq API
 app.get('/api/test-ai', async (req, res) => {
   try {
