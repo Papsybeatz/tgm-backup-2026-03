@@ -149,6 +149,7 @@ app.get('/api/analytics', requireAuth, requireFeature('analytics_advanced'), (re
 // Tier-gated agency endpoints — requires client_folders (agency+)
 app.use('/api/agency', requireAuth, requireFeature('client_folders'));
 
-app.listen(4000, () => {
-  console.log('Backend running on port 4000');
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`Backend running on port ${PORT}`);
 });
