@@ -149,7 +149,10 @@ app.get('/api/analytics', requireAuth, requireFeature('analytics_advanced'), (re
 // Tier-gated agency endpoints — requires client_folders (agency+)
 app.use('/api/agency', requireAuth, requireFeature('client_folders'));
 
+// Health check for Railway
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend running on port ${PORT}`);
 });
