@@ -1,13 +1,13 @@
 // utils/session.js
-import { v4 as uuidv4 } from 'uuid';
-import dayjs from 'dayjs';
+const crypto = require('crypto');
+const dayjs = require('dayjs');
 
 function generateSessionToken() {
-  return uuidv4();
+  return crypto.randomUUID();
 }
 
 function getSessionExpiry() {
   return dayjs().add(7, 'days').toISOString();
 }
 
-export { generateSessionToken, getSessionExpiry };
+module.exports = { generateSessionToken, getSessionExpiry };
