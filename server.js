@@ -2,7 +2,7 @@ const express = require('express');
 require('dotenv').config();
 const multer = require('multer');
 const cookieParser = require('cookie-parser');
-const { validateUpload } = require('./backend/utils/uploadValidation');
+const { validateUpload } = require('./utils/uploadValidation');
 const https = require('https');
 const app = express();
 
@@ -10,17 +10,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const lemonWebhook = require('./backend/routes/lemonWebhook');
-const stripeWebhook = require('./backend/routes/stripeWebhook');
-const stripeWebhooksRouter = require('./backend/routes/webhooks/stripe');
-const checkoutRoutes = require('./backend/routes/checkout');
-const teamRoutes = require('./backend/routes/team');
-const teamInvitesRoutes = require('./backend/routes/teamInvites');
-const authRoutes = require('./backend/routes/auth');
-const draftsRoutes = require('./backend/routes/drafts');
-const { agentLimiter, uploadLimiter } = require('./backend/middleware/rateLimit');
-const requireAuth = require('./backend/middleware/auth');
-const { requireFeature } = require('./backend/middleware/tierAuth');
+const lemonWebhook = require('./routes/lemonWebhook');
+const stripeWebhook = require('./routes/stripeWebhook');
+const stripeWebhooksRouter = require('./routes/webhooks/stripe');
+const checkoutRoutes = require('./routes/checkout');
+const teamRoutes = require('./routes/team');
+const teamInvitesRoutes = require('./routes/teamInvites');
+const authRoutes = require('./routes/auth');
+const draftsRoutes = require('./routes/drafts');
+const { agentLimiter, uploadLimiter } = require('./middleware/rateLimit');
+const requireAuth = require('./middleware/auth');
+const { requireFeature } = require('./middleware/tierAuth');
 
 // Health check endpoint — used by Railway and monitoring systems
 app.get("/health", (req, res) => {
@@ -75,8 +75,8 @@ app.get('/api/test-ai', async (req, res) => {
 
 // MongoDB support removed — using Prisma for persistence where applicable
 
-const founderAuditRoutes = require('./backend/routes/founderAudit');
-const adminRoutes = require('./backend/routes/admin');
+const founderAuditRoutes = require('./routes/founderAudit');
+const adminRoutes = require('./routes/admin');
 let prisma;
 try {
   const { PrismaClient } = require('@prisma/client');
@@ -110,14 +110,14 @@ app.use('/api', stripeWebhook);
 app.use('/api', lemonWebhook);
 app.use('/api/webhooks', stripeWebhooksRouter);
 app.use('/api/checkout', checkoutRoutes);
-const contactRoutes = require('./backend/routes/contact');
+const contactRoutes = require('./routes/contact');
 app.use('/api/contact', contactRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/team', teamInvitesRoutes);
 app.use('/api/auth', authRoutes);
-const aiRoutes = require('./backend/routes/ai');
+const aiRoutes = require('./routes/ai');
 app.use('/api/ai', aiRoutes);
-const documentsRoutes = require('./backend/routes/documents');
+const documentsRoutes = require('./routes/documents');
 app.use('/api/documents', documentsRoutes);
 app.use('/api/drafts', draftsRoutes);
 app.use('/api/founder', founderAuditRoutes);
