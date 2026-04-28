@@ -77,8 +77,14 @@ app.get('/api/test-ai', async (req, res) => {
 
 const founderAuditRoutes = require('./backend/routes/founderAudit');
 const adminRoutes = require('./backend/routes/admin');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+let prisma;
+try {
+  const { PrismaClient } = require('@prisma/client');
+  prisma = new PrismaClient();
+  console.log('[DB] Prisma client loaded');
+} catch (e) {
+  console.error('[DB] Prisma client failed to load:', e.message);
+}
 
 app.post('/api/agency/request', async (req, res) => {
   const { name, org, email, teamSize } = req.body;

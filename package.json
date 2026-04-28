@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "jest tests/api",
     "test:e2e": "playwright test tests/e2e",
-    "postinstall": "cd backend && npx prisma generate"
+    "postinstall": "npx prisma generate --schema=backend/prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
