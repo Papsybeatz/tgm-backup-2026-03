@@ -157,6 +157,7 @@ app.use('/api/agency', requireAuth, requireFeature('client_folders'));
 
 // Health check for Railway
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/api/ping', (req, res) => res.json({ status: 'pong', version: '2.0', routes: 'active' }));
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, '0.0.0.0', () => {
