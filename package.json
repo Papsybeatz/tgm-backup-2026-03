@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Modular agentic workflow engine for grant writing and SaaS deployment.",
   "main": "server.js",
-  "type": "module",
   "scripts": {
     "start": "node server.js",
     "dev": "vite",
