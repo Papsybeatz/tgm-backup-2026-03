@@ -50,6 +50,10 @@ export default function SignupPage() {
       // Route new users to onboarding; returning users to dashboard
       const isNewUser = data.createdAt && data.updatedAt &&
         Math.abs(new Date(data.updatedAt) - new Date(data.createdAt)) < 5000;
+      if (!isNewUser) {
+        // Returning user — mark onboarded so they skip onboarding gate
+        localStorage.setItem('tgm_onboarded', '1');
+      }
       setMessage(isNewUser ? 'Account created! Setting up your workspace…' : 'Welcome back! Redirecting…');
       setTimeout(() => navigate(isNewUser ? '/onboarding' : '/dashboard'), 1000);
     } catch (err) {

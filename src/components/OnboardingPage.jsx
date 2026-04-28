@@ -116,6 +116,9 @@ export default function OnboardingPage() {
       console.log('Onboarding saved locally');
     }
 
+    // Mark onboarding complete — RequireOnboarding gate checks this
+    localStorage.setItem('tgm_onboarded', '1');
+
     const destination = selections.firstAction === 'write'
       ? '/workspace'
       : '/dashboard';

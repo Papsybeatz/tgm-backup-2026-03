@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useUser } from './UserContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 
 async function safeJson(res) {
   const text = await res.text();
@@ -39,6 +39,7 @@ const LoginPage = () => {
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
   const { setUser } = useUser();
 
   const handleSubmit = async (e) => {
@@ -60,9 +61,13 @@ const LoginPage = () => {
       setUser(userObj);
       localStorage.setItem('user', JSON.stringify(userObj));
       localStorage.setItem('token', data.token);
+      // Mark onboarding complete for returning users
+      localStorage.setItem('tgm_onboarded', '1');
       setStatus('success');
       setMessage('Login successful!');
-      setTimeout(() => navigate('/dashboard'), 500);
+      // Redirect back to where they came from, or dashboard
+      const from = location.state?.from || '/dashboard';
+      setTimeout(() => navigate(from, { replace: true }), 500);
     } catch (err) {
       setStatus('error');
       setMessage(err.message || 'Login failed.');
