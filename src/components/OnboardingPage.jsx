@@ -117,7 +117,7 @@ export default function OnboardingPage() {
     }
 
     const destination = selections.firstAction === 'write'
-      ? '/workspace/new-draft'
+      ? '/workspace'
       : '/dashboard';
 
     navigate(destination);

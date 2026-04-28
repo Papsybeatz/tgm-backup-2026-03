@@ -102,3 +102,39 @@ export function isWithinLimit(tier, resource, currentUsage) {
   if (limit === undefined || limit === Infinity) return true;
   return currentUsage < limit;
 }
+
+// Tier order for comparison
+const TIER_ORDER = ['free', 'starter', 'pro', 'agency_starter', 'agency_unlimited', 'lifetime'];
+
+export function tierAtLeast(userTier, requiredTier) {
+  return TIER_ORDER.indexOf(userTier) >= TIER_ORDER.indexOf(requiredTier);
+}
+
+// Boolean gate flags per tier — used by UI components
+export function getTierGates(tier) {
+  return {
+    // Free
+    workspaceUnlocked:    true,
+    upgradeCTAVisible:    tier === 'free',
+
+    // Starter+
+    aiActionsUnlocked:    tierAtLeast(tier, 'starter'),
+    templatesUnlocked:    tierAtLeast(tier, 'starter'),
+    grantMatchesUnlocked: tierAtLeast(tier, 'starter'),
+    exportUnlocked:       tierAtLeast(tier, 'starter'),
+
+    // Pro+
+    scoringUnlocked:      tierAtLeast(tier, 'pro'),
+    analyticsUnlocked:    tierAtLeast(tier, 'pro'),
+    calendarUnlocked:     tierAtLeast(tier, 'pro'),
+    goldBadge:            tierAtLeast(tier, 'pro'),
+
+    // Agency+
+    teamFeaturesUnlocked: tierAtLeast(tier, 'agency_starter'),
+    clientFoldersUnlocked:tierAtLeast(tier, 'agency_starter'),
+    whiteLabelUnlocked:   tierAtLeast(tier, 'agency_starter'),
+
+    // Lifetime
+    lifetimeBadge:        tier === 'lifetime',
+  };
+}

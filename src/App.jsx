@@ -8,6 +8,7 @@ import UnifiedDashboard from './components/UnifiedDashboard';
 import DashboardRedirect from './components/DashboardRedirect';
 import DraftPage from './components/DraftPage';
 import PremiumWorkspace from './components/PremiumWorkspace';
+import WorkspacePage from './components/workspace/WorkspacePage';
 import PricingPage from './components/PricingPage';
 import UpgradePage from './components/UpgradePage';
 import OnboardingPage from './components/OnboardingPage';
@@ -33,6 +34,8 @@ function App() {
               <Route path="/dashboard" element={<UnifiedDashboard />} />
               <Route path="/workspace/new-draft" element={<DraftPage />} />
               <Route path="/workspace/premium-draft" element={<PremiumWorkspace />} />
+              <Route path="/workspace" element={<WorkspacePage />} />
+              <Route path="/workspace/:id" element={<WorkspacePage />} />
 <Route path="/admin/monitoring" element={<MonitoringDashboard />} />
             </Routes>
           </AppLayout>
