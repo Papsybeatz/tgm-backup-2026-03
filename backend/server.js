@@ -77,6 +77,7 @@ app.get('/api/test-ai', async (req, res) => {
 
 const founderAuditRoutes = require('./routes/founderAudit');
 const adminRoutes = require('./routes/admin');
+const billingRoutes = require('./routes/billing');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
@@ -116,6 +117,7 @@ app.use('/api/documents', documentsRoutes);
 app.use('/api/drafts', draftsRoutes);
 app.use('/api/founder', founderAuditRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/billing', billingRoutes);
 
 const upload = multer();
 app.post('/api/upload', uploadLimiter, upload.single('file'), (req, res) => {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from './UserContext';
 import { TIERS } from '../config/tiers';
+import BillingPortalButton from './BillingPortalButton';
 
 const FEATURE_MAP = {
   aiDraft:     ['starter','pro','agency_starter','agency_unlimited','lifetime'],
@@ -199,6 +200,12 @@ export default function UnifiedDashboard() {
             Select a workspace above to get started…
           </div>
         </div>
+      </section>
+
+      {/* BILLING & SUBSCRIPTION */}
+      <section className="py-12 max-w-6xl mx-auto px-6">
+        <h3 className="text-lg font-bold text-[#0A0F1A] mb-4">Billing & Subscription</h3>
+        <BillingPortalButton />
       </section>
 
       {/* FINAL CTA */}
