@@ -57,11 +57,8 @@ function App() {
                 </RequireOnboarding>
               } />
 
-              <Route path="/workspace" element={
-                <RequireOnboarding>
-                  <WorkspacePage />
-                </RequireOnboarding>
-              } />
+              {/* /workspace with no ID → back to dashboard where drafts list lives */}
+              <Route path="/workspace" element={<Navigate to="/dashboard" replace />} />
 
               <Route path="/workspace/:id" element={
                 <RequireOnboarding>

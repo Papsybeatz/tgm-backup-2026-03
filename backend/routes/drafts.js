@@ -130,5 +130,20 @@ router.post('/:id/versions/:versionId/restore', requireAuth, async (req, res) =>
   }
 });
 
+// DELETE /api/drafts/:id
+router.delete('/:id', requireAuth, async (req, res) => {
+  try {
+    const draft = await prisma.draft.findUnique({ where: { id: req.params.id } });
+    if (!draft || draft.userId !== req.user.id)
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    await prisma.draftVersion.deleteMany({ where: { draftId: req.params.id } });
+    await prisma.draft.delete({ where: { id: req.params.id } });
+    return res.json({ success: true });
+  } catch (e) {
+    console.error('[DRAFTS] delete error', e?.message);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 module.exports = router;
 

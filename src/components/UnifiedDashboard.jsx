@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from './UserContext';
 import { TIERS } from '../config/tiers';
 import BillingPortalButton from './BillingPortalButton';
+import DraftsList from './DraftsList';
 
 const FEATURE_MAP = {
   aiDraft:     ['starter','pro','agency_starter','agency_unlimited','lifetime'],
@@ -189,6 +190,11 @@ export default function UnifiedDashboard() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* DRAFTS LIST */}
+      <section className="py-12 max-w-6xl mx-auto px-6">
+        <DraftsList />
       </section>
 
       {/* WORKSPACE PREVIEW PANEL */}
