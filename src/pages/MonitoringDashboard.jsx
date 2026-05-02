@@ -233,21 +233,26 @@ function DataTable({ title, columns, data }) {
 }
 
 export default function MonitoringDashboard() {
-  const { user, token } = useAuth();
+  const { user, token, loading: authLoading } = useAuth();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!token) { setLoading(false); return; }
+    // Wait until auth has restored from localStorage before fetching
+    if (authLoading) return;
+    if (!token) { return; }
+    setLoading(true);
     fetch('/api/admin/metrics', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => { if (!res.ok) throw new Error('Unauthorized'); return res.json(); })
       .then(setData)
       .catch(() => setError('Unauthorized or error fetching metrics'))
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, authLoading]);
 
-  if (loading) return <LoadingSkeleton />;
+  // Still restoring session — show skeleton
+  if (authLoading || loading) return <LoadingSkeleton />;
+  // Auth resolved — now check admin access
   if (!token || user?.email !== ADMIN_EMAIL) return <Navigate to="/dashboard" replace />;
   if (error) return <div style={{ ...s.page, color: '#ef4444', textAlign: 'center', paddingTop: 48 }}>{error}</div>;
   if (!data) return <div style={{ ...s.page, color: '#94a3b8', textAlign: 'center', paddingTop: 48 }}>No data available</div>;
