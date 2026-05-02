@@ -16,7 +16,7 @@ import OnboardingPage from './components/OnboardingPage';
 import UnifiedDashboard from './components/UnifiedDashboard';
 import WorkspacePage from './components/workspace/WorkspacePage';
 import DraftPage from './components/DraftPage';
-import PremiumWorkspace from './components/PremiumWorkspace';
+
 
 // Admin
 import MonitoringDashboard from './pages/MonitoringDashboard';
@@ -60,21 +60,19 @@ function App() {
               {/* /workspace with no ID → back to dashboard where drafts list lives */}
               <Route path="/workspace" element={<Navigate to="/dashboard" replace />} />
 
-              <Route path="/workspace/:id" element={
-                <RequireOnboarding>
-                  <WorkspacePage />
-                </RequireOnboarding>
-              } />
-
+              {/* Specific workspace sub-routes MUST come before the :id wildcard */}
               <Route path="/workspace/new-draft" element={
                 <RequireOnboarding>
                   <DraftPage />
                 </RequireOnboarding>
               } />
 
-              <Route path="/workspace/premium-draft" element={
+              {/* Safety redirect for stale bookmarks/links */}
+              <Route path="/workspace/premium-draft" element={<Navigate to="/dashboard" replace />} />
+
+              <Route path="/workspace/:id" element={
                 <RequireOnboarding>
-                  <PremiumWorkspace />
+                  <WorkspacePage />
                 </RequireOnboarding>
               } />
 

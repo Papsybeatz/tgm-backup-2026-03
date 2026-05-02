@@ -23,7 +23,7 @@ export default function WorkspacePage() {
 
   // Load existing draft by ID
   useEffect(() => {
-    if (!id) return;
+    if (!id) return; // no ID = new blank editor, nothing to load
     setLoadError('');
     fetch(`/api/drafts/${id}`, {
       headers: { Authorization: `Bearer ${getToken()}` },
@@ -34,12 +34,15 @@ export default function WorkspacePage() {
         if (d?.id) {
           setDraft(d);
           setTitle(d.title || '');
-          if (d.content) setAiOutput(d.content); // pre-fill editor
+          // Only pre-fill if there's actual content
+          if (d.content && d.content.trim() && d.content !== '<p></p>') {
+            setAiOutput(d.content);
+          }
         } else {
-          setLoadError('Draft not found.');
+          setLoadError('Draft not found. It may have been deleted.');
         }
       })
-      .catch(() => setLoadError('Could not load draft.'));
+      .catch(() => setLoadError('Could not load draft. Check your connection.'));
   }, [id]);
 
   // Auto-save title when it changes

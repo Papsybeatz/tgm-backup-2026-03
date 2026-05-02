@@ -13,10 +13,9 @@ console.log('[DRAFTS ROUTE] loaded from file:', __filename);
 router.post('/', requireAuth, async (req, res) => {
   console.log('[DRAFTS] CREATE (auth)', { user: req.user && { id: req.user.id, email: req.user.email }, bodySample: req.body && { title: req.body.title } });
   const { title, content } = req.body;
-  if (!content) return res.status(400).json({ success: false, message: 'Missing content.' });
   try {
     const draft = await prisma.draft.create({
-      data: { userId: req.user.id, title: title || '', content, tierAtCreation: req.user.tier || 'free' },
+      data: { userId: req.user.id, title: title || 'Untitled Draft', content: content || '', tierAtCreation: req.user.tier || 'free' },
     });
     // Log AI action for tracking
     await logAiAction(req.user.id, 'generate');
@@ -33,11 +32,13 @@ router.post('/', requireAuth, async (req, res) => {
 router.patch('/:id', requireAuth, async (req, res) => {
   const draftId = req.params.id;
   const { title, content } = req.body;
-  if (!content) return res.status(400).json({ success: false, message: 'Missing content.' });
   try {
     const existing = await prisma.draft.findFirst({ where: { id: draftId, userId: req.user.id } });
     if (!existing) return res.status(403).json({ success: false, message: 'Forbidden' });
-    const draft = await prisma.draft.update({ where: { id: draftId }, data: { title, content, updatedAt: new Date() } });
+    const updateData = { updatedAt: new Date() };
+    if (title !== undefined) updateData.title = title;
+    if (content !== undefined) updateData.content = content;
+    const draft = await prisma.draft.update({ where: { id: draftId }, data: updateData });
     // versioning snapshot
     try { await prisma.draftVersion.create({ data: { draftId: draft.id, content: draft.content } }); } catch (e) { console.warn('[DRAFTS] versioning update error', e && e.message ? e.message : e); }
     return res.json({ success: true, draft });

@@ -73,7 +73,7 @@ function UserMenu({ user }) {
           background: 'var(--tgm-surface)', border: '1px solid var(--tgm-border)',
           boxShadow: 'var(--tgm-shadow-md)', overflow: 'hidden', zIndex: 50,
         }}>
-          {[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Drafts', to: '/workspace/premium-draft' }].map(({ label, to }) => (
+          {[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Drafts', to: '/dashboard' }].map(({ label, to }) => (
             <Link key={to} to={to} onClick={() => setOpen(false)} style={{
               display: 'block', padding: '10px 16px', fontSize: 14, color: 'var(--tgm-text)',
             }}
@@ -124,7 +124,7 @@ export default function AppHeader({ user, loading }) {
         {user && !loading ? (
           <>
             <Link to="/dashboard" style={{ fontWeight: 600, color: 'var(--tgm-navy)' }}>Dashboard</Link>
-            <Link to="/workspace/premium-draft" style={{ color: 'var(--tgm-muted)' }}
+            <Link to="/dashboard" style={{ color: 'var(--tgm-muted)' }}
               onMouseOver={e => e.currentTarget.style.color = 'var(--tgm-navy)'}
               onMouseOut={e => e.currentTarget.style.color = 'var(--tgm-muted)'}
             >Drafts</Link>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from './UserContext';
 import { TIERS } from '../config/tiers';
@@ -12,12 +12,6 @@ const FEATURE_MAP = {
   reviewer:    ['agency_starter','agency_unlimited','lifetime'],
   funderMatch: ['agency_unlimited','lifetime'],
 };
-
-const WORKSPACES = [
-  { id: 1, name: 'Community Impact Grant',     status: 'In Progress', drafts: 3 },
-  { id: 2, name: 'Youth Development Initiative', status: 'Review',      drafts: 1 },
-  { id: 3, name: 'Health Equity Proposal',      status: 'Draft',       drafts: 2 },
-];
 
 const TIER_META = {
   free:             { label: 'Free',             color: '#475569', bg: '#F1F5F9' },
@@ -82,7 +76,7 @@ export default function UnifiedDashboard() {
             {[
               { label: 'Plan',       value: tierConfig.name },
               { label: 'Drafts',     value: tierConfig.limits?.drafts === Infinity ? 'Unlimited' : tierConfig.limits?.drafts ?? 0 },
-              { label: 'Workspaces', value: WORKSPACES.length },
+
               { label: 'Team Seats', value: tierConfig.limits?.teamSeats === Infinity ? 'Unlimited' : tierConfig.limits?.teamSeats === 0 ? '—' : tierConfig.limits?.teamSeats },
             ].map(({ label, value }) => (
               <div key={label} className="bg-white/10 border border-white/15 rounded-xl px-5 py-3 min-w-[100px]">
@@ -99,30 +93,9 @@ export default function UnifiedDashboard() {
         </div>
       </section>
 
-      {/* WORKSPACES */}
+      {/* DRAFTS — primary action area */}
       <section className="max-w-7xl mx-auto px-6 py-12">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-bold text-[#003A8C]">Your Workspaces</h3>
-          <button onClick={() => navigate('/workspace')}
-            className="px-5 py-2 bg-[#D4AF37] text-[#0A0F1A] rounded-lg font-bold text-sm shadow hover:shadow-md transition">
-            + New Workspace
-          </button>
-        </div>
-        <div className="grid md:grid-cols-3 gap-6">
-          {WORKSPACES.map((ws) => (
-            <div key={ws.id} onClick={() => navigate(`/workspace/${ws.id}`)}
-              className="bg-white p-6 rounded-xl shadow-md border-t-4 border-[#D4AF37] hover:shadow-lg transition cursor-pointer group">
-              <div className="flex items-start justify-between mb-3">
-                <h4 className="text-lg font-bold text-[#003A8C] group-hover:text-[#D4AF37] transition">{ws.name}</h4>
-                <span className="text-xs font-semibold px-2 py-1 rounded-full bg-[#F7F9FB] text-[#64748B]">{ws.status}</span>
-              </div>
-              <p className="text-gray-500 text-sm mb-4">{ws.drafts} draft{ws.drafts !== 1 ? 's' : ''}</p>
-              <div className="flex items-center text-[#003A8C] text-sm font-semibold">
-                Open workspace <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
-              </div>
-            </div>
-          ))}
-        </div>
+        <DraftsList />
       </section>
 
       {/* FEATURE GRID */}
@@ -192,21 +165,7 @@ export default function UnifiedDashboard() {
         </div>
       </section>
 
-      {/* DRAFTS LIST */}
-      <section className="py-12 max-w-6xl mx-auto px-6">
-        <DraftsList />
-      </section>
 
-      {/* WORKSPACE PREVIEW PANEL */}
-      <section className="py-16 max-w-6xl mx-auto px-6">
-        <div className="bg-white rounded-xl shadow-lg p-10 border-t-4 border-[#D4AF37]">
-          <h3 className="text-2xl font-bold text-[#003A8C] mb-2">Workspace Preview</h3>
-          <p className="text-gray-500 mb-6">Open any workspace to view drafts, revisions, and collaboration tools.</p>
-          <div className="bg-[#F7F9FB] rounded-lg p-6 text-gray-500 italic border border-[#E2E8F0]">
-            Select a workspace above to get started…
-          </div>
-        </div>
-      </section>
 
       {/* BILLING & SUBSCRIPTION */}
       <section className="py-12 max-w-6xl mx-auto px-6">

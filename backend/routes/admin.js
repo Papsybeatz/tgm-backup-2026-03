@@ -99,7 +99,19 @@ router.get('/metrics', requireAdmin, async (req, res) => {
       take: 20,
     });
 
+    const recentErrors = getRecentErrors(20);
+    const recentAiActions = getRecentAiActions(20);
+
+    // Aggregate AI usage by action type
+    const aiUsageMap = {};
+    recentAiActions.forEach(a => { aiUsageMap[a.action] = (aiUsageMap[a.action] || 0) + 1; });
+    const aiUsage = Object.entries(aiUsageMap).map(([action, count]) => ({ action, count }));
+
+    // Subscriptions by tier for bar chart
+    const subscriptionsByTier = tierRows.map(r => ({ tier: r.tier, _count: { tier: r._count.tier } }));
+
     res.json({
+      // flat fields (legacy)
       totalUsers,
       newSignups7d,
       activeSubs,
@@ -110,8 +122,21 @@ router.get('/metrics', requireAdmin, async (req, res) => {
       activeSessions,
       tierBreakdown,
       recentSignups,
-      recentErrors: getRecentErrors(20),
-      recentAiActions: getRecentAiActions(20),
+      errors: recentErrors,
+      recentAiActions,
+      // shaped for MonitoringDashboard frontend
+      visitors: { last24h: activeSessions },
+      system: {
+        newSignups7d,
+        activeSubscriptions: activeSubs,
+        aiDraftsToday: drafts24h,
+        lifetimeTierCount: lifetimeCount,
+        lifetimeTierRemaining: Math.max(0, 200 - lifetimeCount),
+        lifetimeTierCap: 200,
+      },
+      timeseries: [], // no time-series table yet — chart shows empty gracefully
+      subscriptionsByTier,
+      aiUsage,
     });
   } catch (e) {
     console.error('[ADMIN] /metrics error', e.message);
