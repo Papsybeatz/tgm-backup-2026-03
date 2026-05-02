@@ -253,7 +253,7 @@ export default function MonitoringDashboard() {
   // Still restoring session — show skeleton
   if (authLoading || loading) return <LoadingSkeleton />;
   // Auth resolved — now check admin access
-  if (!token || user?.email !== ADMIN_EMAIL) return <Navigate to="/dashboard" replace />;
+  if (!token || user?.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return <Navigate to="/dashboard" replace />;
   if (error) return <div style={{ ...s.page, color: '#ef4444', textAlign: 'center', paddingTop: 48 }}>{error}</div>;
   if (!data) return <div style={{ ...s.page, color: '#94a3b8', textAlign: 'center', paddingTop: 48 }}>No data available</div>;
 
