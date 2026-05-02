@@ -10,6 +10,8 @@ import SignupPage from './components/SignupPage';
 import PricingPage from './components/PricingPage';
 import UpgradePage from './components/UpgradePage';
 import ContactPage from './components/ContactPage';
+import PrivacyPage from './components/PrivacyPage';
+import TermsPage from './components/TermsPage';
 
 // Auth-gated pages
 import OnboardingPage from './components/OnboardingPage';
@@ -42,6 +44,8 @@ function App() {
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/upgrade" element={<UpgradePage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/terms"   element={<TermsPage />} />
 
               {/* ── Requires login only (onboarding itself) ── */}
               <Route path="/onboarding" element={

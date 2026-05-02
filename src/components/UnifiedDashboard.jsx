@@ -190,6 +190,8 @@ export default function UnifiedDashboard() {
           <div className="flex gap-6 text-xs">
             <Link to="/pricing" className="hover:text-[#D4AF37] transition no-underline text-gray-500">Pricing</Link>
             <Link to="/contact" className="hover:text-[#D4AF37] transition no-underline text-gray-500">Support</Link>
+            <Link to="/privacy" className="hover:text-[#D4AF37] transition no-underline text-gray-500">Privacy</Link>
+            <Link to="/terms"   className="hover:text-[#D4AF37] transition no-underline text-gray-500">Terms</Link>
           </div>
         </div>
       </footer>

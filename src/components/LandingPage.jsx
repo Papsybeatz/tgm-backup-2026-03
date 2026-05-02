@@ -474,8 +474,10 @@ export default function LandingPage() {
           <div className="flex gap-6 text-sm">
             <Link to="/pricing" className="hover:text-[#D4AF37] transition">Pricing</Link>
             <Link to="/contact" className="hover:text-[#D4AF37] transition">Contact</Link>
-            <Link to="/login" className="hover:text-[#D4AF37] transition">Login</Link>
-            <Link to="/signup" className="hover:text-[#D4AF37] transition">Sign Up</Link>
+            <Link to="/privacy" className="hover:text-[#D4AF37] transition">Privacy</Link>
+            <Link to="/terms"   className="hover:text-[#D4AF37] transition">Terms</Link>
+            <Link to="/login"   className="hover:text-[#D4AF37] transition">Login</Link>
+            <Link to="/signup"  className="hover:text-[#D4AF37] transition">Sign Up</Link>
           </div>
           <p className="text-xs">© {new Date().getFullYear()} GrantsMaster. All rights reserved.</p>
         </div>
