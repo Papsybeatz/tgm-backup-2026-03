@@ -88,7 +88,7 @@ export default function ContactPage() {
             </h2>
 
             {[
-              { icon: '✉️', label: 'Email', value: 'support@grantsmaster.com' },
+              { icon: '✉️', label: 'Email', value: 'support@thegrantsmaster.com' },
               { icon: '⏱️', label: 'Response time', value: 'Within 24 hours' },
               { icon: '🌍', label: 'Available', value: 'Mon – Fri, 9am – 6pm EST' },
             ].map(({ icon, label, value }) => (
