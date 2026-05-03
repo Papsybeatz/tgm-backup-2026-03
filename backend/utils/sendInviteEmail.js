@@ -1,21 +1,20 @@
-const sgMail = require('@sendgrid/mail');
+const https = require('https');
 
 async function sendInviteEmail(email, inviterName, inviteLink) {
-  const apiKey = process.env.SENDGRID_API_KEY;
-  const from = process.env.SENDGRID_FROM || 'noreply@grantsmaster.com';
+  const apiKey = process.env.BREVO_API_KEY;
+  const from = process.env.BREVO_FROM_EMAIL || 'noreply@thegrantsmaster.com';
+  const fromName = process.env.BREVO_FROM_NAME || 'GrantsMaster';
 
   if (!apiKey) {
     console.log(`[EMAIL STUB] Invite to ${email} from ${inviterName}. Link: ${inviteLink}`);
     return true;
   }
 
-  sgMail.setApiKey(apiKey);
-
-  const msg = {
-    to: email,
-    from,
+  const payload = JSON.stringify({
+    sender: { name: fromName, email: from },
+    to: [{ email }],
     subject: `${inviterName} invited you to GrantsMaster`,
-    html: `
+    htmlContent: `
       <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#F7F9FB;padding:40px 24px;">
         <div style="background:linear-gradient(135deg,#0A0F1A,#003A8C);border-radius:16px;padding:32px;text-align:center;margin-bottom:24px;">
           <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#D4AF37,#E8D28C);display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#0A0F1A;margin-bottom:16px;">GM</div>
@@ -35,16 +34,38 @@ async function sendInviteEmail(email, inviterName, inviteLink) {
         </div>
       </div>
     `,
-  };
+  });
 
-  try {
-    await sgMail.send(msg);
-    console.log(`[EMAIL] Invite sent to ${email}`);
-    return true;
-  } catch (err) {
-    console.error('[EMAIL] SendGrid error:', err?.response?.body || err.message);
-    throw new Error('Failed to send invite email');
-  }
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'api.brevo.com',
+      path: '/v3/smtp/email',
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload),
+      },
+    }, (res) => {
+      let body = '';
+      res.on('data', chunk => { body += chunk; });
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          console.log(`[EMAIL] Invite sent to ${email} via Brevo`);
+          resolve(true);
+        } else {
+          console.error('[EMAIL] Brevo error:', res.statusCode, body);
+          reject(new Error('Failed to send invite email'));
+        }
+      });
+    });
+    req.on('error', (err) => {
+      console.error('[EMAIL] Brevo request error:', err.message);
+      reject(new Error('Failed to send invite email'));
+    });
+    req.write(payload);
+    req.end();
+  });
 }
 
 module.exports = sendInviteEmail;
