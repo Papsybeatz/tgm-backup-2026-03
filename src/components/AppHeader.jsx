@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useUser } from './UserContext';
 
 const LANGUAGES = [
   { code: 'en', label: 'EN' },
@@ -38,10 +39,14 @@ function LangSwitcher() {
 function UserMenu({ user }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { setUser } = useUser();
 
   const logout = () => {
+    setUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    localStorage.removeItem('tgm_onboarded');
+    setOpen(false);
     navigate('/');
   };
 

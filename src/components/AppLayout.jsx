@@ -1,8 +1,9 @@
-import { useUser } from '../hooks/useUser';
+import { useUser } from './UserContext';
 import AppHeader from './AppHeader';
 
 export function AppLayout({ children }) {
-  const { user, loading } = useUser();
+  const { user } = useUser();
+  const loading = false;
 
   return (
     <div style={{
