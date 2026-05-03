@@ -5,7 +5,7 @@ import LanguageSelector from './LanguageSelector';
 
 /* ── Demo Modal ── */
 // Replace LOOM_URL with your Loom embed URL when ready
-const LOOM_URL = '';
+const LOOM_URL = 'https://www.youtube.com/embed/46kzSuXaB-4?autoplay=1&rel=0';
 
 const DEMO_STEPS = [
   { icon: '🏆', label: 'Intro',           desc: 'AI-powered grant writing for nonprofits, founders & agencies.' },
@@ -254,9 +254,6 @@ export default function LandingPage() {
                 className="px-6 py-3 rounded-lg border border-white/30 text-white font-semibold hover:bg-white/10 transition flex items-center gap-2"
               >
                 <span style={{ fontSize: 18 }}>▶</span> Watch Demo
-              </button>
-              <button className="px-6 py-3 rounded-lg bg-white/10 border border-white/30 text-white hover:bg-white/20 transition">
-                Watch Demo
               </button>
             </div>
             <p className="mt-4 text-sm text-gray-400">{t('no_credit_card', 'No credit card required')} · {t('cancel_anytime', 'Cancel anytime')}</p>
