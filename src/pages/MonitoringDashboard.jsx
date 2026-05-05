@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useUser } from '../components/UserContext';
 import { Navigate } from 'react-router-dom';
 
-const ADMIN_EMAIL = 'Clotteythomas41@gmail.com';
+
 
 const s = {
   page: { maxWidth: 1440, margin: '0 auto', padding: '2rem 2.5rem' },
@@ -233,23 +232,27 @@ function DataTable({ title, columns, data }) {
 }
 
 export default function MonitoringDashboard() {
-  const { user } = useUser();
   const token = localStorage.getItem('token');
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [denied, setDenied] = useState(false);
 
   useEffect(() => {
-    if (!token) { setLoading(false); return; }
+    if (!token) { setLoading(false); setDenied(true); return; }
     fetch('/api/admin/metrics', { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => { if (!res.ok) throw new Error('Unauthorized'); return res.json(); })
+      .then(res => {
+        if (res.status === 401 || res.status === 403) { setDenied(true); throw new Error('Unauthorized'); }
+        if (!res.ok) throw new Error('Server error');
+        return res.json();
+      })
       .then(setData)
-      .catch(() => setError('Unauthorized or error fetching metrics'))
+      .catch(e => { if (!denied) setError(e.message); })
       .finally(() => setLoading(false));
   }, [token]);
 
   if (loading) return <LoadingSkeleton />;
-  if (!token || user?.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return <Navigate to="/dashboard" replace />;
+  if (denied) return <Navigate to="/dashboard" replace />;
   if (error) return <div style={{ ...s.page, color: '#ef4444', textAlign: 'center', paddingTop: 48 }}>{error}</div>;
   if (!data) return <div style={{ ...s.page, color: '#94a3b8', textAlign: 'center', paddingTop: 48 }}>No data available</div>;
 
