@@ -232,13 +232,13 @@ function DataTable({ title, columns, data }) {
 }
 
 export default function MonitoringDashboard() {
-  const token = localStorage.getItem('token');
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
     if (!token) { setLoading(false); setDenied(true); return; }
     fetch('/api/admin/metrics', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
@@ -247,9 +247,9 @@ export default function MonitoringDashboard() {
         return res.json();
       })
       .then(setData)
-      .catch(e => { if (!denied) setError(e.message); })
+      .catch(e => setError(e.message))
       .finally(() => setLoading(false));
-  }, [token]);
+  }, []);
 
   if (loading) return <LoadingSkeleton />;
   if (denied) return <Navigate to="/dashboard" replace />;
