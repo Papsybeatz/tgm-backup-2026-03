@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUser } from './UserContext';
@@ -38,8 +38,20 @@ function LangSwitcher() {
 
 function UserMenu({ user }) {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
   const navigate = useNavigate();
   const { setUser } = useUser();
+
+  // Close on outside click
+  useEffect(() => {
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   const logout = () => {
     setUser(null);
@@ -51,17 +63,14 @@ function UserMenu({ user }) {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(!open)} style={{
+    <div ref={menuRef} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} style={{
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '6px 12px', borderRadius: 'var(--tgm-radius-sm)',
         border: '1px solid var(--tgm-border)',
         background: 'transparent', cursor: 'pointer',
         fontSize: 14, color: 'var(--tgm-text)', transition: 'background .15s',
-      }}
-        onMouseOver={e => e.currentTarget.style.background = 'var(--tgm-bg)'}
-        onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-      >
+      }}>
         <div style={{
           width: 26, height: 26, borderRadius: 8, flexShrink: 0,
           background: 'linear-gradient(135deg, var(--tgm-gold), var(--tgm-gold-light))',
@@ -74,24 +83,26 @@ function UserMenu({ user }) {
       {open && (
         <div style={{
           position: 'absolute', right: 0, top: 'calc(100% + 6px)',
-          minWidth: 160, borderRadius: 'var(--tgm-radius-md)',
-          background: 'var(--tgm-surface)', border: '1px solid var(--tgm-border)',
-          boxShadow: 'var(--tgm-shadow-md)', overflow: 'hidden', zIndex: 50,
+          minWidth: 180, borderRadius: 'var(--tgm-radius-md)',
+          background: '#fff', border: '1px solid var(--tgm-border)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 9999,
         }}>
           {[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Drafts', to: '/dashboard' }].map(({ label, to }) => (
-            <Link key={to} to={to} onClick={() => setOpen(false)} style={{
-              display: 'block', padding: '10px 16px', fontSize: 14, color: 'var(--tgm-text)',
+            <Link key={label} to={to} onClick={() => setOpen(false)} style={{
+              display: 'block', padding: '10px 16px', fontSize: 14,
+              color: 'var(--tgm-text)', textDecoration: 'none',
             }}
-              onMouseOver={e => e.currentTarget.style.background = 'var(--tgm-bg)'}
+              onMouseOver={e => e.currentTarget.style.background = '#f8fafc'}
               onMouseOut={e => e.currentTarget.style.background = 'transparent'}
             >{label}</Link>
           ))}
+          <div style={{ borderTop: '1px solid var(--tgm-border)' }} />
           <button onClick={logout} style={{
             display: 'block', width: '100%', textAlign: 'left',
-            padding: '10px 16px', fontSize: 14, color: 'var(--tgm-error)',
+            padding: '10px 16px', fontSize: 14, color: '#ef4444',
             background: 'transparent', border: 'none', cursor: 'pointer',
           }}
-            onMouseOver={e => e.currentTarget.style.background = 'var(--tgm-bg)'}
+            onMouseOver={e => e.currentTarget.style.background = '#fef2f2'}
             onMouseOut={e => e.currentTarget.style.background = 'transparent'}
           >Logout</button>
         </div>
