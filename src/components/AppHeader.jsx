@@ -42,7 +42,7 @@ function UserMenu({ user }) {
   const navigate = useNavigate();
   const { setUser } = useUser();
 
-  // Close on outside click
+  // Close menu when clicking outside
   useEffect(() => {
     function handleClick(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -53,57 +53,41 @@ function UserMenu({ user }) {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const logout = () => {
+  async function handleLogout() {
     setUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     localStorage.removeItem('tgm_onboarded');
     setOpen(false);
-    navigate('/');
-  };
+    navigate('/login');
+  }
 
   return (
-    <div ref={menuRef} style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(o => !o)} style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        padding: '6px 12px', borderRadius: 'var(--tgm-radius-sm)',
-        border: '1px solid var(--tgm-border)',
-        background: 'transparent', cursor: 'pointer',
-        fontSize: 14, color: 'var(--tgm-text)', transition: 'background .15s',
-      }}>
-        <div style={{
-          width: 26, height: 26, borderRadius: 8, flexShrink: 0,
-          background: 'linear-gradient(135deg, var(--tgm-gold), var(--tgm-gold-light))',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 11, fontWeight: 800, color: 'var(--tgm-navy)',
-        }}>GM</div>
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-sm font-medium flex items-center gap-2"
+      >
+        <div className="w-7 h-7 rounded bg-gradient-to-br from-yellow-400 to-yellow-200 flex items-center justify-center font-bold text-xs text-blue-900">GM</div>
         <span>{user?.name || user?.email || 'Account'}</span>
       </button>
 
       {open && (
-        <div style={{
-          position: 'absolute', right: 0, top: 'calc(100% + 6px)',
-          minWidth: 180, borderRadius: 'var(--tgm-radius-md)',
-          background: '#fff', border: '1px solid var(--tgm-border)',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 9999,
-        }}>
-          {[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Drafts', to: '/dashboard' }].map(({ label, to }) => (
-            <Link key={label} to={to} onClick={() => setOpen(false)} style={{
-              display: 'block', padding: '10px 16px', fontSize: 14,
-              color: 'var(--tgm-text)', textDecoration: 'none',
-            }}
-              onMouseOver={e => e.currentTarget.style.background = '#f8fafc'}
-              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-            >{label}</Link>
-          ))}
-          <div style={{ borderTop: '1px solid var(--tgm-border)' }} />
-          <button onClick={logout} style={{
-            display: 'block', width: '100%', textAlign: 'left',
-            padding: '10px 16px', fontSize: 14, color: '#ef4444',
-            background: 'transparent', border: 'none', cursor: 'pointer',
-          }}
-            onMouseOver={e => e.currentTarget.style.background = '#fef2f2'}
-            onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+        <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white border border-gray-200 z-50">
+          <Link
+            to="/dashboard"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setOpen(false)}
+          >Dashboard</Link>
+          <Link
+            to="/dashboard"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setOpen(false)}
+          >Drafts</Link>
+          <div className="border-t border-gray-200 my-1" />
+          <button
+            onClick={handleLogout}
+            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
           >Logout</button>
         </div>
       )}
