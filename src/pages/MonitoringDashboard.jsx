@@ -242,7 +242,13 @@ export default function MonitoringDashboard() {
     if (!token) { setLoading(false); setDenied(true); return; }
     fetch('/api/admin/metrics', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
-        if (res.status === 401 || res.status === 403) { setDenied(true); throw new Error('Unauthorized'); }
+        if (res.status === 401 || res.status === 403) {
+          // Token expired — clear session and force re-login
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setDenied(true);
+          throw new Error('Unauthorized');
+        }
         if (!res.ok) throw new Error('Server error');
         return res.json();
       })
@@ -252,7 +258,7 @@ export default function MonitoringDashboard() {
   }, []);
 
   if (loading) return <LoadingSkeleton />;
-  if (denied) return <Navigate to="/dashboard" replace />;
+  if (denied) return <Navigate to="/login" replace />;
   if (error) return <div style={{ ...s.page, color: '#ef4444', textAlign: 'center', paddingTop: 48 }}>{error}</div>;
   if (!data) return <div style={{ ...s.page, color: '#94a3b8', textAlign: 'center', paddingTop: 48 }}>No data available</div>;
 
