@@ -256,8 +256,9 @@ export default function MonitoringDashboard() {
   if (error) return <div style={{ ...s.page, color: '#ef4444', textAlign: 'center', paddingTop: 48 }}>{error}</div>;
   if (!data) return <div style={{ ...s.page, color: '#94a3b8', textAlign: 'center', paddingTop: 48 }}>No data available</div>;
 
-  const subData = (data.subscriptionsByTier || []).map(x => ({ tier: x.tier, count: x._count?.tier || 0 }));
-  const aiData = (data.aiUsage || []).map(x => ({ action: x.action, count: x._count?.action || 0 }));
+  let subData = [], aiData = [];
+  try { subData = (data.subscriptionsByTier || []).map(x => ({ tier: x.tier, count: x._count?.tier || 0 })); } catch(e) {}
+  try { aiData = (data.aiUsage || []).map(x => ({ action: x.action, count: x._count?.action || 0 })); } catch(e) {}
 
   return (
     <div style={s.page}>
