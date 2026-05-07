@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useUser } from './UserContext';
 import { hasFeature } from '../config/tiers';
@@ -65,6 +65,41 @@ export function TierRoute({ allowedTiers, children }) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  return children;
+}
+
+/**
+ * AdminGuard — waits for session to hydrate, then checks token + admin email.
+ * Shows nothing while loading to prevent false redirects.
+ */
+const ADMIN_EMAIL = 'clotteythomas41@gmail.com';
+
+export function AdminGuard({ children }) {
+  const [status, setStatus] = useState('loading'); // 'loading' | 'allowed' | 'denied'
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userRaw = localStorage.getItem('user');
+
+    if (!token || !userRaw) {
+      setStatus('denied');
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userRaw);
+      if (user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+        setStatus('allowed');
+      } else {
+        setStatus('denied');
+      }
+    } catch {
+      setStatus('denied');
+    }
+  }, []);
+
+  if (status === 'loading') return null;
+  if (status === 'denied') return <Navigate to="/login" replace />;
   return children;
 }
 

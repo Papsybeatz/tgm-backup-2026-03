@@ -24,7 +24,7 @@ import MonitoringDashboard from './pages/MonitoringDashboard';
 
 // Layout + guards
 import AppLayout from './components/AppLayout';
-import { RequireAuth, RequireOnboarding } from './components/ProtectedRoute';
+import { RequireAuth, RequireOnboarding, AdminGuard } from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -80,9 +80,9 @@ function App() {
 
               {/* ── Admin ── */}
               <Route path="/admin/monitoring" element={
-                <RequireAuth>
+                <AdminGuard>
                   <MonitoringDashboard />
-                </RequireAuth>
+                </AdminGuard>
               } />
 
               {/* ── Fallback ── */}
