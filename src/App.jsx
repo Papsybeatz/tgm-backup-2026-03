@@ -1,5 +1,4 @@
 import React from 'react';
-import { UserProvider } from './components/UserContext';
 import { SkinProvider } from './hooks/useSkin.jsx';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -30,7 +29,6 @@ import { RequireAuth, RequireOnboarding } from './components/ProtectedRoute';
 function App() {
   return (
     <SkinProvider>
-      <UserProvider>
         <Router>
           <AppLayout>
             <Routes>
@@ -92,7 +90,6 @@ function App() {
             </Routes>
           </AppLayout>
         </Router>
-      </UserProvider>
     </SkinProvider>
   );
 }
