@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUser } from './UserContext';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const LANGUAGES = [
   { code: 'en', label: 'EN' },
@@ -162,6 +163,14 @@ function DashboardNav() {
 
 export default function AppHeader() {
   const { user } = useUser();
+  const [scrolled, setScrolled] = useState(false);
+
+  // Scroll shadow
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   return (
     <header style={{
@@ -170,10 +179,12 @@ export default function AppHeader() {
       padding: '0 24px', height: 60,
       background: 'linear-gradient(90deg,#0A0F1A 0%,#003A8C 100%)',
       borderBottom: '1px solid rgba(255,255,255,0.08)',
+      transition: 'box-shadow 0.2s ease',
+      boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.35)' : 'none',
     }}>
       {/* Logo */}
       <Link to={user ? '/dashboard' : '/'} style={{
-        display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none',
+        display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0,
       }}>
         <div style={{
           width: 36, height: 36, borderRadius: 10,
@@ -186,36 +197,71 @@ export default function AppHeader() {
         </span>
       </Link>
 
-      {/* Nav switches on auth state */}
-      {user ? <DashboardNav /> : <MarketingNav />}
-
-      {/* Right side */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <LangSwitcher />
+      {/* Nav — animated transition between marketing and dashboard */}
+      <AnimatePresence mode="wait">
         {user ? (
-          <UserDropdown user={user} />
+          <motion.div key="dashboard-nav"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+          >
+            <DashboardNav />
+          </motion.div>
         ) : (
-          <>
-            <Link to="/login" style={{
-              padding: '7px 16px', borderRadius: 8,
-              border: '1.5px solid rgba(255,255,255,0.3)',
-              color: '#fff', fontSize: 14, fontWeight: 600,
-              textDecoration: 'none', transition: 'all .15s',
-            }}
-              onMouseOver={e => e.currentTarget.style.borderColor = '#fff'}
-              onMouseOut={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'}
-            >Login</Link>
-            <Link to="/signup" style={{
-              padding: '7px 16px', borderRadius: 8,
-              background: '#D4AF37', color: '#0A0F1A',
-              fontSize: 14, fontWeight: 700, textDecoration: 'none',
-              transition: 'opacity .15s',
-            }}
-              onMouseOver={e => e.currentTarget.style.opacity = '.88'}
-              onMouseOut={e => e.currentTarget.style.opacity = '1'}
-            >Get Started Free</Link>
-          </>
+          <motion.div key="marketing-nav"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+          >
+            <MarketingNav />
+          </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* Right side — also animated */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+        <LangSwitcher />
+        <AnimatePresence mode="wait">
+          {user ? (
+            <motion.div key="user-dropdown"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+            >
+              <UserDropdown user={user} />
+            </motion.div>
+          ) : (
+            <motion.div key="auth-buttons"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+            >
+              <Link to="/login" style={{
+                padding: '7px 16px', borderRadius: 8,
+                border: '1.5px solid rgba(255,255,255,0.3)',
+                color: '#fff', fontSize: 14, fontWeight: 600,
+                textDecoration: 'none', transition: 'border-color .15s',
+              }}
+                onMouseOver={e => e.currentTarget.style.borderColor = '#fff'}
+                onMouseOut={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'}
+              >Login</Link>
+              <Link to="/signup" style={{
+                padding: '7px 16px', borderRadius: 8,
+                background: '#D4AF37', color: '#0A0F1A',
+                fontSize: 14, fontWeight: 700, textDecoration: 'none',
+                transition: 'opacity .15s',
+              }}
+                onMouseOver={e => e.currentTarget.style.opacity = '.88'}
+                onMouseOut={e => e.currentTarget.style.opacity = '1'}
+              >Get Started Free</Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </header>
   );
