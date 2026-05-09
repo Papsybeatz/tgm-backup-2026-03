@@ -139,24 +139,124 @@ function MarketingNav() {
   );
 }
 
+function DraftsDropdown() {
+  const [open, setOpen] = useState(false);
+  const [drafts, setDrafts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const menuRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    setLoading(true);
+    fetch('/api/drafts', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => setDrafts((d.drafts || []).slice(0, 3)))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [open]);
+
+  const timeAgo = (dateStr) => {
+    const diff = Date.now() - new Date(dateStr);
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+  };
+
+  return (
+    <div ref={menuRef} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        color: open ? '#D4AF37' : 'rgba(255,255,255,0.75)',
+        fontWeight: open ? 700 : 400, fontSize: 14,
+        background: 'transparent', border: 'none', cursor: 'pointer',
+        transition: 'color .15s', padding: '4px 0',
+      }}
+        onMouseOver={e => e.currentTarget.style.color = '#fff'}
+        onMouseOut={e => e.currentTarget.style.color = open ? '#D4AF37' : 'rgba(255,255,255,0.75)'}
+      >
+        Drafts
+        <span style={{ fontSize: 9, opacity: .7 }}>▼</span>
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+          top: 'calc(100% + 12px)', width: 260,
+          background: '#fff', borderRadius: 10,
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.13)', zIndex: 9999,
+          overflow: 'hidden',
+        }}>
+          <div style={{ padding: '10px 14px 6px', borderBottom: '1px solid #f1f5f9' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.5px' }}>
+              Recent Drafts
+            </span>
+          </div>
+
+          {loading && (
+            <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>Loading…</div>
+          )}
+
+          {!loading && drafts.length === 0 && (
+            <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No drafts yet</div>
+          )}
+
+          {!loading && drafts.map(draft => (
+            <div key={draft.id} onClick={() => { navigate(`/workspace/${draft.id}`); setOpen(false); }}
+              style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f8fafc' }}
+              onMouseOver={e => e.currentTarget.style.background = '#f8fafc'}
+              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', marginBottom: 2,
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {draft.title || 'Untitled Draft'}
+              </div>
+              <div style={{ fontSize: 11, color: '#94a3b8' }}>{timeAgo(draft.updatedAt || draft.updated_at)}</div>
+            </div>
+          ))}
+
+          <div onClick={() => { navigate('/dashboard'); setOpen(false); }}
+            style={{ padding: '10px 14px', textAlign: 'center', fontSize: 13,
+              color: '#003A8C', fontWeight: 600, cursor: 'pointer' }}
+            onMouseOver={e => e.currentTarget.style.background = '#f0f7ff'}
+            onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+          >
+            View all drafts →
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DashboardNav() {
   const location = useLocation();
   const isActive = (path) => location.pathname.startsWith(path);
   return (
     <nav style={{ display: 'flex', alignItems: 'center', gap: 24, fontSize: 14 }}>
-      {[
-        { label: 'Dashboard', to: '/dashboard' },
-        { label: 'Drafts',    to: '/dashboard' },
-      ].map(({ label, to }) => (
-        <Link key={label} to={to} style={{
-          color: isActive(to) ? '#D4AF37' : 'rgba(255,255,255,0.75)',
-          fontWeight: isActive(to) ? 700 : 400,
-          textDecoration: 'none', transition: 'color .15s',
-        }}
-          onMouseOver={e => e.currentTarget.style.color = '#fff'}
-          onMouseOut={e => e.currentTarget.style.color = isActive(to) ? '#D4AF37' : 'rgba(255,255,255,0.75)'}
-        >{label}</Link>
-      ))}
+      <Link to="/dashboard" style={{
+        color: isActive('/dashboard') ? '#D4AF37' : 'rgba(255,255,255,0.75)',
+        fontWeight: isActive('/dashboard') ? 700 : 400,
+        textDecoration: 'none', transition: 'color .15s',
+      }}
+        onMouseOver={e => e.currentTarget.style.color = '#fff'}
+        onMouseOut={e => e.currentTarget.style.color = isActive('/dashboard') ? '#D4AF37' : 'rgba(255,255,255,0.75)'}
+      >Dashboard</Link>
+      <DraftsDropdown />
     </nav>
   );
 }
