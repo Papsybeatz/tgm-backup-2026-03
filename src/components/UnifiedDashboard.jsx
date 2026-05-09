@@ -1,9 +1,91 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from './UserContext';
 import { TIERS } from '../config/tiers';
 import BillingPortalButton from './BillingPortalButton';
 import DraftsList from './DraftsList';
+
+function UserDropdown({ user }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+  const navigate = useNavigate();
+  const { setUser } = useUser();
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('tgm_onboarded');
+    setOpen(false);
+    navigate('/');
+  };
+
+  return (
+    <div ref={menuRef} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '6px 14px', borderRadius: 8,
+        background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
+        color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 500,
+      }}>
+        <div style={{
+          width: 26, height: 26, borderRadius: 6, flexShrink: 0,
+          background: 'linear-gradient(135deg,#D4AF37,#E8D28C)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 11, fontWeight: 800, color: '#0A0F1A',
+        }}>GM</div>
+        <span>{user?.email}</span>
+        <span style={{ fontSize: 10, opacity: .7 }}>▼</span>
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', right: 0, top: 'calc(100% + 8px)',
+          minWidth: 200, borderRadius: 10,
+          background: '#fff', border: '1px solid #e2e8f0',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.15)', zIndex: 9999,
+          overflow: 'hidden',
+        }}>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9' }}>
+            <p style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}>Signed in as</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', margin: '2px 0 0' }}>{user?.email}</p>
+          </div>
+          <Link to="/dashboard" onClick={() => setOpen(false)} style={{
+            display: 'block', padding: '10px 16px', fontSize: 14,
+            color: '#1e293b', textDecoration: 'none',
+          }}
+            onMouseOver={e => e.currentTarget.style.background = '#f8fafc'}
+            onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+          >Dashboard</Link>
+          <Link to="/pricing" onClick={() => setOpen(false)} style={{
+            display: 'block', padding: '10px 16px', fontSize: 14,
+            color: '#1e293b', textDecoration: 'none',
+          }}
+            onMouseOver={e => e.currentTarget.style.background = '#f8fafc'}
+            onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+          >Upgrade Plan</Link>
+          <div style={{ borderTop: '1px solid #f1f5f9' }} />
+          <button onClick={logout} style={{
+            display: 'block', width: '100%', textAlign: 'left',
+            padding: '10px 16px', fontSize: 14, color: '#ef4444',
+            background: 'transparent', border: 'none', cursor: 'pointer',
+          }}
+            onMouseOver={e => e.currentTarget.style.background = '#fef2f2'}
+            onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+          >Sign out</button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const FEATURE_MAP = {
   aiDraft:     ['starter','pro','agency_starter','agency_unlimited','lifetime'],
@@ -31,13 +113,6 @@ export default function UnifiedDashboard() {
 
   const unlocked = (key) => FEATURE_MAP[key]?.includes(tier);
 
-  const handleLogout = () => {
-    setUser?.(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
-
   return (
     <div className="min-h-screen bg-[#F7F9FB] text-gray-900">
 
@@ -54,11 +129,7 @@ export default function UnifiedDashboard() {
             <span className="px-4 py-1.5 rounded-lg bg-white/10 border border-white/20 text-[#E8D28C] font-semibold text-sm">
               {meta.label.toUpperCase()} ACCESS
             </span>
-            <span className="text-sm text-white/60">{user?.email}</span>
-            <button onClick={handleLogout}
-              className="px-4 py-1.5 rounded-lg border border-white/20 text-white/70 text-sm hover:text-white hover:border-white/50 transition">
-              Sign out
-            </button>
+            <UserDropdown user={user} />
           </div>
         </div>
       </header>
