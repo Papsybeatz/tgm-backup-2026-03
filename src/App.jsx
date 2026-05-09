@@ -29,67 +29,38 @@ import { RequireAuth, RequireOnboarding, AdminGuard } from './components/Protect
 function App() {
   return (
     <SkinProvider>
-        <Router>
-          <AppLayout>
-            <Routes>
-              {/* ── Public ── */}
-              <Route path="/"        element={<LandingPage />} />
-              <Route path="/en"      element={<LandingPage />} />
-              <Route path="/es"      element={<LandingPage />} />
-              <Route path="/fr"      element={<LandingPage />} />
-              <Route path="/login"   element={<LoginPage />} />
-              <Route path="/signup"  element={<SignupPage />} />
-              <Route path="/pricing" element={<PricingPage />} />
-              <Route path="/upgrade" element={<UpgradePage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/privacy" element={<PrivacyPage />} />
-              <Route path="/terms"   element={<TermsPage />} />
+      <Router>
+        <Routes>
+          {/* Workspace — full screen editor, no AppHeader */}
+          <Route path="/workspace" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/workspace/new-draft" element={<RequireOnboarding><DraftPage /></RequireOnboarding>} />
+          <Route path="/workspace/premium-draft" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/workspace/:id" element={<RequireOnboarding><WorkspacePage /></RequireOnboarding>} />
 
-              {/* ── Requires login only (onboarding itself) ── */}
-              <Route path="/onboarding" element={
-                <RequireAuth>
-                  <OnboardingPage />
-                </RequireAuth>
-              } />
-
-              {/* ── Requires login + onboarding complete ── */}
-              <Route path="/dashboard" element={
-                <RequireOnboarding>
-                  <UnifiedDashboard />
-                </RequireOnboarding>
-              } />
-
-              {/* /workspace with no ID → back to dashboard where drafts list lives */}
-              <Route path="/workspace" element={<Navigate to="/dashboard" replace />} />
-
-              {/* Specific workspace sub-routes MUST come before the :id wildcard */}
-              <Route path="/workspace/new-draft" element={
-                <RequireOnboarding>
-                  <DraftPage />
-                </RequireOnboarding>
-              } />
-
-              {/* Safety redirect for stale bookmarks/links */}
-              <Route path="/workspace/premium-draft" element={<Navigate to="/dashboard" replace />} />
-
-              <Route path="/workspace/:id" element={
-                <RequireOnboarding>
-                  <WorkspacePage />
-                </RequireOnboarding>
-              } />
-
-              {/* ── Admin ── */}
-              <Route path="/admin/monitoring" element={
-                <AdminGuard>
-                  <MonitoringDashboard />
-                </AdminGuard>
-              } />
-
-              {/* ── Fallback ── */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </AppLayout>
-        </Router>
+          {/* All other routes — wrapped in AppLayout (unified header) */}
+          <Route path="*" element={
+            <AppLayout>
+              <Routes>
+                <Route path="/"        element={<LandingPage />} />
+                <Route path="/en"      element={<LandingPage />} />
+                <Route path="/es"      element={<LandingPage />} />
+                <Route path="/fr"      element={<LandingPage />} />
+                <Route path="/login"   element={<LoginPage />} />
+                <Route path="/signup"  element={<SignupPage />} />
+                <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/upgrade" element={<UpgradePage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/terms"   element={<TermsPage />} />
+                <Route path="/onboarding" element={<RequireAuth><OnboardingPage /></RequireAuth>} />
+                <Route path="/dashboard"  element={<RequireOnboarding><UnifiedDashboard /></RequireOnboarding>} />
+                <Route path="/admin/monitoring" element={<AdminGuard><MonitoringDashboard /></AdminGuard>} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </AppLayout>
+          } />
+        </Routes>
+      </Router>
     </SkinProvider>
   );
 }

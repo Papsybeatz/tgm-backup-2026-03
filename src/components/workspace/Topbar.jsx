@@ -31,12 +31,13 @@ export default function Topbar({ title, setTitle, saved, wordCount, readingTime 
         {/* Back */}
         <button
           onClick={() => navigate('/dashboard')}
-          className="text-gray-400 hover:text-[#003A8C] transition mr-1"
+          className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-[#003A8C] transition mr-2 px-2 py-1 rounded hover:bg-gray-100"
           title="Back to Dashboard"
         >
-          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
+          Dashboard
         </button>
         {/* Draft title */}
         <input

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import LanguageSelector from './LanguageSelector';
+
 
 /* ── Demo Modal ── */
 // Replace LOOM_URL with your Loom embed URL when ready
@@ -130,7 +130,7 @@ export default function LandingPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [showDemo, setShowDemo] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
 
   // Re-render when language changes
   const lang = i18n.language;
@@ -181,54 +181,6 @@ export default function LandingPage() {
     <div className="w-full min-h-screen bg-white text-gray-900">
 
       {/* NAV */}
-      <nav className="sticky top-0 z-50 bg-[#0A0F1A]/95 backdrop-blur border-b border-white/10">
-        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#E8D28C] flex items-center justify-center shadow-md">
-              <span className="text-[#0A0F1A] font-bold text-sm">GM</span>
-            </div>
-            <span className="text-white font-bold text-lg tracking-tight">GrantsMaster</span>
-          </div>
-          {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-6 text-sm text-gray-300">
-            <a href="#features" className="hover:text-[#D4AF37] transition">Features</a>
-            <a href="#testimonials" className="hover:text-[#D4AF37] transition">Testimonials</a>
-            <Link to="/contact" className="hover:text-[#D4AF37] transition">Contact</Link>
-          </div>
-          {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-3">
-            <LanguageSelector />
-            <Link to="/login" className="px-4 py-2 text-sm text-white hover:text-[#D4AF37] transition">{t('login', 'Login')}</Link>
-            <Link to="/signup" className="px-4 py-2 rounded-lg bg-[#D4AF37] text-[#0A0F1A] text-sm font-bold shadow hover:shadow-lg transition">
-              {t('get_started', 'Get Started Free')}
-            </Link>
-          </div>
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden flex flex-col gap-1.5 p-2"
-            onClick={() => setMobileMenuOpen(o => !o)}
-            aria-label="Toggle menu"
-          >
-            <span className={`block w-6 h-0.5 bg-white transition-all ${mobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
-            <span className={`block w-6 h-0.5 bg-white transition-all ${mobileMenuOpen ? 'opacity-0' : ''}`} />
-            <span className={`block w-6 h-0.5 bg-white transition-all ${mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
-          </button>
-        </div>
-        {/* Mobile dropdown */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-[#0A0F1A] border-t border-white/10 px-6 py-4 flex flex-col gap-4">
-            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-gray-300 hover:text-[#D4AF37] text-sm">Features</a>
-            <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-gray-300 hover:text-[#D4AF37] text-sm">Testimonials</a>
-            <Link to="/contact" onClick={() => setMobileMenuOpen(false)} className="text-gray-300 hover:text-[#D4AF37] text-sm">Contact</Link>
-            <div className="flex gap-3 pt-2 border-t border-white/10">
-              <Link to="/login" className="flex-1 text-center px-4 py-2 text-sm text-white border border-white/20 rounded-lg">Login</Link>
-              <Link to="/signup" className="flex-1 text-center px-4 py-2 rounded-lg bg-[#D4AF37] text-[#0A0F1A] text-sm font-bold">Get Started</Link>
-            </div>
-          </div>
-        )}
-      </nav>
-
       {/* HERO */}
       <section className="bg-gradient-to-br from-[#0A0F1A] to-[#003A8C] text-white py-24 px-6">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
