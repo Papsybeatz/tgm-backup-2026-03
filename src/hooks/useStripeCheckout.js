@@ -23,16 +23,29 @@ export function useStripeCheckout() {
 
     try {
       const token = localStorage.getItem('token');
-      const res   = await fetch('/api/checkout/create-session', {
+
+      // Not logged in — send to login with redirect back to pricing
+      if (!token) {
+        window.location.href = '/login?redirect=/pricing';
+        return;
+      }
+
+      const res  = await fetch('/api/checkout/create-session', {
         method:  'POST',
         headers: {
           'Content-Type':  'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Authorization:   `Bearer ${token}`,
         },
         body: JSON.stringify({ priceId }),
       });
 
       const data = await res.json();
+
+      if (res.status === 401) {
+        // Token expired — send to login
+        window.location.href = '/login?redirect=/pricing';
+        return;
+      }
 
       if (!res.ok) {
         throw new Error(data.error || 'Checkout failed');
@@ -41,7 +54,7 @@ export function useStripeCheckout() {
       // Redirect to Stripe hosted checkout
       window.location.href = data.url;
     } catch (err) {
-      setError(err.message || 'Something went wrong');
+      setError(err.message || 'Something went wrong. Please try again.');
       setLoading(false);
     }
     // Don't setLoading(false) on success — page is navigating away
