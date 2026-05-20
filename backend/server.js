@@ -1,5 +1,5 @@
 const express = require('express');
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config(); // Railway injects env vars directly; dotenv is a no-op there
 const multer = require('multer');
 const cookieParser = require('cookie-parser');
 const { validateUpload } = require('./utils/uploadValidation');
@@ -157,4 +157,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend running on port ${PORT}`);
+  console.log(`[STRIPE] Secret key: ${process.env.STRIPE_SECRET_KEY ? 'PRESENT ✓' : 'MISSING ✗'}`);
+  console.log(`[STRIPE] Webhook secret: ${process.env.STRIPE_WEBHOOK_SECRET ? 'PRESENT ✓' : 'MISSING ✗'}`);
+  console.log(`[STRIPE] Starter price: ${process.env.STRIPE_STARTER_PRICE_ID || 'MISSING ✗'}`);
 });

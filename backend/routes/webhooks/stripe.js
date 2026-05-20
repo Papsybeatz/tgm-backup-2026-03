@@ -3,11 +3,15 @@ const router  = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-let stripe = null;
-try {
-  stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-} catch (e) {
-  console.warn('[STRIPE WEBHOOK] stripe SDK not available:', e.message);
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || key.includes('REPLACE')) return null;
+  try {
+    return require('stripe')(key);
+  } catch (e) {
+    console.warn('[STRIPE WEBHOOK] stripe SDK not available:', e.message);
+    return null;
+  }
 }
 
 // Price ID → internal tier key
@@ -23,8 +27,9 @@ const LIFETIME_PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID;
 
 // Must be mounted BEFORE express.json() — needs raw body for signature verification
 router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const stripe = getStripe();
   if (!stripe) {
-    console.error('[STRIPE WEBHOOK] Stripe not initialised');
+    console.error('[STRIPE WEBHOOK] STRIPE_SECRET_KEY not set');
     return res.status(500).send('Stripe not configured');
   }
 

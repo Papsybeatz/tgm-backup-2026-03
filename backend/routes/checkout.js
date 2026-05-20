@@ -4,11 +4,16 @@ const requireAuth = require('../middleware/auth');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-let stripe = null;
-try {
-  stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-} catch (e) {
-  console.warn('[CHECKOUT] stripe SDK not available:', e.message);
+// Initialise lazily so Railway env vars are always read at request time
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || key.includes('REPLACE')) return null;
+  try {
+    return require('stripe')(key);
+  } catch (e) {
+    console.warn('[CHECKOUT] stripe SDK not available:', e.message);
+    return null;
+  }
 }
 
 // Price ID → tier key (mirrors webhook handler)
@@ -27,7 +32,11 @@ const APP_URL = process.env.APP_URL || 'https://www.thegrantsmaster.com';
 // Creates a Stripe Checkout session and returns the hosted URL.
 // Requires auth so we can attach the user's email to the session.
 router.post('/create-session', requireAuth, async (req, res) => {
-  if (!stripe) return res.status(500).json({ error: 'Stripe not configured' });
+  const stripe = getStripe();
+  if (!stripe) {
+    console.error('[CHECKOUT] STRIPE_SECRET_KEY not set. Value:', process.env.STRIPE_SECRET_KEY ? 'present' : 'MISSING');
+    return res.status(500).json({ error: 'Stripe not configured' });
+  }
 
   const { priceId } = req.body;
   if (!priceId) return res.status(400).json({ error: 'priceId is required' });

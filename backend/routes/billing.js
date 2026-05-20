@@ -4,11 +4,15 @@ const requireAuth = require('../middleware/auth');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-let stripe = null;
-try {
-  stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-} catch (e) {
-  console.warn('[BILLING] stripe SDK not available:', e.message);
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || key.includes('REPLACE')) return null;
+  try {
+    return require('stripe')(key);
+  } catch (e) {
+    console.warn('[BILLING] stripe SDK not available:', e.message);
+    return null;
+  }
 }
 
 const APP_URL = process.env.APP_URL || 'https://www.thegrantsmaster.com';
@@ -26,6 +30,7 @@ router.get('/portal', requireAuth, async (req, res) => {
       return res.json({ url: `${APP_URL}/pricing` });
     }
 
+    const stripe = getStripe();
     if (!stripe) return res.status(500).json({ error: 'Stripe not configured' });
 
     const session = await stripe.billingPortal.sessions.create({
