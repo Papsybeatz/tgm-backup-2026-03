@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 /**
  * useStripeCheckout
@@ -15,6 +15,29 @@ import { useState } from 'react';
 export function useStripeCheckout() {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
+
+  useEffect(() => {
+    // Reset loading when user navigates back from Stripe checkout.
+    // The 'pageshow' event fires on back-navigation (including bfcache restores).
+    const handlePageShow = (e) => {
+      if (e.persisted || document.visibilityState === 'visible') {
+        setLoading(false);
+        setError(null);
+      }
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        setLoading(false);
+      }
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
 
   async function startCheckout(priceId) {
     if (!priceId) { setError('No price selected'); return; }
