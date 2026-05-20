@@ -1,86 +1,86 @@
-const express = require('express');
-const router = express.Router();
+const express    = require('express');
+const router     = express.Router();
 const { requireAuth } = require('../middleware/roleAuth');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 let stripe = null;
 try {
-  stripe = require('stripe')(process.env.STRIPE_API_KEY);
+  stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 } catch (e) {
-  console.warn('[CHECKOUT] stripe SDK not installed or STRIPE_API_KEY missing');
+  console.warn('[CHECKOUT] stripe SDK not available:', e.message);
 }
 
-// Create a Stripe Checkout session and persist stripeCustomerId to user
-router.post('/create-session', express.json(), async (req, res) => {
-  if (!stripe) return res.status(500).json({ success: false, message: 'Stripe not configured' });
-  const { tier, successUrl, cancelUrl, token } = req.body;
+// Price ID → tier key (mirrors webhook handler)
+const PRICE_TIER_MAP = {
+  [process.env.STRIPE_STARTER_PRICE_ID]:          'starter',
+  [process.env.STRIPE_PRO_PRICE_ID]:              'pro',
+  [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:   'agency_starter',
+  [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
+  [process.env.STRIPE_LIFETIME_PRICE_ID]:         'lifetime',
+};
 
-  // Resolve user: prefer req.user (if middleware set it), else use token or Authorization header
-  let user = req.user;
+const LIFETIME_PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID;
+const APP_URL = process.env.APP_URL || 'https://www.thegrantsmaster.com';
+
+// ── POST /api/checkout/create-session ─────────────────────────────────────────
+// Creates a Stripe Checkout session and returns the hosted URL.
+// Requires auth so we can attach the user's email to the session.
+router.post('/create-session', requireAuth, async (req, res) => {
+  if (!stripe) return res.status(500).json({ error: 'Stripe not configured' });
+
+  const { priceId } = req.body;
+  if (!priceId) return res.status(400).json({ error: 'priceId is required' });
+
+  const tier = PRICE_TIER_MAP[priceId];
+  if (!tier) return res.status(400).json({ error: 'Unknown price ID' });
+
+  const isLifetime = priceId === LIFETIME_PRICE_ID;
+
   try {
-    if (!user) {
-      const authHeader = req.headers.authorization;
-      const sessionToken = token || (authHeader && authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : null);
-      if (!sessionToken) return res.status(401).json({ success: false, message: 'Authentication required' });
-      const session = await prisma.session.findUnique({ where: { token: sessionToken } });
-      if (!session) return res.status(401).json({ success: false, message: 'Session not found or expired' });
-      const dbUser = await prisma.user.findUnique({ where: { email: session.email } });
-      if (!dbUser) return res.status(404).json({ success: false, message: 'User not found' });
-      user = { email: dbUser.email, tier: dbUser.tier };
-    }
-  } catch (e) {
-    console.error('[CHECKOUT] auth lookup error', e);
-    return res.status(500).json({ success: false, message: 'Auth lookup failed' });
-  }
-  if (!user || !user.email) return res.status(400).json({ success: false, message: 'User email required' });
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
-  try {
-    // Create or retrieve customer by email
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customer;
-    if (customers.data && customers.data.length) {
-      customer = customers.data[0];
-    } else {
-      customer = await stripe.customers.create({ email: user.email });
-    }
-
-    // Ensure Prisma user exists and has current tier, then persist stripeCustomerId
-    try {
-      const randomPass = require('crypto').randomBytes(16).toString('hex');
-      await prisma.user.upsert({
-        where: { email: user.email },
-        update: { tier: user.tier || 'free', stripeCustomerId: customer.id },
-        create: { email: user.email, password: randomPass, tier: user.tier || 'free', stripeCustomerId: customer.id }
-      });
-    } catch (pe) {
-      console.error('[CHECKOUT] prisma upsert error:', pe);
-    }
-
-    // Map tier to price id
-    const priceMap = {
-      starter: process.env.STRIPE_STARTER_PRICE_ID,
-      pro: process.env.STRIPE_PRO_PRICE_ID,
-      agency_starter: process.env.STRIPE_AGENCY_STARTER_PRICE_ID,
-      agency_unlimited: process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID,
-      lifetime: process.env.STRIPE_LIFETIME_PRICE_ID
-    };
-    const priceId = priceMap[tier];
-    if (!priceId) return res.status(400).json({ success: false, message: 'Unknown tier' });
-
-    const session = await stripe.checkout.sessions.create({
-      customer: customer.id,
+    const sessionParams = {
+      mode:                isLifetime ? 'payment' : 'subscription',
+      payment_method_types: ['card'],
+      customer_email:      user.email,
       line_items: [{ price: priceId, quantity: 1 }],
-      mode: 'payment',
-      success_url: successUrl || `${process.env.APP_URL}/dashboard?success=true&plan=${tier}`,
-      cancel_url: cancelUrl || `${process.env.APP_URL}/pricing?cancel=true&plan=${tier}`,
-    });
+      // Pass price_id in metadata so the webhook can resolve the tier
+      metadata: { price_id: priceId, user_id: String(user.id) },
+      success_url: `${APP_URL}/dashboard?checkout=success&tier=${tier}`,
+      cancel_url:  `${APP_URL}/pricing?checkout=cancelled`,
+    };
 
-    res.json({ url: session.url });
+    // For subscriptions, also embed metadata on the subscription object
+    if (!isLifetime) {
+      sessionParams.subscription_data = {
+        metadata: { price_id: priceId, user_id: String(user.id) },
+      };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
+    return res.json({ url: session.url });
   } catch (err) {
-    console.error('[CHECKOUT] error creating session', err);
-    res.status(500).json({ success: false, message: 'Checkout creation failed' });
+    console.error('[CHECKOUT] create-session error:', err.message);
+    return res.status(500).json({ error: 'Failed to create checkout session' });
   }
+});
+
+// ── GET /api/checkout/prices ───────────────────────────────────────────────────
+// Returns the price IDs and publishable key to the frontend.
+// No auth required — public endpoint.
+router.get('/prices', (req, res) => {
+  res.json({
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+    prices: {
+      starter:          process.env.STRIPE_STARTER_PRICE_ID,
+      pro:              process.env.STRIPE_PRO_PRICE_ID,
+      agency_starter:   process.env.STRIPE_AGENCY_STARTER_PRICE_ID,
+      agency_unlimited: process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID,
+      lifetime:         process.env.STRIPE_LIFETIME_PRICE_ID,
+    },
+  });
 });
 
 module.exports = router;

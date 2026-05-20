@@ -90,7 +90,7 @@ const TIERS = {
     priceMonthly: null,
     priceOnce: 149,
     billingType: 'one_time',
-    lemonVariantId: process.env.LEMONSQUEEZY_LIFETIME_VARIANT_ID || 'LS_VARIANT_LIFETIME',
+    stripePriceId: process.env.STRIPE_LIFETIME_PRICE_ID || 'price_1TXrTl64TrQMI3mIKgqoP3iL',
     features: [
       'All Pro features',
       'Lifetime updates',

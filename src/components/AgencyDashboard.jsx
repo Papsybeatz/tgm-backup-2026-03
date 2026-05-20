@@ -76,7 +76,7 @@ const AgencyDashboard = () => {
         <div className="card-header">Team Settings</div>
         <div className="card-body">
           <TeamSettingsPanel
-            onSeatUpgrade={() => window.location.href = 'https://grantsmaster.lemonsqueezy.com/checkout/buy/bbba7a22-44c0-4082-8530-ef5cf48bfcc5'}
+            onSeatUpgrade={() => window.location.href = '/upgrade'}
           />
         </div>
       </div>

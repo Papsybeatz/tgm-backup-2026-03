@@ -6,13 +6,15 @@ const { validateUpload } = require('./utils/uploadValidation');
 const https = require('https');
 const app = express();
 
+const stripeWebhooksRouter = require('./routes/webhooks/stripe');
+
+// Mount webhook routes BEFORE express.json() so raw body is preserved for HMAC signature verification
+app.use('/api/webhooks', stripeWebhooksRouter);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-const lemonWebhook = require('./routes/lemonWebhook');
 const stripeWebhook = require('./routes/stripeWebhook');
-const stripeWebhooksRouter = require('./routes/webhooks/stripe');
 const checkoutRoutes = require('./routes/checkout');
 const teamRoutes = require('./routes/team');
 const teamInvitesRoutes = require('./routes/teamInvites');
@@ -102,8 +104,6 @@ app.post('/api/agency/request', async (req, res) => {
 });
 
 app.use('/api', stripeWebhook);
-app.use('/api', lemonWebhook);
-app.use('/api/webhooks', stripeWebhooksRouter);
 app.use('/api/checkout', checkoutRoutes);
 const contactRoutes = require('./routes/contact');
 app.use('/api/contact', contactRoutes);

@@ -1,13 +1,23 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useStripeCheckout } from '../hooks/useStripeCheckout';
+
+// Stripe Live Price IDs
+const PRICE_IDS = {
+  starter:          'price_1TXqUt64TrQMI3mITWhRgTT0',
+  pro:              'price_1TXrGK64TrQMI3mILgb0Cvq7',
+  agency_starter:   'price_1TXrIy64TrQMI3mIQFIJhqCa',
+  agency_unlimited: 'price_1TXrNJ64TrQMI3mI4SWeRNVD',
+  lifetime:         'price_1TXrTl64TrQMI3mIKgqoP3iL',
+};
 
 const PLANS = [
   {
     key: 'starter',
     label: 'Starter',
     price: '$19.99/mo',
-    description: 'Get 5 drafts per month, downloads, and 1 team seat.',
-    url: 'https://grantsmaster.lemonsqueezy.com/checkout/buy/2efea376-b1ae-4032-a611-2d43d03d3430',
+    description: 'Get 100 drafts per month, downloads, and 1 team seat.',
+    priceId: PRICE_IDS.starter,
     primary: false,
   },
   {
@@ -15,23 +25,31 @@ const PLANS = [
     label: 'Pro',
     price: '$49/mo',
     description: 'Unlimited drafts, advanced agent guidance, analytics dashboard, priority support.',
-    url: 'https://grantsmaster.lemonsqueezy.com/checkout/buy/6e1e2b7c-6c2a-4b2e-8e2a-7e2b7c6c2a4b',
+    priceId: PRICE_IDS.pro,
     primary: true,
   },
   {
     key: 'agency_starter',
     label: 'Agency Starter',
     price: '$79/mo',
-    description: 'Up to 10 seats, unlimited drafts, up to 5 client workspaces, white-label proposals.',
-    url: 'https://grantsmaster.lemonsqueezy.com/checkout/buy/f9a73e20-a3dd-4bf3-a267-946258010531',
-    primary: true,
+    description: 'Up to 3 seats, unlimited drafts, client workspaces, white-label proposals.',
+    priceId: PRICE_IDS.agency_starter,
+    primary: false,
   },
   {
     key: 'agency_unlimited',
     label: 'Agency Unlimited',
     price: '$249/mo',
     description: 'Unlimited seats, unlimited drafts, unlimited client workspaces, full white-label, advanced analytics.',
-    url: 'https://grantsmaster.lemonsqueezy.com/checkout/buy/bbba7a22-44c0-4082-8530-ef5cf48bfcc5',
+    priceId: PRICE_IDS.agency_unlimited,
+    primary: false,
+  },
+  {
+    key: 'lifetime',
+    label: 'Lifetime Deal',
+    price: '$149 one-time',
+    description: 'Everything in Pro forever. No billing. Founding Member badge.',
+    priceId: PRICE_IDS.lifetime,
     primary: false,
   },
 ];
@@ -39,20 +57,20 @@ const PLANS = [
 const UpgradePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { startCheckout, loading, error } = useStripeCheckout();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get('success') === 'true') {
-      navigate('/dashboard?success=true', { replace: true });
-    } else if (params.get('cancel') === 'true') {
-      navigate('/pricing', { replace: true });
+    if (params.get('checkout') === 'success') {
+      navigate('/dashboard?checkout=success', { replace: true });
+    } else if (params.get('checkout') === 'cancelled') {
+      navigate('/pricing?checkout=cancelled', { replace: true });
     }
   }, [location, navigate]);
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--tgm-bg)', padding: '48px 24px' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        {/* Header */}
         <div style={{ marginBottom: 40 }}>
           <h1 style={{ fontSize: 32, fontWeight: 800, color: 'var(--tgm-navy)', margin: '0 0 8px' }}>
             Upgrade Your Plan
@@ -62,13 +80,16 @@ const UpgradePage = () => {
           </p>
         </div>
 
-        {/* Plan grid */}
+        {error && (
+          <p style={{ color: '#DC2626', fontSize: 14, marginBottom: 20 }}>{error}</p>
+        )}
+
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: 20,
         }}>
-          {PLANS.map(({ key, label, price, description, url, primary }) => (
+          {PLANS.map(({ key, label, price, description, priceId, primary }) => (
             <div key={key} style={{
               background: 'var(--tgm-surface)',
               borderRadius: 'var(--tgm-radius-lg)',
@@ -89,22 +110,21 @@ const UpgradePage = () => {
                 {description}
               </p>
               <button
-                onClick={() => { window.location.href = url; }}
+                onClick={() => startCheckout(priceId)}
+                disabled={loading}
                 style={{
                   width: '100%', padding: '12px',
-                  background: primary ? 'var(--tgm-gold)' : 'transparent',
-                  border: primary ? 'none' : '1.5px solid var(--tgm-border)',
+                  background: loading ? '#93c5fd' : primary ? 'var(--tgm-gold)' : '#004aad',
+                  border: 'none',
                   borderRadius: 'var(--tgm-radius-md)',
-                  color: primary ? 'var(--tgm-navy)' : 'var(--tgm-navy)',
+                  color: primary && !loading ? 'var(--tgm-navy)' : '#fff',
                   fontSize: 15, fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: primary ? 'var(--tgm-shadow-sm)' : 'none',
-                  transition: 'opacity .2s, box-shadow .2s',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.7 : 1,
+                  transition: 'opacity .2s',
                 }}
-                onMouseOver={e => { e.currentTarget.style.opacity = '.88'; }}
-                onMouseOut={e => { e.currentTarget.style.opacity = '1'; }}
               >
-                Upgrade to {label}
+                {loading ? 'Redirecting…' : `Upgrade to ${label}`}
               </button>
             </div>
           ))}

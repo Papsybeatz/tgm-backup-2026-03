@@ -2,6 +2,16 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import UpgradeButton from './UpgradeButton';
+import { useStripeCheckout } from '../hooks/useStripeCheckout';
+
+// Stripe Live Price IDs
+const PRICE_IDS = {
+  starter:          'price_1TXqUt64TrQMI3mITWhRgTT0',
+  pro:              'price_1TXrGK64TrQMI3mILgb0Cvq7',
+  agency_starter:   'price_1TXrIy64TrQMI3mIQFIJhqCa',
+  agency_unlimited: 'price_1TXrNJ64TrQMI3mI4SWeRNVD',
+  lifetime:         'price_1TXrTl64TrQMI3mIKgqoP3iL',
+};
 
 const TIERS = [
   {
@@ -25,7 +35,7 @@ const TIERS = [
     description: 'Give them enough to succeed, but not enough to win consistently.',
     features: ['100 drafts','Unlimited projects','Full AI writing','Export PDF/DOC','Basic scoring (10/mo)','Basic matching (10/mo)','Basic analytics'],
     cta: 'Upgrade',
-    href: 'https://grantsmaster.lemonsqueezy.com/checkout/buy/2efea376-b1ae-4032-a611-2d43d03d3430',
+    priceId: PRICE_IDS.starter,
     highlighted: false
   },
   {
@@ -37,7 +47,7 @@ const TIERS = [
     description: 'Give professionals the tools to win repeatedly.',
     features: ['Unlimited drafts','Full scoring engine','Full matching engine','Reviewer simulation','Advanced analytics','1 team seat','Priority AI','Grant calendar','Project templates'],
     cta: 'Upgrade',
-    href: 'https://grantsmaster.lemonsqueezy.com/checkout/buy/9fb78e01-b5f3-413d-a0ad-40faf8a76e37',
+    priceId: PRICE_IDS.pro,
     highlighted: true
   },
   {
@@ -49,7 +59,7 @@ const TIERS = [
     description: 'Give small agencies the ability to manage clients without overwhelming them.',
     features: ['Everything in Pro','3 team seats','Client folders','Shared workspace','Priority support','White-label reports'],
     cta: 'Upgrade',
-    href: 'https://grantsmaster.lemonsqueezy.com/checkout/buy/f9a73e20-a3dd-4bf3-a267-946258010531',
+    priceId: PRICE_IDS.agency_starter,
     highlighted: false
   },
   {
@@ -61,7 +71,7 @@ const TIERS = [
     description: 'Give large agencies a full operating system.',
     features: ['Everything in Agency Starter','Unlimited team seats','Bulk scoring','Bulk matching','Portfolio analytics','Multi-client dashboards','Admin controls','SLA support'],
     cta: 'Upgrade',
-    href: 'https://grantsmaster.lemonsqueezy.com/checkout/buy/bbba7a22-44c0-4082-8530-ef5cf48bfcc5',
+    priceId: PRICE_IDS.agency_unlimited,
     highlighted: false
   },
   {
@@ -73,7 +83,7 @@ const TIERS = [
     description: 'Lock in your earliest believers.',
     features: ['Everything in Pro forever','Lifetime badge','Early access','Founding Member certificate','VIP support','No billing'],
     cta: 'Buy Lifetime',
-    href: 'https://grantsmaster.lemonsqueezy.com/checkout/buy/d61187d4-183d-4ea2-8084-dc210b1bc010',
+    priceId: PRICE_IDS.lifetime,
     highlighted: false,
     special: true
   }
@@ -81,6 +91,7 @@ const TIERS = [
 
 export default function PricingPage() {
   const { t } = useTranslation();
+  const { startCheckout, loading: checkoutLoading, error: checkoutError } = useStripeCheckout();
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--tgm-bg)' }}>
@@ -179,13 +190,24 @@ export default function PricingPage() {
                 ))}
               </ul>
 
-              <UpgradeButton tierKey={tier.key} href={tier.href}>
+              <UpgradeButton
+                tierKey={tier.key}
+                href={tier.href}
+                priceId={tier.priceId}
+                onCheckout={tier.priceId ? () => startCheckout(tier.priceId) : undefined}
+                loading={checkoutLoading}
+              >
                 {tier.cta}
               </UpgradeButton>
             </div>
           ))}
         </div>
 
+        {checkoutError && (
+          <p style={{ textAlign: 'center', marginTop: 24, color: '#DC2626', fontSize: 14 }}>
+            {checkoutError}
+          </p>
+        )}
         <p style={{ textAlign: 'center', marginTop: 48, color: 'var(--tgm-muted)', fontSize: 14 }}>
           All plans include a 14-day money-back guarantee
         </p>

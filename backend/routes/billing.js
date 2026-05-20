@@ -1,77 +1,59 @@
-const express = require('express');
-const https = require('https');
-const router = express.Router();
+const express    = require('express');
+const router     = express.Router();
 const requireAuth = require('../middleware/auth');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
-const LS_API_KEY = process.env.LEMONSQUEEZY_API_KEY || '';
+let stripe = null;
+try {
+  stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+} catch (e) {
+  console.warn('[BILLING] stripe SDK not available:', e.message);
+}
+
+const APP_URL = process.env.APP_URL || 'https://www.thegrantsmaster.com';
 
 // GET /api/billing/portal
-// Returns the LemonSqueezy customer portal URL for the authenticated user.
-// The user is redirected there to manage/cancel their subscription themselves.
+// Returns a Stripe Customer Portal URL for the authenticated user.
+// If the user has no Stripe customer ID (free tier), redirects to /pricing.
 router.get('/portal', requireAuth, async (req, res) => {
   try {
-    const user = req.user;
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Free users have no subscription to manage
-    if (!user.lemonCustomerId && user.tier === 'free') {
-      return res.json({
-        success: false,
-        message: 'No active subscription to manage.',
-        upgradeUrl: `${process.env.APP_URL || 'https://www.thegrantsmaster.com'}/pricing`,
-      });
+    // Free tier — no billing portal, send to pricing
+    if (!user.stripeCustomerId) {
+      return res.json({ url: `${APP_URL}/pricing` });
     }
 
-    // If we have a LemonSqueezy customer ID, fetch their portal URL via LS API
-    if (user.lemonCustomerId && LS_API_KEY) {
-      const portalUrl = await getLemonPortalUrl(user.lemonCustomerId);
-      if (portalUrl) {
-        return res.json({ success: true, url: portalUrl });
-      }
-    }
+    if (!stripe) return res.status(500).json({ error: 'Stripe not configured' });
 
-    // Fallback: direct them to LemonSqueezy's generic customer portal
-    // Users can find their subscription by email
-    return res.json({
-      success: true,
-      url: 'https://app.lemonsqueezy.com/my-orders',
-      fallback: true,
+    const session = await stripe.billingPortal.sessions.create({
+      customer:   user.stripeCustomerId,
+      return_url: `${APP_URL}/dashboard`,
     });
-  } catch (e) {
-    console.error('[BILLING] portal error', e.message);
-    res.status(500).json({ success: false, message: 'Could not load billing portal.' });
+
+    return res.json({ url: session.url });
+  } catch (err) {
+    console.error('[BILLING] portal error:', err.message);
+    return res.status(500).json({ error: 'Failed to open billing portal' });
   }
 });
 
-function getLemonPortalUrl(customerId) {
-  return new Promise((resolve) => {
-    const options = {
-      hostname: 'api.lemonsqueezy.com',
-      path: `/v1/customers/${customerId}`,
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${LS_API_KEY}`,
-        Accept: 'application/vnd.api+json',
-      },
-    };
-
-    const req = https.request(options, (response) => {
-      let data = '';
-      response.on('data', chunk => { data += chunk; });
-      response.on('end', () => {
-        try {
-          const json = JSON.parse(data);
-          const portalUrl = json?.data?.attributes?.urls?.customer_portal;
-          resolve(portalUrl || null);
-        } catch {
-          resolve(null);
-        }
-      });
+// GET /api/billing/status
+// Returns the current user's tier and subscription status.
+router.get('/status', requireAuth, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where:  { id: req.user.id },
+      select: { tier: true, subscriptionStatus: true, subscriptionType: true },
     });
-
-    req.on('error', () => resolve(null));
-    req.setTimeout(5000, () => { req.destroy(); resolve(null); });
-    req.end();
-  });
-}
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    return res.json(user);
+  } catch (err) {
+    console.error('[BILLING] status error:', err.message);
+    return res.status(500).json({ error: 'Failed to fetch billing status' });
+  }
+});
 
 module.exports = router;
