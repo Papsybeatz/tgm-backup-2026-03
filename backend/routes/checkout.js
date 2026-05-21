@@ -16,17 +16,18 @@ function getStripe() {
   }
 }
 
-// Price ID → tier key (mirrors webhook handler)
-const PRICE_TIER_MAP = {
-  [process.env.STRIPE_STARTER_PRICE_ID]:          'starter',
-  [process.env.STRIPE_PRO_PRICE_ID]:              'pro',
-  [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:   'agency_starter',
-  [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
-  [process.env.STRIPE_LIFETIME_PRICE_ID]:         'lifetime',
-};
-
-const LIFETIME_PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID;
 const APP_URL = process.env.APP_URL || 'https://www.thegrantsmaster.com';
+
+// Built at request time so Railway env vars are always resolved
+function getPriceTierMap() {
+  return {
+    [process.env.STRIPE_STARTER_PRICE_ID]:          'starter',
+    [process.env.STRIPE_PRO_PRICE_ID]:              'pro',
+    [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:   'agency_starter',
+    [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
+    [process.env.STRIPE_LIFETIME_PRICE_ID]:         'lifetime',
+  };
+}
 
 // ── POST /api/checkout/create-session ─────────────────────────────────────────
 // Creates a Stripe Checkout session and returns the hosted URL.
@@ -41,8 +42,14 @@ router.post('/create-session', requireAuth, async (req, res) => {
   const { priceId } = req.body;
   if (!priceId) return res.status(400).json({ error: 'priceId is required' });
 
+  const PRICE_TIER_MAP   = getPriceTierMap();
+  const LIFETIME_PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID;
+
   const tier = PRICE_TIER_MAP[priceId];
-  if (!tier) return res.status(400).json({ error: 'Unknown price ID' });
+  if (!tier) {
+    console.error('[CHECKOUT] Unknown priceId:', priceId, '| Known IDs:', Object.keys(PRICE_TIER_MAP));
+    return res.status(400).json({ error: 'Unknown price ID' });
+  }
 
   const isLifetime = priceId === LIFETIME_PRICE_ID;
 

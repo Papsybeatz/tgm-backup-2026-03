@@ -14,16 +14,16 @@ function getStripe() {
   }
 }
 
-// Price ID → internal tier key
-const PRICE_TIER_MAP = {
-  [process.env.STRIPE_STARTER_PRICE_ID]:          'starter',
-  [process.env.STRIPE_PRO_PRICE_ID]:              'pro',
-  [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:   'agency_starter',
-  [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
-  [process.env.STRIPE_LIFETIME_PRICE_ID]:         'lifetime',
-};
-
-const LIFETIME_PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID;
+// Built at request time so Railway env vars are always resolved
+function getPriceTierMap() {
+  return {
+    [process.env.STRIPE_STARTER_PRICE_ID]:          'starter',
+    [process.env.STRIPE_PRO_PRICE_ID]:              'pro',
+    [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:   'agency_starter',
+    [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
+    [process.env.STRIPE_LIFETIME_PRICE_ID]:         'lifetime',
+  };
+}
 
 // Must be mounted BEFORE express.json() — needs raw body for signature verification
 router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -50,12 +50,14 @@ router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async 
     switch (event.type) {
 
       case 'checkout.session.completed': {
-        const session    = event.data.object;
-        const email      = session.customer_email || session.customer_details?.email;
-        const subId      = session.subscription || null;
-        const customerId = session.customer || null;
-        const priceId    = session.metadata?.price_id || null;
-        const tier       = PRICE_TIER_MAP[priceId] || null;
+        const session       = event.data.object;
+        const email         = session.customer_email || session.customer_details?.email;
+        const subId         = session.subscription || null;
+        const customerId    = session.customer || null;
+        const priceId       = session.metadata?.price_id || null;
+        const PRICE_TIER_MAP    = getPriceTierMap();
+        const LIFETIME_PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID;
+        const tier          = PRICE_TIER_MAP[priceId] || null;
 
         if (!email) { console.warn('[STRIPE WEBHOOK] no email on session'); return res.status(200).send('no email'); }
         if (!tier)  { console.warn('[STRIPE WEBHOOK] unknown price', priceId); return res.status(200).send('unknown price'); }
@@ -76,7 +78,7 @@ router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async 
       case 'customer.subscription.updated': {
         const sub     = event.data.object;
         const priceId = sub.items?.data?.[0]?.price?.id;
-        const tier    = PRICE_TIER_MAP[priceId] || null;
+        const tier    = getPriceTierMap()[priceId] || null;
         await prisma.user.updateMany({
           where: { subscriptionId: sub.id },
           data:  { subscriptionStatus: sub.status, ...(tier ? { tier } : {}) },
