@@ -14,13 +14,13 @@ model User {
   name               String?
   role               String   @default("user")
 
-  tier               String   @default("free")
-  subscriptionStatus String   @default("inactive")
-  subscriptionType   String   @default("none")
+  tier               String    @default("free")
+  subscriptionStatus String    @default("inactive")
+  subscriptionType   String    @default("none")
   subscriptionId     String?
-  provider           String?
-  lemonCustomerId    String?
   stripeCustomerId   String?
+  currentPeriodEnd   DateTime?
+  provider           String?
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt

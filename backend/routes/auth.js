@@ -68,7 +68,18 @@ router.get('/me', async (req, res) => {
   if (!session || new Date() > session.expiresAt) return res.status(401).json({ success: false, message: 'Session expired.' });
   const user = await prisma.user.findUnique({ where: { email: session.email } });
   if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
-  res.json({ email: user.email, tier: user.tier, createdAt: user.createdAt, updatedAt: user.updatedAt });
+  res.json({
+    id:                 user.id,
+    email:              user.email,
+    name:               user.name,
+    role:               user.role,
+    tier:               user.tier,
+    subscriptionStatus: user.subscriptionStatus,
+    subscriptionType:   user.subscriptionType,
+    currentPeriodEnd:   user.currentPeriodEnd,
+    createdAt:          user.createdAt,
+    updatedAt:          user.updatedAt,
+  });
 });
 
 module.exports = router;

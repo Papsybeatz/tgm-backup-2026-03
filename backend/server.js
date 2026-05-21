@@ -157,7 +157,11 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend running on port ${PORT}`);
-  console.log(`[STRIPE] Secret key: ${process.env.STRIPE_SECRET_KEY ? 'PRESENT ✓' : 'MISSING ✗'}`);
-  console.log(`[STRIPE] Webhook secret: ${process.env.STRIPE_WEBHOOK_SECRET ? 'PRESENT ✓' : 'MISSING ✗'}`);
-  console.log(`[STRIPE] Starter price: ${process.env.STRIPE_STARTER_PRICE_ID || 'MISSING ✗'}`);
+  console.log(`[STRIPE] Secret key:      ${process.env.STRIPE_SECRET_KEY      ? 'PRESENT ✓' : 'MISSING ✗'}`);
+  console.log(`[STRIPE] Webhook secret:  ${process.env.STRIPE_WEBHOOK_SECRET  ? 'PRESENT ✓' : 'MISSING ✗'}`);
+  console.log(`[STRIPE] Starter price:   ${process.env.STRIPE_STARTER_PRICE_ID          || 'MISSING ✗'}`);
+  console.log(`[STRIPE] Pro price:       ${process.env.STRIPE_PRO_PRICE_ID               || 'MISSING ✗'}`);
+  console.log(`[STRIPE] Agency Starter:  ${process.env.STRIPE_AGENCY_STARTER_PRICE_ID   || 'MISSING ✗'}`);
+  console.log(`[STRIPE] Agency Unlim:    ${process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID || 'MISSING ✗'}`);
+  console.log(`[STRIPE] Lifetime price:  ${process.env.STRIPE_LIFETIME_PRICE_ID         || 'MISSING ✗'}`);
 });
