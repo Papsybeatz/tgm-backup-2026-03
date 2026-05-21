@@ -14,7 +14,6 @@ app.use('/api/webhooks', stripeWebhooksRouter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-const stripeWebhook = require('./routes/stripeWebhook');
 const checkoutRoutes = require('./routes/checkout');
 const teamRoutes = require('./routes/team');
 const teamInvitesRoutes = require('./routes/teamInvites');
@@ -103,7 +102,6 @@ app.post('/api/agency/request', async (req, res) => {
   }
 });
 
-app.use('/api', stripeWebhook);
 app.use('/api/checkout', checkoutRoutes);
 const contactRoutes = require('./routes/contact');
 app.use('/api/contact', contactRoutes);
