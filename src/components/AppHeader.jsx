@@ -32,11 +32,24 @@ function LangSwitcher() {
   );
 }
 
+const TIER_BADGE_DROPDOWN = {
+  free:             { label: 'Free',             bg: 'rgba(255,255,255,0.1)',    color: 'rgba(255,255,255,0.55)' },
+  starter:          { label: 'Starter',          bg: 'rgba(0,58,140,0.35)',      color: '#93C5FD' },
+  pro:              { label: 'Pro',              bg: 'rgba(212,175,55,0.2)',     color: '#D4AF37' },
+  agency_starter:   { label: 'Agency Starter',   bg: 'rgba(22,101,52,0.3)',      color: '#6EE7B7' },
+  agency_unlimited: { label: 'Agency Unlimited', bg: 'rgba(6,95,70,0.35)',       color: '#34D399' },
+  lifetime:         { label: 'Lifetime ✦',       bg: 'rgba(126,34,206,0.3)',     color: '#C4B5FD' },
+};
+
 function UserDropdown({ user }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const { setUser } = useUser();
+
+  const tier = user?.tier || 'free';
+  const tierBadge = TIER_BADGE_DROPDOWN[tier] || TIER_BADGE_DROPDOWN.free;
+  const initials = (user?.email || 'GM').slice(0, 2).toUpperCase();
 
   useEffect(() => {
     function handleClick(e) {
@@ -55,60 +68,109 @@ function UserDropdown({ user }) {
     navigate('/');
   };
 
+  const NAV_ITEMS = [
+    { label: 'Dashboard', to: '/dashboard' },
+    { label: 'My Drafts',  to: '/dashboard' },
+    ...(tier === 'free' ? [{ label: 'Upgrade Plan', to: '/pricing', highlight: true }] : []),
+    { label: 'Billing',   to: '/dashboard' },
+  ];
+
   return (
     <div ref={menuRef} style={{ position: 'relative' }}>
+      {/* Trigger button */}
       <button onClick={() => setOpen(o => !o)} style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '6px 14px', borderRadius: 8,
-        background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
-        color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 500,
+        padding: '5px 12px 5px 6px', borderRadius: 10,
+        background: open ? 'rgba(212,175,55,0.18)' : 'rgba(255,255,255,0.1)',
+        border: `1px solid ${open ? 'rgba(212,175,55,0.5)' : 'rgba(255,255,255,0.18)'}`,
+        color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 500,
+        transition: 'all .15s',
       }}>
+        {/* Avatar */}
         <div style={{
-          width: 26, height: 26, borderRadius: 6, flexShrink: 0,
+          width: 28, height: 28, borderRadius: 7, flexShrink: 0,
           background: 'linear-gradient(135deg,#D4AF37,#E8D28C)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 11, fontWeight: 800, color: '#0A0F1A',
-        }}>GM</div>
-        <span style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        }}>{initials}</div>
+        <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {user?.email}
         </span>
-        <span style={{ fontSize: 10, opacity: .7 }}>▼</span>
+        <span style={{ fontSize: 9, opacity: .6, marginLeft: 2 }}>▼</span>
       </button>
 
+      {/* Dropdown panel */}
       {open && (
         <div style={{
-          position: 'absolute', right: 0, top: 'calc(100% + 8px)',
-          minWidth: 210, borderRadius: 10,
-          background: '#fff', border: '1px solid #e2e8f0',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.15)', zIndex: 9999,
-          overflow: 'hidden',
+          position: 'absolute', right: 0, top: 'calc(100% + 10px)',
+          minWidth: 230, borderRadius: 14,
+          background: 'linear-gradient(160deg,#0D1526 0%,#0A1A3A 100%)',
+          border: '1px solid rgba(212,175,55,0.25)',
+          boxShadow: '0 16px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)',
+          zIndex: 9999, overflow: 'hidden',
         }}>
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9' }}>
-            <p style={{ fontSize: 11, color: '#94a3b8', margin: 0, textTransform: 'uppercase', letterSpacing: '.5px' }}>Signed in as</p>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', margin: '3px 0 0', wordBreak: 'break-all' }}>{user?.email}</p>
+          {/* Identity header */}
+          <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 9,
+                background: 'linear-gradient(135deg,#D4AF37,#E8D28C)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 13, fontWeight: 800, color: '#0A0F1A', flexShrink: 0,
+              }}>{initials}</div>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '.6px' }}>Signed in as</p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 155 }}>{user?.email}</p>
+              </div>
+            </div>
+            {/* Tier badge */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              padding: '3px 10px', borderRadius: 20,
+              background: tierBadge.bg,
+              border: `1px solid ${tierBadge.color}30`,
+              fontSize: 11, fontWeight: 700, color: tierBadge.color,
+              letterSpacing: '.4px',
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: tierBadge.color, display: 'inline-block' }} />
+              {tierBadge.label} Plan
+            </div>
           </div>
-          {[
-            { label: 'Dashboard', to: '/dashboard' },
-            { label: 'Drafts',    to: '/dashboard' },
-            { label: 'Pricing',   to: '/pricing' },
-          ].map(({ label, to }) => (
-            <Link key={label} to={to} onClick={() => setOpen(false)} style={{
-              display: 'block', padding: '10px 16px', fontSize: 14,
-              color: '#1e293b', textDecoration: 'none',
+
+          {/* Nav links */}
+          <div style={{ padding: '6px 0' }}>
+            {NAV_ITEMS.map(({ label, to, highlight }) => (
+              <Link key={label} to={to} onClick={() => setOpen(false)} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '9px 16px', fontSize: 13, fontWeight: highlight ? 700 : 500,
+                color: highlight ? '#D4AF37' : 'rgba(255,255,255,0.8)',
+                textDecoration: 'none', transition: 'background .12s, color .12s',
+              }}
+                onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = highlight ? '#E8D28C' : '#fff'; }}
+                onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = highlight ? '#D4AF37' : 'rgba(255,255,255,0.8)'; }}
+              >
+                {label}
+                {highlight && <span style={{ fontSize: 10 }}>⚡</span>}
+              </Link>
+            ))}
+          </div>
+
+          {/* Sign out */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: '6px 0 4px' }}>
+            <button onClick={logout} style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              width: '100%', textAlign: 'left',
+              padding: '9px 16px', fontSize: 13, fontWeight: 500,
+              color: 'rgba(248,113,113,0.85)',
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              transition: 'background .12s, color .12s',
             }}
-              onMouseOver={e => e.currentTarget.style.background = '#f8fafc'}
-              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-            >{label}</Link>
-          ))}
-          <div style={{ borderTop: '1px solid #f1f5f9' }} />
-          <button onClick={logout} style={{
-            display: 'block', width: '100%', textAlign: 'left',
-            padding: '10px 16px', fontSize: 14, color: '#ef4444',
-            background: 'transparent', border: 'none', cursor: 'pointer',
-          }}
-            onMouseOver={e => e.currentTarget.style.background = '#fef2f2'}
-            onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-          >Sign out</button>
+              onMouseOver={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; e.currentTarget.style.color = '#F87171'; }}
+              onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(248,113,113,0.85)'; }}
+            >
+              <span style={{ fontSize: 14 }}>→</span> Sign out
+            </button>
+          </div>
         </div>
       )}
     </div>

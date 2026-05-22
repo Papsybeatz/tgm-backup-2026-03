@@ -145,15 +145,62 @@ export default function UnifiedDashboard() {
         <BillingPortalButton />
       </section>
 
-      {/* FINAL CTA */}
-      <section className="py-20 bg-gradient-to-br from-[#003A8C] to-[#0A0F1A] text-white text-center px-6">
-        <p className="text-[#D4AF37] font-semibold mb-2 text-sm uppercase tracking-widest">Unlock the full GrantsMaster experience</p>
-        <h2 className="text-4xl font-bold mb-6">Ready to elevate your grant writing?</h2>
-        <Link to="/pricing"
-          className="inline-block px-10 py-4 bg-[#D4AF37] text-[#0A0F1A] rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl transition no-underline">
-          Explore Full Access
-        </Link>
-      </section>
+      {/* FINAL CTA — tier-aware */}
+      {(tier === 'lifetime' || tier === 'agency_unlimited') ? (
+        <section className="py-16 bg-gradient-to-br from-[#003A8C] to-[#0A0F1A] text-white text-center px-6">
+          <p className="text-[#D4AF37] font-semibold mb-2 text-sm uppercase tracking-widest">
+            {tier === 'lifetime' ? 'Lifetime Member' : 'Agency Unlimited'}
+          </p>
+          <h2 className="text-3xl font-bold mb-3">You have full access.</h2>
+          <p className="text-gray-300 max-w-lg mx-auto mb-8 text-base">
+            {tier === 'lifetime'
+              ? 'Every feature is unlocked — forever. Thank you for being a founding member of GrantsMaster.'
+              : 'All agency features are active. Manage unlimited clients, workspaces, and funder matches.'}
+          </p>
+          <Link to="/dashboard"
+            className="inline-block px-10 py-4 bg-[#D4AF37] text-[#0A0F1A] rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl transition no-underline">
+            Go to Dashboard →
+          </Link>
+        </section>
+      ) : tier === 'pro' || tier === 'agency_starter' ? (
+        <section className="py-16 bg-gradient-to-br from-[#003A8C] to-[#0A0F1A] text-white text-center px-6">
+          <p className="text-[#D4AF37] font-semibold mb-2 text-sm uppercase tracking-widest">Unlock more power</p>
+          <h2 className="text-3xl font-bold mb-3">
+            {tier === 'pro' ? 'Ready to scale to Agency?' : 'Upgrade to Agency Unlimited'}
+          </h2>
+          <p className="text-gray-300 max-w-lg mx-auto mb-8 text-base">
+            {tier === 'pro'
+              ? 'Add multi-client workspaces, AI reviewer, and funder match intelligence.'
+              : 'Remove all limits — unlimited clients, seats, and funder match intelligence.'}
+          </p>
+          <Link to="/pricing"
+            className="inline-block px-10 py-4 bg-[#D4AF37] text-[#0A0F1A] rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl transition no-underline">
+            View Upgrade Options →
+          </Link>
+        </section>
+      ) : tier === 'starter' ? (
+        <section className="py-16 bg-gradient-to-br from-[#003A8C] to-[#0A0F1A] text-white text-center px-6">
+          <p className="text-[#D4AF37] font-semibold mb-2 text-sm uppercase tracking-widest">Unlock the full GrantsMaster experience</p>
+          <h2 className="text-3xl font-bold mb-3">Ready to go Pro?</h2>
+          <p className="text-gray-300 max-w-lg mx-auto mb-8 text-base">
+            Unlock compliance validation, team workspaces, and the AI reviewer engine.
+          </p>
+          <Link to="/pricing"
+            className="inline-block px-10 py-4 bg-[#D4AF37] text-[#0A0F1A] rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl transition no-underline">
+            Explore Pro & Agency →
+          </Link>
+        </section>
+      ) : (
+        /* free */
+        <section className="py-20 bg-gradient-to-br from-[#003A8C] to-[#0A0F1A] text-white text-center px-6">
+          <p className="text-[#D4AF37] font-semibold mb-2 text-sm uppercase tracking-widest">Unlock the full GrantsMaster experience</p>
+          <h2 className="text-4xl font-bold mb-6">Ready to elevate your grant writing?</h2>
+          <Link to="/pricing"
+            className="inline-block px-10 py-4 bg-[#D4AF37] text-[#0A0F1A] rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl transition no-underline">
+            Explore Full Access
+          </Link>
+        </section>
+      )}
 
       {/* FOOTER */}
       <footer className="bg-[#0A0F1A] text-gray-500 py-8 px-6">

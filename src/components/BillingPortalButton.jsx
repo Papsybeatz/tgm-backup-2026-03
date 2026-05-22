@@ -2,12 +2,22 @@ import React, { useState } from 'react';
 import { useUser } from './UserContext';
 
 const TIER_LABELS = {
-  free: 'Free',
-  starter: 'Starter',
-  pro: 'Pro',
-  agency_starter: 'Agency Starter',
+  free:             'Free',
+  starter:          'Starter',
+  pro:              'Pro',
+  agency_starter:   'Agency Starter',
   agency_unlimited: 'Agency Unlimited',
-  lifetime: 'Lifetime',
+  lifetime:         'Lifetime',
+};
+
+// Badge colour per tier — background / text
+const TIER_BADGE = {
+  free:             { bg: '#F3F4F6',           color: '#6B7280' },
+  starter:          { bg: 'rgba(0,58,140,.1)',  color: '#003A8C' },
+  pro:              { bg: 'rgba(212,175,55,.15)', color: '#92400E' },
+  agency_starter:   { bg: 'rgba(22,101,52,.1)', color: '#166534' },
+  agency_unlimited: { bg: 'rgba(6,95,70,.12)',  color: '#065F46' },
+  lifetime:         { bg: 'rgba(126,34,206,.12)', color: '#7E22CE' },
 };
 
 export default function BillingPortalButton({ compact = false }) {
@@ -17,6 +27,8 @@ export default function BillingPortalButton({ compact = false }) {
   const tier = user?.tier || 'free';
   const isLifetime = tier === 'lifetime';
   const isFree = tier === 'free';
+  const isPaid = !isFree;
+  const badge = TIER_BADGE[tier] || TIER_BADGE.free;
 
   async function handleManageBilling() {
     setLoading(true);
@@ -77,29 +89,45 @@ export default function BillingPortalButton({ compact = false }) {
         <div style={{
           padding: '6px 14px',
           borderRadius: 20,
-          background: isFree ? '#F3F4F6' : 'rgba(0,58,140,.1)',
-          color: isFree ? '#6B7280' : 'var(--tgm-blue)',
+          background: badge.bg,
+          color: badge.color,
           fontSize: 12,
           fontWeight: 700,
+          letterSpacing: '.3px',
         }}>
-          {isFree ? 'Free' : isLifetime ? 'One-time' : 'Recurring'}
+          {TIER_LABELS[tier] || tier}
         </div>
       </div>
 
       {/* Status message */}
-      {isLifetime && (
-        <p style={{ fontSize: 13, color: 'var(--tgm-muted)', marginBottom: 16 }}>
-          You have lifetime access — no billing, no renewals.
-        </p>
-      )}
       {isFree && (
         <p style={{ fontSize: 13, color: 'var(--tgm-muted)', marginBottom: 16 }}>
-          Upgrade to unlock AI actions, templates, and unlimited drafts.
+          Upgrade to unlock AI drafting, templates, and unlimited grants.
         </p>
       )}
-      {!isFree && !isLifetime && (
+      {tier === 'starter' && (
         <p style={{ fontSize: 13, color: 'var(--tgm-muted)', marginBottom: 16 }}>
-          Manage your subscription, update payment, or cancel anytime from the billing portal.
+          You're on Starter. Upgrade to Pro or Agency for team collaboration and advanced AI features.
+        </p>
+      )}
+      {tier === 'pro' && (
+        <p style={{ fontSize: 13, color: 'var(--tgm-muted)', marginBottom: 16 }}>
+          You're on Pro. Upgrade to Agency for multi-client workspaces and reviewer AI.
+        </p>
+      )}
+      {tier === 'agency_starter' && (
+        <p style={{ fontSize: 13, color: 'var(--tgm-muted)', marginBottom: 16 }}>
+          You're on Agency Starter. Upgrade to Agency Unlimited for unlimited clients and funder match intelligence.
+        </p>
+      )}
+      {tier === 'agency_unlimited' && (
+        <p style={{ fontSize: 13, color: 'var(--tgm-muted)', marginBottom: 16 }}>
+          You have full Agency Unlimited access — all features, unlimited clients, and funder match intelligence.
+        </p>
+      )}
+      {isLifetime && (
+        <p style={{ fontSize: 13, color: 'var(--tgm-muted)', marginBottom: 16 }}>
+          You have lifetime access — every feature, no renewals, forever.
         </p>
       )}
 
@@ -159,8 +187,10 @@ export default function BillingPortalButton({ compact = false }) {
         {isFree
           ? 'No credit card required to get started.'
           : isLifetime
-          ? 'Lifetime access — purchased once, yours forever.'
-          : 'Cancellation takes effect at the end of your billing period. You keep access until then.'}
+          ? 'Purchased once — yours forever. No future charges.'
+          : tier === 'agency_unlimited'
+          ? 'All features unlocked. Manage or cancel anytime from the billing portal.'
+          : 'Cancellation takes effect at the end of your billing period. Access continues until then.'}
       </p>
     </div>
   );
