@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import CaseStudiesSection from './CaseStudiesSection';
 
 
 /* ── Demo Modal ── */
@@ -227,6 +228,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* RESULTS — case studies above the fold */}
+      <CaseStudiesSection variant="full" />
 
       {/* VALUE STRIP */}
       <section className="py-16 bg-[#F7F9FB] border-t-4 border-[#D4AF37]">

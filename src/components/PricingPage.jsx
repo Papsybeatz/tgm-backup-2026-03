@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import UpgradeButton from './UpgradeButton';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
+import CaseStudiesSection from './CaseStudiesSection';
 
 // Stripe Live Price IDs
 const PRICE_IDS = {
@@ -120,6 +121,9 @@ export default function PricingPage() {
           Start free. Upgrade when you're ready.
         </p>
       </div>
+
+      {/* RESULTS — case studies above pricing cards */}
+      <CaseStudiesSection variant="compact" />
 
       {/* Cards */}
       <div style={{ padding: '56px 24px 80px', maxWidth: 1280, margin: '0 auto' }}>
