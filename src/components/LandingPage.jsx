@@ -209,7 +209,12 @@ export default function LandingPage() {
                 <span style={{ fontSize: 18 }}>▶</span> Watch Demo
               </button>
             </div>
-            <p className="mt-4 text-sm text-gray-400">{t('no_credit_card', 'No credit card required')} · {t('cancel_anytime', 'Cancel anytime')}</p>
+            <p className="mt-4 text-sm text-gray-400">
+              {t('no_credit_card', 'No credit card required')} · {t('cancel_anytime', 'Cancel anytime')} ·{' '}
+              <Link to="/lead-magnet/grant-workflow-blueprint" className="text-[#D4AF37] hover:underline">
+                Free Blueprint ↓
+              </Link>
+            </p>
           </div>
 
           {/* AI Preview Card */}
@@ -426,6 +431,7 @@ export default function LandingPage() {
           </div>
           <div className="flex gap-6 text-sm">
             <Link to="/pricing" className="hover:text-[#D4AF37] transition">Pricing</Link>
+            <Link to="/lead-magnet/grant-workflow-blueprint" className="hover:text-[#D4AF37] transition">Free Blueprint</Link>
             <Link to="/contact" className="hover:text-[#D4AF37] transition">Contact</Link>
             <Link to="/privacy" className="hover:text-[#D4AF37] transition">Privacy</Link>
             <Link to="/terms"   className="hover:text-[#D4AF37] transition">Terms</Link>
