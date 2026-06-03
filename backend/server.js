@@ -105,6 +105,8 @@ app.post('/api/agency/request', async (req, res) => {
 app.use('/api/checkout', checkoutRoutes);
 const contactRoutes = require('./routes/contact');
 app.use('/api/contact', contactRoutes);
+const leadMagnetRoutes = require('./routes/leadMagnet');
+app.use('/api/lead-magnet', leadMagnetRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/team', teamInvitesRoutes);
 app.use('/api/auth', authRoutes);
