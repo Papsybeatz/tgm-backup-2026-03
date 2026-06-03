@@ -21,6 +21,9 @@ import DraftPage from './components/DraftPage';
 
 // Admin
 import MonitoringDashboard from './pages/MonitoringDashboard';
+import GrantWorkflowBlueprintPage from './pages/lead-magnet/grant-workflow-blueprint/index';
+import GrantWorkflowBlueprintSuccess from './pages/lead-magnet/grant-workflow-blueprint/Success';
+import BlueprintHTML from './pages/lead-magnet/grant-workflow-blueprint/BlueprintHTML';
 
 // Layout + guards
 import AppLayout from './components/AppLayout';
@@ -55,6 +58,9 @@ function App() {
                 <Route path="/onboarding" element={<RequireAuth><OnboardingPage /></RequireAuth>} />
                 <Route path="/dashboard"  element={<RequireOnboarding><UnifiedDashboard /></RequireOnboarding>} />
                 <Route path="/admin/monitoring" element={<AdminGuard><MonitoringDashboard /></AdminGuard>} />
+                <Route path="/lead-magnet/grant-workflow-blueprint" element={<GrantWorkflowBlueprintPage />} />
+                <Route path="/lead-magnet/grant-workflow-blueprint/success" element={<GrantWorkflowBlueprintSuccess />} />
+                <Route path="/lead-magnet/grant-workflow-blueprint/pdf" element={<BlueprintHTML />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </AppLayout>

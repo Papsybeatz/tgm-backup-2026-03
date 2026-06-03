@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from './UserContext';
+import CaseStudiesSection from './CaseStudiesSection';
 
 async function safeJson(res) {
   const text = await res.text();
@@ -104,6 +105,9 @@ export default function SignupPage() {
           Start drafting funder-ready proposals in minutes
         </p>
       </div>
+
+      {/* RESULTS — proof before the form */}
+      <CaseStudiesSection variant="inline" />
 
       {/* Form */}
       <div style={{ padding: '48px 24px', display: 'flex', justifyContent: 'center' }}>
