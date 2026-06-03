@@ -44,8 +44,8 @@ const CASE_STUDIES = [
     before: {
       label: 'Before TGM',
       points: [
-        '8 overlapping AI tools',
-        '$2,400/mo in subscriptions',
+        '8 separate AI + workflow tools',
+        '$2,400/mo total software spend',
         'Team unsure which tool to use',
         'Duplicate work across platforms',
       ],
@@ -53,9 +53,9 @@ const CASE_STUDIES = [
     after: {
       label: 'After TGM',
       points: [
-        'Consolidated to 5 tools',
-        '$1,400/mo — 40% reduction',
-        'Clear per-task workflows',
+        'Consolidated to 5 tools (TGM + essentials)',
+        '$1,400/mo total spend — 40% reduction',
+        'Clear workflows for every grant task',
         '15% productivity increase',
       ],
     },
