@@ -1,9 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from './UserContext';
 import { TIERS } from '../config/tiers';
 import BillingPortalButton from './BillingPortalButton';
 import DraftsList from './DraftsList';
+import FundingAccelerator from './FundingAccelerator';
 
 const FEATURE_MAP = {
   aiDraft:     ['starter','pro','agency_starter','agency_unlimited','lifetime'],
@@ -24,6 +25,7 @@ const TIER_META = {
 
 export default function UnifiedDashboard() {
   const { user } = useUser() || {};
+  const navigate = useNavigate();
   const tier = user?.tier || 'free';
   const tierConfig = TIERS[tier] || TIERS.free;
   const meta = TIER_META[tier] || TIER_META.free;
@@ -38,17 +40,17 @@ export default function UnifiedDashboard() {
       {/* HERO */}
       <section className="bg-gradient-to-br from-[#003A8C] to-[#0A0F1A] text-white py-14 px-6">
         <div className="max-w-6xl mx-auto">
-          <p className="text-[#E8D28C] text-xs font-bold uppercase tracking-widest mb-3">Welcome back</p>
-          <h2 className="text-3xl font-bold mb-2">Your Multi-Workspace Dashboard</h2>
+          <p className="text-[#E8D28C] text-xs font-bold uppercase tracking-widest mb-3">TGM 1.5 is live</p>
+          <h2 className="text-3xl font-bold mb-2">The Funding Accelerator Dashboard</h2>
           <p className="text-[#E8D28C] text-lg mb-8">
-            Manage all your grants, drafts, and collaboration in one unified hub.
+            Turn value, readiness, evidence, funder fit, and positioning into a faster path to funding.
           </p>
           {/* Stats */}
           <div className="flex flex-wrap gap-4">
             {[
               { label: 'Plan',       value: tierConfig.name },
               { label: 'Drafts',     value: tierConfig.limits?.drafts === Infinity ? 'Unlimited' : tierConfig.limits?.drafts ?? 0 },
-
+              { label: 'Readiness',   value: 'Live' },
               { label: 'Team Seats', value: tierConfig.limits?.teamSeats === Infinity ? 'Unlimited' : tierConfig.limits?.teamSeats === 0 ? '—' : tierConfig.limits?.teamSeats },
             ].map(({ label, value }) => (
               <div key={label} className="bg-white/10 border border-white/15 rounded-xl px-5 py-3 min-w-[100px]">
@@ -65,6 +67,8 @@ export default function UnifiedDashboard() {
         </div>
       </section>
 
+      <FundingAccelerator />
+
       {/* DRAFTS — primary action area */}
       <section className="max-w-7xl mx-auto px-6 py-12">
         <DraftsList />
@@ -80,13 +84,16 @@ export default function UnifiedDashboard() {
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {[
+            { key: 'aiDraft',     label: 'Funding Narrative Generator', icon: '✍️', desc: 'Translate user data into funder-ready summaries, briefs, and pitch language.' },
+            { key: 'compliance',  label: 'Evidence & Validation Engine', icon: '✅', desc: 'Surface proof points, missing evidence, and funder-friendly validation language.' },
+            { key: 'funderMatch', label: 'Opportunity Matching',         icon: '🎯', desc: 'Prioritize the highest-fit funders and explain why each match is strong.' },
             { key: 'aiDraft',     label: 'AI Grant Drafting',          icon: '✍️', desc: 'Generate funder-ready proposals in minutes.' },
             { key: 'compliance',  label: 'Compliance Validator',        icon: '✅', desc: 'Auto-check drafts against funder requirements.' },
             { key: 'workspace',   label: 'Team Workspace',              icon: '👥', desc: 'Collaborate with your team in real time.' },
             { key: 'reviewer',    label: 'AI Reviewer Engine',          icon: '🔍', desc: 'Simulate reviewer feedback before submission.' },
             { key: 'funderMatch', label: 'Funder Match Intelligence',   icon: '🎯', desc: 'AI-curated funder recommendations for your mission.' },
           ].map((f) => (
-            <div key={f.key} className={`p-6 rounded-xl shadow-md border transition
+            <div key={`${f.key}-${f.label}`} className={`p-6 rounded-xl shadow-md border transition
               ${unlocked(f.key)
                 ? 'bg-white border-[#D4AF37]/40 hover:shadow-lg hover:border-[#D4AF37]'
                 : 'bg-[#F8FAFC] border-[#E2E8F0] opacity-60'}`}>
