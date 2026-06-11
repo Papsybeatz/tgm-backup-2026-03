@@ -34,8 +34,7 @@ export default function SignupPage() {
 
     setStatus('loading');
     try {
-      // Backend auto-creates user on first login
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, password: form.password })
@@ -55,7 +54,7 @@ export default function SignupPage() {
         // Returning user — mark onboarded so they skip onboarding gate
         localStorage.setItem('tgm_onboarded', '1');
       }
-      setMessage(isNewUser ? 'Account created! Setting up your workspace…' : 'Welcome back! Redirecting…');
+      setMessage(isNewUser ? 'Account created! Setting up your workspace…' : 'Account ready. Redirecting…');
       setTimeout(() => navigate(isNewUser ? '/onboarding' : '/dashboard'), 1000);
     } catch (err) {
       setStatus('error');

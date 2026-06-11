@@ -1,85 +1,165 @@
 // backend/routes/auth.js
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 const { generateSessionToken, getSessionExpiry } = require('../utils/session');
 const { sanitizeInput, validateEmail } = require('../utils/sanitize');
 
 const prisma = new PrismaClient();
 const router = express.Router();
 
-// POST /api/auth/login
-router.post('/login', async (req, res) => {
+function databaseReady(res) {
+  if (process.env.DATABASE_URL) return true;
+  res.status(503).json({
+    success: false,
+    code: 'DATABASE_NOT_CONFIGURED',
+    message: 'Login is temporarily unavailable because the backend database is not configured.',
+  });
+  return false;
+}
+
+function handleAuthError(res, error) {
+  console.error('[AUTH] request failed:', error);
+  if (res.headersSent) return;
+  res.status(500).json({
+    success: false,
+    message: 'Authentication service error. Please try again.',
+  });
+}
+
+function validateCredentialsInput(req, res) {
   const email = sanitizeInput(req.body.email);
-  if (!validateEmail(email)) return res.status(400).json({ success: false, message: 'Invalid email.' });
-  let user = await prisma.user.findUnique({ where: { email } });
-  const now = new Date();
-  if (!user) {
-    const randomPass = require('crypto').randomBytes(16).toString('hex');
-    user = await prisma.user.create({
-      data: {
-        email,
-        password: randomPass,
-        tier: 'free'
-      },
-    });
-  } else {
-    // touch the user to update `updatedAt`
-    await prisma.user.update({ where: { email }, data: { tier: user.tier } });
-    user = await prisma.user.findUnique({ where: { email } });
+  const password = typeof req.body.password === 'string' ? req.body.password : '';
+  if (!validateEmail(email)) {
+    res.status(400).json({ success: false, message: 'Invalid email.' });
+    return null;
   }
-  // Generate session token
+  if (password.length < 6) {
+    res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+    return null;
+  }
+  return { email, password };
+}
+
+async function createSession(res, user) {
   const token = generateSessionToken();
   const expiresAt = getSessionExpiry();
   await prisma.session.create({
     data: {
       token,
-      email,
-      createdAt: now,
+      email: user.email,
+      createdAt: new Date(),
       expiresAt: new Date(expiresAt),
     },
   });
-  // Set HTTP-only secure cookie for browser clients
   try {
     const maxAge = new Date(expiresAt).getTime() - Date.now();
     res.cookie('session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge });
   } catch (e) {
     // ignore cookie set errors
   }
-  res.json({ token, email: user.email, tier: user.tier, createdAt: user.createdAt, updatedAt: user.updatedAt });
+  return token;
+}
+
+function publicUserPayload(user, token) {
+  return {
+    token,
+    email: user.email,
+    tier: user.tier,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
+
+// POST /api/auth/signup
+router.post('/signup', async (req, res) => {
+  try {
+    if (!databaseReady(res)) return;
+    const credentials = validateCredentialsInput(req, res);
+    if (!credentials) return;
+
+    const existingUser = await prisma.user.findUnique({ where: { email: credentials.email } });
+    if (existingUser) return res.status(409).json({ success: false, message: 'An account already exists for this email.' });
+
+    const passwordHash = await bcrypt.hash(credentials.password, 12);
+    const user = await prisma.user.create({
+      data: {
+        email: credentials.email,
+        password: passwordHash,
+        tier: 'free',
+      },
+    });
+    const token = await createSession(res, user);
+    res.status(201).json(publicUserPayload(user, token));
+  } catch (error) {
+    handleAuthError(res, error);
+  }
+});
+
+// POST /api/auth/login
+router.post('/login', async (req, res) => {
+  try {
+    if (!databaseReady(res)) return;
+    const credentials = validateCredentialsInput(req, res);
+    if (!credentials) return;
+
+    const user = await prisma.user.findUnique({ where: { email: credentials.email } });
+    if (!user) return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+
+    const passwordMatches = await bcrypt.compare(credentials.password, user.password);
+    if (!passwordMatches) return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+
+    await prisma.user.update({ where: { email: user.email }, data: { tier: user.tier } });
+    const freshUser = await prisma.user.findUnique({ where: { email: user.email } });
+    const token = await createSession(res, freshUser);
+    res.json(publicUserPayload(freshUser, token));
+  } catch (error) {
+    handleAuthError(res, error);
+  }
 });
 
 // POST /api/auth/logout
 router.post('/logout', async (req, res) => {
-  const token = req.body.token;
-  if (!token) return res.status(400).json({ success: false, message: 'Missing token.' });
-  await prisma.session.deleteMany({ where: { token } });
-  res.json({ success: true });
+  try {
+    if (!databaseReady(res)) return;
+    const token = req.body.token;
+    if (!token) return res.status(400).json({ success: false, message: 'Missing token.' });
+    await prisma.session.deleteMany({ where: { token } });
+    res.json({ success: true });
+  } catch (error) {
+    handleAuthError(res, error);
+  }
 });
 
 // GET /api/auth/me
 router.get('/me', async (req, res) => {
-  // Accept Bearer token or HTTP-only cookie named 'session'
-  let token = null;
-  const auth = req.headers.authorization;
-  if (auth && auth.startsWith('Bearer ')) token = auth.replace('Bearer ', '');
-  if (!token && req.cookies && req.cookies.session) token = req.cookies.session;
-  if (!token) return res.status(401).json({ success: false, message: 'Missing or invalid token.' });
-  const session = await prisma.session.findUnique({ where: { token } });
-  if (!session || new Date() > session.expiresAt) return res.status(401).json({ success: false, message: 'Session expired.' });
-  const user = await prisma.user.findUnique({ where: { email: session.email } });
-  if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
-  res.json({
-    id:                 user.id,
-    email:              user.email,
-    name:               user.name,
-    role:               user.role,
-    tier:               user.tier,
-    subscriptionStatus: user.subscriptionStatus,
-    subscriptionType:   user.subscriptionType,
-    currentPeriodEnd:   user.currentPeriodEnd,
-    createdAt:          user.createdAt,
-    updatedAt:          user.updatedAt,
-  });
+  try {
+    if (!databaseReady(res)) return;
+    // Accept Bearer token or HTTP-only cookie named 'session'
+    let token = null;
+    const auth = req.headers.authorization;
+    if (auth && auth.startsWith('Bearer ')) token = auth.replace('Bearer ', '');
+    if (!token && req.cookies && req.cookies.session) token = req.cookies.session;
+    if (!token) return res.status(401).json({ success: false, message: 'Missing or invalid token.' });
+    const session = await prisma.session.findUnique({ where: { token } });
+    if (!session || new Date() > session.expiresAt) return res.status(401).json({ success: false, message: 'Session expired.' });
+    const user = await prisma.user.findUnique({ where: { email: session.email } });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+    res.json({
+      id:                 user.id,
+      email:              user.email,
+      name:               user.name,
+      role:               user.role,
+      tier:               user.tier,
+      subscriptionStatus: user.subscriptionStatus,
+      subscriptionType:   user.subscriptionType,
+      currentPeriodEnd:   user.currentPeriodEnd,
+      createdAt:          user.createdAt,
+      updatedAt:          user.updatedAt,
+    });
+  } catch (error) {
+    handleAuthError(res, error);
+  }
 });
 
 module.exports = router;
