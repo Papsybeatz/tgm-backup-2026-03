@@ -1,0 +1,156 @@
+import React, { FormEvent, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useUser } from './UserContext';
+import type { AssistantMessage } from '../types/assistant';
+
+type AssistantChatPanelProps = {
+  open: boolean;
+  onClose: () => void;
+};
+
+type AssistantResponse = {
+  reply: string;
+  intent: string;
+  requiresUpgrade?: boolean;
+  upgradeLink?: string;
+};
+
+function createLocalMessage(role: AssistantMessage['role'], content: string): AssistantMessage {
+  return {
+    id: `${role}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    role,
+    content,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+async function parseAssistantResponse(res: Response): Promise<AssistantResponse> {
+  const text = await res.text();
+  if (!text) throw new Error('TGM Assistant returned an empty response.');
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(text);
+  }
+}
+
+export default function AssistantChatPanel({ open, onClose }: AssistantChatPanelProps) {
+  const { user } = useUser() || {};
+  const location = useLocation();
+  const [messages, setMessages] = useState<AssistantMessage[]>([
+    createLocalMessage('assistant', 'Hi, I am TGM Assistant. Ask me to draft a grant, improve a section, prepare a submission, or explain your funding readiness.'),
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const userId = useMemo(() => user?.id || user?.userId || user?.email || 'guest', [user]);
+  const tier = user?.tier || 'free';
+
+  const sendMessage = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = input.trim();
+    if (!trimmed || loading) return;
+
+    const userMessage = createLocalMessage('user', trimmed);
+    setMessages((current) => [...current, userMessage]);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          tier,
+          message: trimmed,
+          context: {
+            currentPage: location.pathname,
+            currentGrantId: location.pathname.startsWith('/workspace/') ? location.pathname.split('/').pop() : null,
+          },
+        }),
+      });
+      const data = await parseAssistantResponse(response);
+      if (!response.ok) throw new Error(data.reply || 'TGM Assistant failed to respond.');
+
+      const upgradeCopy = data.requiresUpgrade && data.upgradeLink
+        ? `\n\nTo use this feature, you will need the Pro or Unlimited tier. Upgrade here: ${data.upgradeLink}`
+        : '';
+
+      setMessages((current) => [
+        ...current,
+        createLocalMessage('assistant', `${data.reply}${upgradeCopy}`),
+      ]);
+    } catch (error) {
+      setMessages((current) => [
+        ...current,
+        createLocalMessage('assistant', error instanceof Error ? error.message : 'TGM Assistant is unavailable right now.'),
+      ]);
+    } finally {
+      setLoading(false);
+      window.setTimeout(() => inputRef.current?.focus(), 0);
+    }
+  };
+
+  return (
+    <aside
+      aria-label="TGM Assistant chat panel"
+      className={`fixed right-0 top-0 z-40 flex h-screen w-full max-w-[420px] flex-col border-l border-[#E2E8F0] bg-white shadow-2xl transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}
+    >
+      <header className="flex items-center justify-between border-b border-[#E2E8F0] bg-[#0A0F1A] px-5 py-4 text-white">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#E8D28C]">Concierge mode</p>
+          <h2 className="text-lg font-bold">TGM Assistant</h2>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-lg border border-white/15 px-3 py-2 text-sm font-bold text-white transition hover:border-[#D4AF37] hover:text-[#E8D28C]"
+        >
+          Close
+        </button>
+      </header>
+
+      <div className="flex-1 space-y-4 overflow-y-auto bg-[#F7F9FB] px-5 py-5">
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`max-w-[88%] rounded-xl px-4 py-3 text-sm leading-6 shadow-sm ${
+              message.role === 'user'
+                ? 'ml-auto bg-[#003A8C] text-white'
+                : 'mr-auto border border-[#E2E8F0] bg-white text-gray-800'
+            }`}
+          >
+            <p className="whitespace-pre-wrap">{message.content}</p>
+          </div>
+        ))}
+        {loading && (
+          <div className="mr-auto w-fit rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-sm text-gray-500 shadow-sm">
+            TGM is thinking...
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={sendMessage} className="border-t border-[#E2E8F0] bg-white p-4">
+        <div className="flex gap-2">
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            placeholder="Type your question..."
+            className="min-w-0 flex-1 rounded-lg border border-[#E2E8F0] px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20"
+          />
+          <button
+            type="submit"
+            disabled={loading || !input.trim()}
+            className="rounded-lg bg-[#D4AF37] px-4 py-3 text-sm font-bold text-[#0A0F1A] shadow-sm transition hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Send
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-gray-500">Type your question...</p>
+      </form>
+    </aside>
+  );
+}
