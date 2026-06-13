@@ -2,6 +2,18 @@ const express = require('express');
 const https = require('https');
 const router = express.Router();
 
+const DEFAULT_CONTACT_TO_EMAIL = 'support@thegrantsmaster.com';
+const DEFAULT_CONTACT_FROM_EMAIL = 'noreply@thegrantsmaster.com';
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 router.post('/', async (req, res) => {
   const { name, email, subject, message, honeypot } = req.body;
 
@@ -14,15 +26,21 @@ router.post('/', async (req, res) => {
   }
 
   const apiKey = process.env.BREVO_API_KEY;
+  const toEmail = process.env.CONTACT_TO_EMAIL || DEFAULT_CONTACT_TO_EMAIL;
+  const fromEmail = process.env.BREVO_FROM_EMAIL || DEFAULT_CONTACT_FROM_EMAIL;
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeSubject = escapeHtml(subject || '');
+  const safeMessage = escapeHtml(message);
 
   if (!apiKey) {
-    console.log(`[CONTACT STUB] From: ${name} <${email}> | ${message}`);
-    return res.json({ success: true });
+    console.error('[CONTACT] BREVO_API_KEY is not configured; message was not sent.');
+    return res.status(503).json({ success: false, message: 'Contact delivery is not configured.' });
   }
 
   const payload = JSON.stringify({
-    sender: { name: 'GrantsMaster Contact Form', email: 'noreply@thegrantsmaster.com' },
-    to: [{ email: 'tcaibiznes@gmail.com', name: 'GrantsMaster Support' }],
+    sender: { name: 'GrantsMaster Contact Form', email: fromEmail },
+    to: [{ email: toEmail, name: 'GrantsMaster Support' }],
     replyTo: { email, name },
     subject: subject ? `[Contact] ${subject}` : `[Contact] Message from ${name}`,
     htmlContent: `
@@ -33,15 +51,15 @@ router.post('/', async (req, res) => {
         </div>
         <div style="background:#fff;border-radius:12px;padding:28px;border:1px solid #E2E8F0;">
           <table style="width:100%;border-collapse:collapse;font-size:14px;">
-            <tr><td style="padding:8px 0;color:#64748B;font-weight:600;width:100px;">Name</td><td style="padding:8px 0;color:#1A202C;">${name}</td></tr>
-            <tr><td style="padding:8px 0;color:#64748B;font-weight:600;">Email</td><td style="padding:8px 0;color:#1A202C;"><a href="mailto:${email}" style="color:#003A8C;">${email}</a></td></tr>
-            <tr><td style="padding:8px 0;color:#64748B;font-weight:600;">Subject</td><td style="padding:8px 0;color:#1A202C;">${subject || '—'}</td></tr>
+            <tr><td style="padding:8px 0;color:#64748B;font-weight:600;width:100px;">Name</td><td style="padding:8px 0;color:#1A202C;">${safeName}</td></tr>
+            <tr><td style="padding:8px 0;color:#64748B;font-weight:600;">Email</td><td style="padding:8px 0;color:#1A202C;"><a href="mailto:${safeEmail}" style="color:#003A8C;">${safeEmail}</a></td></tr>
+            <tr><td style="padding:8px 0;color:#64748B;font-weight:600;">Subject</td><td style="padding:8px 0;color:#1A202C;">${safeSubject || '—'}</td></tr>
           </table>
           <hr style="border:none;border-top:1px solid #E2E8F0;margin:20px 0;">
           <p style="color:#64748B;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px;">Message</p>
-          <p style="color:#1A202C;font-size:15px;line-height:1.7;margin:0;white-space:pre-wrap;">${message}</p>
+          <p style="color:#1A202C;font-size:15px;line-height:1.7;margin:0;white-space:pre-wrap;">${safeMessage}</p>
         </div>
-        <p style="color:#94A3B8;font-size:12px;text-align:center;margin-top:20px;">Reply directly to this email to respond to ${name}.</p>
+        <p style="color:#94A3B8;font-size:12px;text-align:center;margin-top:20px;">Reply directly to this email to respond to ${safeName}.</p>
       </div>
     `,
   });
@@ -69,6 +87,9 @@ router.post('/', async (req, res) => {
         }
         resolve();
       });
+    });
+    req2.setTimeout(10000, () => {
+      req2.destroy(new Error('Brevo request timed out'));
     });
     req2.on('error', (err) => {
       console.error('[CONTACT] Request error:', err.message);

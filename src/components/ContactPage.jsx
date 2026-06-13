@@ -2,22 +2,35 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useUser } from './UserContext';
 
+async function safeJson(res) {
+  const text = await res.text();
+  if (!text) return {};
+  try { return JSON.parse(text); } catch { return { message: text }; }
+}
+
 export default function ContactPage() {
   const { user } = useUser();
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [status, setStatus] = useState('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('loading');
+    setErrorMessage('');
     try {
-      await fetch('/api/contact', {
+      const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, userId: user?.userId })
       });
-    } catch {}
-    setStatus('sent');
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.message || 'Message delivery failed. Please email support@thegrantsmaster.com directly.');
+      setStatus('sent');
+    } catch (error) {
+      setStatus('error');
+      setErrorMessage(error.message || 'Message delivery failed. Please email support@thegrantsmaster.com directly.');
+    }
   };
 
   const inputStyle = {
@@ -151,7 +164,7 @@ export default function ContactPage() {
                 <p style={{ color: 'var(--tgm-muted)', fontSize: 15, margin: '0 0 24px' }}>
                   We'll get back to you within 24 hours.
                 </p>
-                <button onClick={() => { setStatus('idle'); setForm({ name: '', email: '', subject: '', message: '' }); }}
+                <button onClick={() => { setStatus('idle'); setErrorMessage(''); setForm({ name: '', email: '', subject: '', message: '' }); }}
                   style={{
                     padding: '10px 24px', borderRadius: 'var(--tgm-radius-md)',
                     background: 'var(--tgm-gold)', border: 'none',
@@ -163,6 +176,20 @@ export default function ContactPage() {
                 <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--tgm-navy)', margin: '0 0 28px' }}>
                   Send us a message
                 </h3>
+                {status === 'error' && (
+                  <div style={{
+                    background: 'rgba(239,68,68,.08)',
+                    border: '1px solid rgba(239,68,68,.3)',
+                    borderRadius: 'var(--tgm-radius-md)',
+                    color: 'var(--tgm-error)',
+                    fontSize: 14,
+                    lineHeight: 1.5,
+                    marginBottom: 20,
+                    padding: '12px 16px',
+                  }}>
+                    {errorMessage}
+                  </div>
+                )}
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                     <div>

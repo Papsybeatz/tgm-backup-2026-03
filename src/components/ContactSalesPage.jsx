@@ -11,12 +11,11 @@ function ContactSalesPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('sending');
-    const aliasEmail = 'tcaibiznes@gmail.com';
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, message, honeypot, to: aliasEmail })
+        body: JSON.stringify({ name, email, message, honeypot })
       });
       if (res.status === 429) {
         setStatus('spam');
