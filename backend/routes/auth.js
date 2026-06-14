@@ -8,6 +8,8 @@ const { sanitizeInput, validateEmail } = require('../utils/sanitize');
 const prisma = new PrismaClient();
 const router = express.Router();
 const STRIPE_PAID_TIERS = new Set(['starter', 'pro', 'agency_starter', 'agency_unlimited']);
+const MANUAL_COMP_PROVIDER = 'manual_comp';
+const MANUAL_COMP_TYPE = 'manual_comp';
 
 function databaseReady(res) {
   if (process.env.DATABASE_URL) return true;
@@ -57,7 +59,7 @@ async function validateStripeEntitlement(user) {
   if (!user || !STRIPE_PAID_TIERS.has(user.tier)) return user;
 
   const downgrade = async (reason) => {
-    await logAuthBillingEvent(user.id, `Auto-downgrade: invalid subscription (${reason})`);
+    await logAuthBillingEvent(user.id, `Auto-downgrade: ${reason}`);
     return prisma.user.update({
       where: { id: user.id },
       data: {
@@ -71,7 +73,12 @@ async function validateStripeEntitlement(user) {
     });
   };
 
-  if (!user.stripeCustomerId) return downgrade('missing stripe customer');
+  if (user.provider === MANUAL_COMP_PROVIDER && user.subscriptionType === MANUAL_COMP_TYPE) {
+    if (user.currentPeriodEnd && new Date(user.currentPeriodEnd) > new Date()) return user;
+    return downgrade('manual comp expired');
+  }
+
+  if (!user.stripeCustomerId) return downgrade('invalid subscription (missing stripe customer)');
 
   const stripe = getStripe();
   if (!stripe) {
@@ -105,10 +112,10 @@ async function validateStripeEntitlement(user) {
       });
     }
 
-    return downgrade('no active stripe subscription');
+    return downgrade('invalid subscription (no active stripe subscription)');
   } catch (error) {
     console.error('[AUTH] Stripe entitlement verification failed:', error.message);
-    return downgrade('stripe verification failed');
+    return downgrade('invalid subscription (stripe verification failed)');
   }
 }
 

@@ -5,6 +5,8 @@ const router = express.Router();
 const { getRecentErrors, getRecentAiActions } = require('../utils/logger');
 
 const ADMIN_EMAIL = process.env.FOUNDER_EMAIL || 'clotteythomas41@gmail.com';
+const MANUAL_ACCESS_TIERS = new Set(['starter', 'pro', 'agency_starter', 'agency_unlimited']);
+const MAX_MANUAL_ACCESS_DAYS = 90;
 
 // Protect all admin routes
 async function requireAdmin(req, res, next) {
@@ -83,7 +85,7 @@ router.get('/billing', requireAdmin, async (req, res) => {
 
     const events = await prisma.errorLog.findMany({
       where: {
-        endpoint: { in: ['stripe-webhook', 'auth-login'] },
+        endpoint: { in: ['stripe-webhook', 'auth-login', 'admin-billing'] },
       },
       orderBy: { createdAt: 'desc' },
       take: 300,
@@ -109,6 +111,65 @@ router.get('/billing', requireAdmin, async (req, res) => {
     res.json({ users: rows });
   } catch (error) {
     console.error('[ADMIN] /billing error', error.message);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// POST /api/admin/billing/grant-temporary-access
+router.post('/billing/grant-temporary-access', requireAdmin, async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const tier = String(req.body.tier || 'pro').trim();
+  const days = Number.parseInt(req.body.days || '30', 10);
+  const reason = String(req.body.reason || '').trim();
+
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ success: false, message: 'Valid user email is required.' });
+  }
+  if (!MANUAL_ACCESS_TIERS.has(tier)) {
+    return res.status(400).json({ success: false, message: 'Invalid temporary access tier.' });
+  }
+  if (!Number.isInteger(days) || days < 1 || days > MAX_MANUAL_ACCESS_DAYS) {
+    return res.status(400).json({ success: false, message: `Days must be between 1 and ${MAX_MANUAL_ACCESS_DAYS}.` });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+    const currentPeriodEnd = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        tier,
+        subscriptionStatus: 'active',
+        subscriptionType: 'manual_comp',
+        subscriptionId: null,
+        provider: 'manual_comp',
+        currentPeriodEnd,
+      },
+      select: {
+        id: true,
+        email: true,
+        tier: true,
+        subscriptionStatus: true,
+        subscriptionType: true,
+        provider: true,
+        currentPeriodEnd: true,
+      },
+    });
+
+    await prisma.errorLog.create({
+      data: {
+        endpoint: 'admin-billing',
+        userId: user.id,
+        severity: 'info',
+        message: `Manual temporary access granted: tier=${tier}, days=${days}, by=${req.user.email}${reason ? `, reason=${reason.slice(0, 160)}` : ''}`,
+      },
+    });
+
+    res.json({ success: true, user: updatedUser });
+  } catch (error) {
+    console.error('[ADMIN] grant-temporary-access error', error.message);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
