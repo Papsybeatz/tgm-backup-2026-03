@@ -7,6 +7,7 @@ const { sanitizeInput, validateEmail } = require('../utils/sanitize');
 
 const prisma = new PrismaClient();
 const router = express.Router();
+const STRIPE_PAID_TIERS = new Set(['starter', 'pro', 'agency_starter', 'agency_unlimited']);
 
 function databaseReady(res) {
   if (process.env.DATABASE_URL) return true;
@@ -25,6 +26,90 @@ function handleAuthError(res, error) {
     success: false,
     message: 'Authentication service error. Please try again.',
   });
+}
+
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || key.includes('REPLACE')) return null;
+  try { return require('stripe')(key); }
+  catch (error) {
+    console.warn('[AUTH] stripe SDK not available:', error.message);
+    return null;
+  }
+}
+
+async function logAuthBillingEvent(userId, message) {
+  try {
+    await prisma.errorLog.create({
+      data: {
+        message,
+        endpoint: 'auth-login',
+        userId,
+        severity: 'warning',
+      },
+    });
+  } catch (error) {
+    console.warn('[AUTH] could not log billing event:', error.message);
+  }
+}
+
+async function validateStripeEntitlement(user) {
+  if (!user || !STRIPE_PAID_TIERS.has(user.tier)) return user;
+
+  const downgrade = async (reason) => {
+    await logAuthBillingEvent(user.id, `Auto-downgrade: invalid subscription (${reason})`);
+    return prisma.user.update({
+      where: { id: user.id },
+      data: {
+        tier: 'free',
+        subscriptionStatus: 'inactive',
+        subscriptionType: 'none',
+        subscriptionId: null,
+        currentPeriodEnd: null,
+        provider: 'stripe',
+      },
+    });
+  };
+
+  if (!user.stripeCustomerId) return downgrade('missing stripe customer');
+
+  const stripe = getStripe();
+  if (!stripe) {
+    console.warn('[AUTH] Stripe unavailable; entitlement verification skipped.');
+    return user;
+  }
+
+  try {
+    if (user.subscriptionId) {
+      const subscription = await stripe.subscriptions.retrieve(user.subscriptionId);
+      if (['active', 'trialing'].includes(subscription.status)) {
+        return user;
+      }
+    }
+
+    const subscriptions = await stripe.subscriptions.list({
+      customer: user.stripeCustomerId,
+      status: 'all',
+      limit: 10,
+    });
+    const active = subscriptions.data.find((subscription) => ['active', 'trialing'].includes(subscription.status));
+    if (active) {
+      return prisma.user.update({
+        where: { id: user.id },
+        data: {
+          subscriptionId: active.id,
+          subscriptionStatus: active.status,
+          currentPeriodEnd: active.current_period_end ? new Date(active.current_period_end * 1000) : user.currentPeriodEnd,
+          provider: 'stripe',
+        },
+      });
+    }
+
+    return downgrade('no active stripe subscription');
+  } catch (error) {
+    console.error('[AUTH] Stripe entitlement verification failed:', error.message);
+    return downgrade('stripe verification failed');
+  }
 }
 
 function validateCredentialsInput(req, res) {
@@ -111,8 +196,9 @@ router.post('/login', async (req, res) => {
 
     await prisma.user.update({ where: { email: user.email }, data: { tier: user.tier } });
     const freshUser = await prisma.user.findUnique({ where: { email: user.email } });
-    const token = await createSession(res, freshUser);
-    res.json(publicUserPayload(freshUser, token));
+    const verifiedUser = await validateStripeEntitlement(freshUser);
+    const token = await createSession(res, verifiedUser);
+    res.json(publicUserPayload(verifiedUser, token));
   } catch (error) {
     handleAuthError(res, error);
   }
@@ -143,8 +229,9 @@ router.get('/me', async (req, res) => {
     if (!token) return res.status(401).json({ success: false, message: 'Missing or invalid token.' });
     const session = await prisma.session.findUnique({ where: { token } });
     if (!session || new Date() > session.expiresAt) return res.status(401).json({ success: false, message: 'Session expired.' });
-    const user = await prisma.user.findUnique({ where: { email: session.email } });
+    let user = await prisma.user.findUnique({ where: { email: session.email } });
     if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+    user = await validateStripeEntitlement(user);
     res.json({
       id:                 user.id,
       email:              user.email,

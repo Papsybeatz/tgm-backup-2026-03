@@ -8,6 +8,7 @@ import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import PricingPage from './components/PricingPage';
 import UpgradePage from './components/UpgradePage';
+import BillingProcessingPage from './components/BillingProcessingPage';
 import ContactPage from './components/ContactPage';
 import PrivacyPage from './components/PrivacyPage';
 import TermsPage from './components/TermsPage';
@@ -21,6 +22,7 @@ import DraftPage from './components/DraftPage';
 
 // Admin
 import MonitoringDashboard from './pages/MonitoringDashboard';
+import AdminBillingPage from './components/AdminBillingPage';
 import GrantWorkflowBlueprintPage from './pages/lead-magnet/grant-workflow-blueprint/index';
 import GrantWorkflowBlueprintSuccess from './pages/lead-magnet/grant-workflow-blueprint/Success';
 import BlueprintHTML from './pages/lead-magnet/grant-workflow-blueprint/BlueprintHTML';
@@ -52,12 +54,14 @@ function App() {
                 <Route path="/signup"  element={<SignupPage />} />
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/upgrade" element={<UpgradePage />} />
+                <Route path="/billing/processing" element={<BillingProcessingPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/terms"   element={<TermsPage />} />
                 <Route path="/onboarding" element={<RequireAuth><OnboardingPage /></RequireAuth>} />
                 <Route path="/dashboard"  element={<RequireOnboarding><UnifiedDashboard /></RequireOnboarding>} />
                 <Route path="/admin/monitoring" element={<AdminGuard><MonitoringDashboard /></AdminGuard>} />
+                <Route path="/admin/billing" element={<AdminGuard><AdminBillingPage /></AdminGuard>} />
                 <Route path="/lead-magnet/grant-workflow-blueprint" element={<GrantWorkflowBlueprintPage />} />
                 <Route path="/lead-magnet/grant-workflow-blueprint/success" element={<GrantWorkflowBlueprintSuccess />} />
                 <Route path="/lead-magnet/grant-workflow-blueprint/pdf" element={<BlueprintHTML />} />

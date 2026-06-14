@@ -13,7 +13,7 @@ const DEMO_STEPS = [
   { icon: '📊', label: 'Dashboard',       desc: 'Clean UI, tier-aware modules, multi-workspace hub.' },
   { icon: '✍️', label: 'New Draft',       desc: 'Click New Draft, describe your mission.' },
   { icon: '✦',  label: 'AI Generate',     desc: 'One click — full funder-ready proposal generated.' },
-  { icon: '⚡', label: 'Upgrade Flow',    desc: 'Unlock advanced features via LemonSqueezy checkout.' },
+  { icon: '⚡', label: 'Upgrade Flow',    desc: 'Unlock advanced features via secure Stripe checkout.' },
   { icon: '🎯', label: 'Ship It',         desc: 'Professional proposals in minutes, not weeks.' },
 ];
 

@@ -23,7 +23,7 @@ export default function TermsPage() {
         },
         {
           title: '4. Subscription & Billing',
-          body: `Paid plans are billed through LemonSqueezy. Lifetime plans are a one-time purchase with no recurring charges. Subscription plans renew automatically unless cancelled. Refunds are handled on a case-by-case basis — contact support@thegrantsmaster.com within 7 days of purchase.`,
+          body: `Paid plans are billed through Stripe. Lifetime plans are a one-time purchase with no recurring charges. Subscription plans renew automatically unless cancelled. Refunds are handled on a case-by-case basis — contact support@thegrantsmaster.com within 7 days of purchase.`,
         },
         {
           title: '5. AI-Generated Content',

@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
 
 // Stripe Live Price IDs
@@ -55,18 +54,7 @@ const PLANS = [
 ];
 
 const UpgradePage = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { startCheckout, loading, error } = useStripeCheckout();
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get('checkout') === 'success') {
-      navigate('/dashboard?checkout=success', { replace: true });
-    } else if (params.get('checkout') === 'cancelled') {
-      navigate('/pricing?checkout=cancelled', { replace: true });
-    }
-  }, [location, navigate]);
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--tgm-bg)', padding: '48px 24px' }}>

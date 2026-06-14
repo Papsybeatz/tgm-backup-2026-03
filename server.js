@@ -10,7 +10,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const lemonWebhook = require('./routes/lemonWebhook');
 const stripeWebhook = require('./routes/stripeWebhook');
 const stripeWebhooksRouter = require('./routes/webhooks/stripe');
 const checkoutRoutes = require('./routes/checkout');
@@ -107,8 +106,8 @@ app.post('/api/agency/request', async (req, res) => {
 });
 
 app.use('/api', stripeWebhook);
-app.use('/api', lemonWebhook);
 app.use('/api/webhooks', stripeWebhooksRouter);
+app.use('/api/stripe', stripeWebhooksRouter);
 app.use('/api/checkout', checkoutRoutes);
 const contactRoutes = require('./routes/contact');
 app.use('/api/contact', contactRoutes);

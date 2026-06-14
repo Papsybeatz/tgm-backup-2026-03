@@ -10,6 +10,7 @@ const stripeWebhooksRouter = require('./routes/webhooks/stripe');
 
 // Mount webhook routes BEFORE express.json() so raw body is preserved for HMAC signature verification
 app.use('/api/webhooks', stripeWebhooksRouter);
+app.use('/api/stripe', stripeWebhooksRouter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

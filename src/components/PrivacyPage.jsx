@@ -23,7 +23,7 @@ export default function PrivacyPage() {
         },
         {
           title: '4. Third-Party Services',
-          body: `We use the following third-party services: LemonSqueezy for payment processing, SendGrid for transactional email, Groq for AI draft generation, and Vercel/Railway for hosting. Each service has its own privacy policy governing data they process.`,
+          body: `We use the following third-party services: Stripe for payment processing, SendGrid or Brevo for transactional email, Groq for AI draft generation, and Vercel/Railway for hosting. Each service has its own privacy policy governing data they process.`,
         },
         {
           title: '5. Cookies',

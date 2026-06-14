@@ -10,7 +10,6 @@ function runScript(relPath) {
 }
 
 const tests = [
-  'tests/webhooks/lemon_webhook_test.js',
   'tests/webhooks/stripe_webhook_test.js'
 ];
 

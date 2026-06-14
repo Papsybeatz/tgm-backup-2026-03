@@ -6,7 +6,7 @@ const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 const PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID || 'LIFETIME_PRICE_ID';
 const TEST_EMAIL = process.env.TEST_EMAIL || 'test+stripe@example.com';
-const endpoint = `${APP_URL.replace(/\/$/,'')}/api/stripe-webhook`;
+const endpoint = `${APP_URL.replace(/\/$/,'')}/api/stripe/webhook`;
 
 async function run() {
   const event = {
@@ -20,11 +20,7 @@ async function run() {
         customer: 'cus_test_123',
         customer_email: TEST_EMAIL,
         customer_details: { email: TEST_EMAIL },
-        line_items: {
-          data: [
-            { price: { id: PRICE_ID } }
-          ]
-        }
+        metadata: { price_id: PRICE_ID }
       }
     }
   };

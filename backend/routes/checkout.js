@@ -23,6 +23,7 @@ function getPriceTierMap() {
   return {
     [process.env.STRIPE_STARTER_PRICE_ID]:          'starter',
     [process.env.STRIPE_PRO_PRICE_ID]:              'pro',
+    [process.env.STRIPE_ANNUAL_PRO_PRICE_ID]:       'pro',
     [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:   'agency_starter',
     [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
     [process.env.STRIPE_LIFETIME_PRICE_ID]:         'lifetime',
@@ -57,15 +58,27 @@ router.post('/create-session', requireAuth, async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    let customerId = user.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: { user_id: String(user.id) },
+      });
+      customerId = customer.id;
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { stripeCustomerId: customerId, provider: 'stripe' },
+      });
+    }
+
     const sessionParams = {
       mode:                isLifetime ? 'payment' : 'subscription',
       payment_method_types: ['card'],
-      customer_email:      user.email,
+      customer:            customerId,
       line_items: [{ price: priceId, quantity: 1 }],
-      // Pass price_id in metadata so the webhook can resolve the tier
       metadata: { price_id: priceId, user_id: String(user.id) },
-      success_url: `${APP_URL}/dashboard?checkout=success&tier=${tier}`,
-      cancel_url:  `${APP_URL}/pricing?checkout=cancelled`,
+      success_url: `${APP_URL}/billing/processing`,
+      cancel_url:  `${APP_URL}/pricing`,
     };
 
     // For subscriptions, also embed metadata on the subscription object
@@ -92,6 +105,7 @@ router.get('/prices', (req, res) => {
     prices: {
       starter:          process.env.STRIPE_STARTER_PRICE_ID,
       pro:              process.env.STRIPE_PRO_PRICE_ID,
+      annual_pro:       process.env.STRIPE_ANNUAL_PRO_PRICE_ID,
       agency_starter:   process.env.STRIPE_AGENCY_STARTER_PRICE_ID,
       agency_unlimited: process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID,
       lifetime:         process.env.STRIPE_LIFETIME_PRICE_ID,

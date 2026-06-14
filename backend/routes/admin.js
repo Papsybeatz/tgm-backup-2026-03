@@ -61,6 +61,58 @@ router.get('/users', requireAdmin, async (req, res) => {
   }
 });
 
+// GET /api/admin/billing
+router.get('/billing', requireAdmin, async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        tier: true,
+        stripeCustomerId: true,
+        subscriptionId: true,
+        subscriptionStatus: true,
+        subscriptionType: true,
+        currentPeriodEnd: true,
+        provider: true,
+        updatedAt: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 100,
+    });
+
+    const events = await prisma.errorLog.findMany({
+      where: {
+        endpoint: { in: ['stripe-webhook', 'auth-login'] },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 300,
+    });
+
+    const rows = users.map((user) => {
+      const lastEvent = events.find((event) => event.userId === user.id);
+      return {
+        userId: user.id,
+        email: user.email,
+        currentTier: user.tier,
+        stripeCustomerId: user.stripeCustomerId,
+        subscriptionId: user.subscriptionId,
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionType: user.subscriptionType,
+        nextBillingDate: user.currentPeriodEnd,
+        provider: user.provider,
+        lastWebhookEvent: lastEvent?.message || null,
+        lastWebhookAt: lastEvent?.createdAt || null,
+      };
+    });
+
+    res.json({ users: rows });
+  } catch (error) {
+    console.error('[ADMIN] /billing error', error.message);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // GET /api/admin/metrics
 router.get('/metrics', requireAdmin, async (req, res) => {
   try {

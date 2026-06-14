@@ -1,19 +1,16 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useUser } from './UserContext';
 import TeamSettingsPanel from './TeamSettingsPanel';
 import TierBadge from './TierBadge';
 
 const AgencyDashboard = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const userContext = useUser();
   const user = userContext?.user || null;
   const setUser = userContext?.setUser || (() => {});
 
-  const params = new URLSearchParams(location.search);
-  const showSuccess = params.get('success') === 'true';
-  const tier = params.get('tier') || user?.tier || 'agency_starter';
+  const tier = user?.tier || 'agency_starter';
 
   const handleLogout = () => {
     setUser(null);
@@ -23,11 +20,10 @@ const AgencyDashboard = () => {
   };
 
   React.useEffect(() => {
-    const isPostPayment = location.search.includes('success=true');
-    if (user && !['agency_starter', 'agency_unlimited', 'agency'].includes(user.tier) && !isPostPayment) {
+    if (user && !['agency_starter', 'agency_unlimited', 'agency'].includes(user.tier)) {
       navigate('/upgrade', { replace: true });
     }
-  }, [user, navigate, location]);
+  }, [user, navigate]);
 
   if (!user) {
     return <div className="loading">Loading user data...</div>;
@@ -57,12 +53,6 @@ const AgencyDashboard = () => {
           <button className="btn btn-danger" onClick={handleLogout}>Logout</button>
         </div>
       </div>
-
-      {showSuccess && (
-        <div className="badge badge-success mb-lg" style={{ display: 'block', padding: 'var(--space-md)', textAlign: 'center', fontSize: 'var(--font-size-base)' }}>
-          🎉 Thanks for upgrading! Your Agency tier is now active.
-        </div>
-      )}
 
       <div className="grid grid-3 mb-lg">
         {actions.map(({ label, onClick, variant }) => (

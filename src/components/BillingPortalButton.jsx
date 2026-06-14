@@ -46,7 +46,7 @@ export default function BillingPortalButton({ compact = false }) {
         return;
       }
       if (data.url) {
-        // Open LS customer portal in new tab
+        // Open Stripe customer portal in new tab
         window.open(data.url, '_blank', 'noopener,noreferrer');
         return;
       }
