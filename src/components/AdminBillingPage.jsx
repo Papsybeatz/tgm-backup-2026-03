@@ -75,6 +75,34 @@ export default function AdminBillingPage() {
     }
   }
 
+  async function handleGrantNewestTemporaryAccess() {
+    setGrantStatus('');
+    setGrantError('');
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch('/api/admin/billing/grant-newest-temporary-access', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tier: 'starter',
+          days: grantForm.days || '30',
+          reason: 'Unknown external payment investigation',
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to grant newest signup access.');
+
+      setGrantStatus(`Temporary Starter access granted to newest non-founder signup: ${data.user.email} until ${formatDate(data.user.currentPeriodEnd)}.`);
+      loadBilling();
+    } catch (err) {
+      setGrantError(err.message || 'Failed to grant newest signup access.');
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#F7F9FB] px-6 py-10 text-gray-900">
       <div className="mx-auto max-w-7xl">
@@ -156,6 +184,23 @@ export default function AdminBillingPage() {
               </div>
               {grantStatus && <p className="mt-3 text-sm font-semibold text-green-700">{grantStatus}</p>}
               {grantError && <p className="mt-3 text-sm font-semibold text-red-700">{grantError}</p>}
+              <div className="mt-5 border-t border-[#E2E8F0] pt-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">Do not know the customer email yet?</h3>
+                    <p className="mt-1 max-w-3xl text-sm text-gray-600">
+                      Grant Starter access to the newest signup that is not your founder account. This only works if no other temporary manual grant is currently active.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleGrantNewestTemporaryAccess}
+                    className="rounded-lg border border-[#003A8C] px-4 py-2 text-sm font-bold text-[#003A8C] transition hover:bg-[#003A8C] hover:text-white"
+                  >
+                    Grant Newest Signup Starter
+                  </button>
+                </div>
+              </div>
             </form>
 
             <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
@@ -165,6 +210,7 @@ export default function AdminBillingPage() {
                     {[
                       'Email',
                       'Tier',
+                      'Created',
                       'Provider',
                       'Type',
                       'Stripe Customer',
@@ -182,6 +228,7 @@ export default function AdminBillingPage() {
                     <tr key={row.userId} className="border-t border-[#E2E8F0]">
                       <td className="whitespace-nowrap px-4 py-3 font-semibold text-[#003A8C]">{row.email}</td>
                       <td className="whitespace-nowrap px-4 py-3">{row.currentTier || 'free'}</td>
+                      <td className="whitespace-nowrap px-4 py-3">{formatDate(row.createdAt)}</td>
                       <td className="whitespace-nowrap px-4 py-3">{row.provider || '—'}</td>
                       <td className="whitespace-nowrap px-4 py-3">{row.subscriptionType || 'none'}</td>
                       <td className="whitespace-nowrap px-4 py-3 font-mono text-xs">{row.stripeCustomerId || '—'}</td>
@@ -195,7 +242,7 @@ export default function AdminBillingPage() {
                   ))}
                   {!rows.length && (
                     <tr>
-                      <td colSpan="9" className="px-4 py-8 text-center text-gray-500">No users found.</td>
+                      <td colSpan="10" className="px-4 py-8 text-center text-gray-500">No users found.</td>
                     </tr>
                   )}
                 </tbody>
