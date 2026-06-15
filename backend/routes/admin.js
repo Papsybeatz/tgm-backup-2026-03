@@ -36,7 +36,7 @@ async function requireAdmin(req, res, next) {
 }
 
 function parseManualAccessInput(body, defaults = {}) {
-  const tier = String(body.tier || defaults.tier || 'starter').trim();
+  const tier = String(body.tier || defaults.tier || 'pro').trim();
   const days = Number.parseInt(body.days || defaults.days || '30', 10);
   const reason = String(body.reason || defaults.reason || '').trim();
 
@@ -203,7 +203,7 @@ router.post('/billing/grant-temporary-access', requireAdmin, async (req, res) =>
 // POST /api/admin/billing/grant-newest-temporary-access
 router.post('/billing/grant-newest-temporary-access', requireAdmin, async (req, res) => {
   const input = parseManualAccessInput(req.body, {
-    tier: 'starter',
+    tier: 'pro',
     days: '30',
     reason: 'Unknown external payment investigation',
   });

@@ -88,7 +88,7 @@ export default function AdminBillingPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          tier: 'starter',
+          tier: 'pro',
           days: grantForm.days || '30',
           reason: 'Unknown external payment investigation',
         }),
@@ -96,7 +96,7 @@ export default function AdminBillingPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to grant newest signup access.');
 
-      setGrantStatus(`Temporary Starter access granted to newest non-founder signup: ${data.user.email} until ${formatDate(data.user.currentPeriodEnd)}.`);
+      setGrantStatus(`Temporary Pro access granted to newest non-founder signup: ${data.user.email} until ${formatDate(data.user.currentPeriodEnd)}.`);
       loadBilling();
     } catch (err) {
       setGrantError(err.message || 'Failed to grant newest signup access.');
@@ -189,7 +189,7 @@ export default function AdminBillingPage() {
                   <div>
                     <h3 className="text-sm font-bold text-gray-900">Do not know the customer email yet?</h3>
                     <p className="mt-1 max-w-3xl text-sm text-gray-600">
-                      Grant Starter access to the newest signup that is not your founder account. This only works if no other temporary manual grant is currently active.
+                      Grant Pro access to the newest signup that is not your founder account. This only works if no other temporary manual grant is currently active.
                     </p>
                   </div>
                   <button
@@ -197,7 +197,7 @@ export default function AdminBillingPage() {
                     onClick={handleGrantNewestTemporaryAccess}
                     className="rounded-lg border border-[#003A8C] px-4 py-2 text-sm font-bold text-[#003A8C] transition hover:bg-[#003A8C] hover:text-white"
                   >
-                    Grant Newest Signup Starter
+                    Grant Newest Signup Pro
                   </button>
                 </div>
               </div>
