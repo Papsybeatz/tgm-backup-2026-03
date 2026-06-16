@@ -75,31 +75,30 @@ export default function AdminBillingPage() {
     }
   }
 
-  async function handleGrantNewestTemporaryAccess() {
+  async function handleCloseTemporaryAccess() {
     setGrantStatus('');
     setGrantError('');
 
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('/api/admin/billing/grant-newest-temporary-access', {
+      const response = await fetch('/api/admin/billing/close-temporary-access', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          tier: 'pro',
-          days: grantForm.days || '30',
-          reason: 'Unknown external payment investigation',
-        }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to grant newest signup access.');
+      if (!response.ok) throw new Error(data.message || 'Failed to close temporary access.');
 
-      setGrantStatus(`Temporary Pro access granted to newest non-founder signup: ${data.user.email} until ${formatDate(data.user.currentPeriodEnd)}.`);
+      if (data.closed?.length) {
+        setGrantStatus(`Closed temporary access for ${data.closed.map((user) => user.email).join(', ')}.`);
+      } else {
+        setGrantStatus(data.message || 'No active temporary access grants found.');
+      }
       loadBilling();
     } catch (err) {
-      setGrantError(err.message || 'Failed to grant newest signup access.');
+      setGrantError(err.message || 'Failed to close temporary access.');
     }
   }
 
@@ -187,17 +186,17 @@ export default function AdminBillingPage() {
               <div className="mt-5 border-t border-[#E2E8F0] pt-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h3 className="text-sm font-bold text-gray-900">Do not know the customer email yet?</h3>
+                    <h3 className="text-sm font-bold text-gray-900">Close Active Temporary Access</h3>
                     <p className="mt-1 max-w-3xl text-sm text-gray-600">
-                      Grant Pro access to the newest signup that is not your founder account. This only works if no other temporary manual grant is currently active.
+                      Downgrade active manual temporary grants back to Free. Stripe-backed subscriptions are not changed.
                     </p>
                   </div>
                   <button
                     type="button"
-                    onClick={handleGrantNewestTemporaryAccess}
-                    className="rounded-lg border border-[#003A8C] px-4 py-2 text-sm font-bold text-[#003A8C] transition hover:bg-[#003A8C] hover:text-white"
+                    onClick={handleCloseTemporaryAccess}
+                    className="rounded-lg border border-red-700 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-700 hover:text-white"
                   >
-                    Grant Newest Signup Pro
+                    Close Temporary Access
                   </button>
                 </div>
               </div>

@@ -86,6 +86,17 @@ async function grantManualAccess({ user, tier, days, reason, actorEmail, source 
   return updatedUser;
 }
 
+async function logAdminBillingEvent({ userId, message, severity = 'info' }) {
+  await prisma.errorLog.create({
+    data: {
+      endpoint: 'admin-billing',
+      userId,
+      severity,
+      message,
+    },
+  });
+}
+
 // GET /api/admin/users
 router.get('/users', requireAdmin, async (req, res) => {
   try {
@@ -200,67 +211,55 @@ router.post('/billing/grant-temporary-access', requireAdmin, async (req, res) =>
   }
 });
 
-// POST /api/admin/billing/grant-newest-temporary-access
-router.post('/billing/grant-newest-temporary-access', requireAdmin, async (req, res) => {
-  const input = parseManualAccessInput(req.body, {
-    tier: 'pro',
-    days: '30',
-    reason: 'Unknown external payment investigation',
-  });
-  if (input.error) return res.status(400).json({ success: false, message: input.error });
-
+// POST /api/admin/billing/close-temporary-access
+router.post('/billing/close-temporary-access', requireAdmin, async (req, res) => {
   try {
     const now = new Date();
-    const activeManualAccess = await prisma.user.findFirst({
+    const users = await prisma.user.findMany({
       where: {
-        email: { not: ADMIN_EMAIL },
         provider: MANUAL_COMP_PROVIDER,
         subscriptionType: MANUAL_COMP_TYPE,
         subscriptionStatus: 'active',
         currentPeriodEnd: { gt: now },
       },
-      orderBy: { currentPeriodEnd: 'desc' },
-      select: { email: true, tier: true, currentPeriodEnd: true },
-    });
-
-    if (activeManualAccess) {
-      return res.status(409).json({
-        success: false,
-        message: `One temporary access grant is already active for ${activeManualAccess.email} until ${activeManualAccess.currentPeriodEnd.toISOString()}.`,
-      });
-    }
-
-    const user = await prisma.user.findFirst({
-      where: {
-        email: { not: ADMIN_EMAIL },
-        role: { not: 'admin' },
-        NOT: {
-          provider: 'stripe',
-          subscriptionStatus: { in: ['active', 'trialing'] },
-        },
+      select: {
+        id: true,
+        email: true,
+        tier: true,
+        currentPeriodEnd: true,
       },
-      orderBy: { createdAt: 'desc' },
     });
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'No eligible non-founder signup found.',
-      });
-    }
+    if (!users.length) return res.json({ success: true, closed: [], message: 'No active temporary access grants found.' });
 
-    const updatedUser = await grantManualAccess({
-      user,
-      tier: input.tier,
-      days: input.days,
-      reason: input.reason,
-      actorEmail: req.user.email,
-      source: 'newest-non-founder',
+    await prisma.user.updateMany({
+      where: { id: { in: users.map((user) => user.id) } },
+      data: {
+        tier: 'free',
+        subscriptionStatus: 'inactive',
+        subscriptionType: 'none',
+        subscriptionId: null,
+        provider: 'stripe',
+        currentPeriodEnd: null,
+      },
     });
 
-    res.json({ success: true, user: updatedUser });
+    await Promise.all(users.map((user) => logAdminBillingEvent({
+      userId: user.id,
+      severity: 'warning',
+      message: `Manual temporary access closed: previousTier=${user.tier}, by=${req.user.email}`,
+    })));
+
+    res.json({
+      success: true,
+      closed: users.map((user) => ({
+        email: user.email,
+        previousTier: user.tier,
+        previousAccessEnd: user.currentPeriodEnd,
+      })),
+    });
   } catch (error) {
-    console.error('[ADMIN] grant-newest-temporary-access error', error.message);
+    console.error('[ADMIN] close-temporary-access error', error.message);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
