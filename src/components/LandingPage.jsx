@@ -274,6 +274,37 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* LOCAL RELEVANCE */}
+      <section className="py-16 bg-[#F7F9FB] px-6">
+        <div className="max-w-6xl mx-auto grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+          <div>
+            <p className="text-[#B8960C] text-xs font-bold uppercase tracking-widest mb-2">Local relevance</p>
+            <h2 className="text-3xl font-bold text-[#0A0F1A] mb-3">New York organizations can move faster with NY-specific grant support.</h2>
+            <p className="text-gray-600 leading-7 mb-6">
+              TGM stays built for grant seekers everywhere. New York users can also explore curated NY opportunities, deadlines, readiness checks, and assistant prompts.
+            </p>
+            <Link
+              to="/new-york-grants"
+              className="inline-flex rounded-lg border border-[#003A8C] px-5 py-3 text-sm font-bold text-[#003A8C] no-underline transition hover:bg-[#003A8C] hover:text-white"
+            >
+              Explore NY Grants →
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              ['NY Grants', 'Curated opportunities by focus and fit'],
+              ['NY Deadlines', 'Upcoming cycles surfaced in one view'],
+              ['NY Readiness', 'Checklist for proof, budget, and eligibility'],
+            ].map(([title, body]) => (
+              <div key={title} className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+                <h3 className="mb-2 text-base font-bold text-[#003A8C]">{title}</h3>
+                <p className="text-sm leading-6 text-gray-600">{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* AI ENGINE SECTION */}
       <section className="py-20 bg-[#0A0F1A] text-white text-center px-6">
         <p className="text-[#D4AF37] font-semibold mb-2">Trusted by award committees and funding reviewers nationwide</p>
@@ -431,6 +462,7 @@ export default function LandingPage() {
           </div>
           <div className="flex gap-6 text-sm">
             <Link to="/pricing" className="hover:text-[#D4AF37] transition">Pricing</Link>
+            <Link to="/new-york-grants" className="hover:text-[#D4AF37] transition">NY Grants</Link>
             <Link to="/lead-magnet/grant-workflow-blueprint" className="hover:text-[#D4AF37] transition">Free Blueprint</Link>
             <Link to="/contact" className="hover:text-[#D4AF37] transition">Contact</Link>
             <Link to="/privacy" className="hover:text-[#D4AF37] transition">Privacy</Link>

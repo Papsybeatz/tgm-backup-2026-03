@@ -2,6 +2,7 @@ import React, { FormEvent, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useUser } from './UserContext';
 import type { AssistantMessage } from '../types/assistant';
+import { NY_ASSISTANT_PROMPTS } from '../data/newYorkGrants';
 
 type AssistantChatPanelProps = {
   open: boolean;
@@ -46,6 +47,7 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
 
   const userId = useMemo(() => user?.id || user?.userId || user?.email || 'guest', [user]);
   const tier = user?.tier || 'free';
+  const showNewYorkPrompts = user?.location === 'new_york' || location.pathname.includes('new-york');
 
   const sendMessage = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -133,6 +135,20 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
       </div>
 
       <form onSubmit={sendMessage} className="border-t border-[#E2E8F0] bg-white p-4">
+        {showNewYorkPrompts && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {NY_ASSISTANT_PROMPTS.map((prompt) => (
+              <button
+                key={prompt}
+                type="button"
+                onClick={() => setInput(prompt)}
+                className="rounded-full border border-[#D4AF37]/50 bg-[#D4AF37]/10 px-3 py-1.5 text-xs font-bold text-[#92400E] transition hover:bg-[#D4AF37]/20"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex gap-2">
           <input
             ref={inputRef}

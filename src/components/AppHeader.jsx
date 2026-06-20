@@ -184,6 +184,7 @@ function MarketingNav() {
     <nav style={{ display: 'flex', alignItems: 'center', gap: 24, fontSize: 14 }}>
       {[
         { label: 'Features',     to: '/#features' },
+        { label: 'NY Grants',     to: '/new-york-grants' },
         { label: 'Testimonials', to: '/#testimonials' },
         { label: 'Pricing',      to: '/pricing' },
         { label: 'Contact',      to: '/contact' },

@@ -24,6 +24,15 @@ const EXPERIENCE_LEVELS = [
   { id: 'expert', label: 'Expert', icon: '🌳', description: 'Professional grant writer' }
 ];
 
+const LOCATION_OPTIONS = [
+  { id: 'new_york', label: 'New York', icon: 'NY', description: 'Show NY-specific grants, deadlines, and templates' },
+  { id: 'california', label: 'California', icon: 'CA', description: 'Keep my experience broad for now' },
+  { id: 'texas', label: 'Texas', icon: 'TX', description: 'Keep my experience broad for now' },
+  { id: 'ghana', label: 'Ghana', icon: 'GH', description: 'Keep my experience broad for now' },
+  { id: 'uk', label: 'United Kingdom', icon: 'UK', description: 'Keep my experience broad for now' },
+  { id: 'other', label: 'Somewhere else', icon: '•', description: 'Use the global grant workflow' },
+];
+
 const FIRST_ACTIONS = [
   { id: 'write', label: 'Write a new grant', icon: '✍️', description: 'Start from scratch' },
   { id: 'improve', label: 'Improve existing draft', icon: '📝', description: 'Upload or paste content' },
@@ -55,6 +64,7 @@ export default function OnboardingPage() {
   const [selections, setSelections] = useState({
     grantType: '',
     experience: '',
+    location: '',
     firstAction: ''
   });
   const [isAnimating, setIsAnimating] = useState(false);
@@ -71,6 +81,12 @@ export default function OnboardingPage() {
       subtitle: "We'll tailor guidance to your skill level",
       options: EXPERIENCE_LEVELS,
       key: 'experience'
+    },
+    {
+      title: "Where are you primarily seeking funding?",
+      subtitle: "This only personalizes local content when it is useful",
+      options: LOCATION_OPTIONS,
+      key: 'location'
     },
     {
       title: "What would you like to do first?",
@@ -100,6 +116,7 @@ export default function OnboardingPage() {
       onboardingCompleted: true,
       grantType: selections.grantType,
       experience: selections.experience,
+      location: selections.location,
       firstAction: selections.firstAction
     };
     

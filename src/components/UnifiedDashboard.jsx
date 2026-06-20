@@ -5,6 +5,7 @@ import { TIERS } from '../config/tiers';
 import BillingPortalButton from './BillingPortalButton';
 import DraftsList from './DraftsList';
 import FundingAccelerator from './FundingAccelerator';
+import { NY_GRANT_OPPORTUNITIES, NY_READINESS_CHECKLIST } from '../data/newYorkGrants';
 
 const FEATURE_MAP = {
   aiDraft:     ['starter','pro','agency_starter','agency_unlimited','lifetime'],
@@ -29,6 +30,7 @@ export default function UnifiedDashboard() {
   const tier = user?.tier || 'free';
   const tierConfig = TIERS[tier] || TIERS.free;
   const meta = TIER_META[tier] || TIER_META.free;
+  const isNewYorkUser = user?.location === 'new_york';
 
   const unlocked = (key) => FEATURE_MAP[key]?.includes(tier);
 
@@ -68,6 +70,62 @@ export default function UnifiedDashboard() {
       </section>
 
       <FundingAccelerator />
+
+      {isNewYorkUser && (
+        <section className="max-w-7xl mx-auto px-6 pt-12">
+          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+            <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">New York mode</p>
+                <h3 className="text-2xl font-bold text-[#003A8C]">NY Grants, Deadlines, and Readiness</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
+                  Your dashboard is showing New York-specific opportunities because you selected New York during onboarding.
+                </p>
+              </div>
+              <Link to="/new-york-grants" className="rounded-lg border border-[#003A8C] px-4 py-2 text-sm font-bold text-[#003A8C] no-underline transition hover:bg-[#003A8C] hover:text-white">
+                Open NY Grants →
+              </Link>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className="text-base font-bold text-[#0A0F1A]">NY Grant Finder</h4>
+                  <span className="rounded-full bg-[#003A8C]/10 px-3 py-1 text-xs font-bold text-[#003A8C]">Filter: New York</span>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {NY_GRANT_OPPORTUNITIES.map((grant) => (
+                    <div key={grant.id} className="rounded-lg border border-[#E2E8F0] bg-[#F7F9FB] p-4">
+                      <div className="mb-2 flex items-start justify-between gap-3">
+                        <h5 className="text-sm font-bold text-[#003A8C]">{grant.name}</h5>
+                        <span className="whitespace-nowrap rounded-full bg-[#D4AF37]/20 px-2 py-1 text-[11px] font-bold text-[#92400E]">{grant.deadline}</span>
+                      </div>
+                      <p className="text-xs font-semibold text-gray-500">{grant.amount}</p>
+                      <p className="mt-2 text-xs leading-5 text-gray-600">{grant.fit}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h4 className="text-base font-bold text-[#0A0F1A]">NY Readiness Checklist</h4>
+                  <Link to="/new-york-grants/checklist" className="text-xs font-bold text-[#003A8C] no-underline">
+                    Print PDF →
+                  </Link>
+                </div>
+                <div className="space-y-2">
+                  {NY_READINESS_CHECKLIST.slice(0, 5).map((item) => (
+                    <div key={item} className="rounded-lg border border-[#E2E8F0] bg-white px-4 py-3 text-sm font-semibold text-gray-700">
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* DRAFTS — primary action area */}
       <section className="max-w-7xl mx-auto px-6 py-12">
