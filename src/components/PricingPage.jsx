@@ -148,6 +148,19 @@ const SECURITY_POINTS = [
   'Secure document storage',
 ];
 
+const LIFETIME_FEATURES = [
+  'Unlimited drafts',
+  'Checkmate Pro',
+  'Funder alignment',
+  'Grant Fit Score',
+  'NY funder intelligence',
+  'NY compliance rules',
+  'Team seats (1)',
+  'Template library',
+  'Document uploads',
+  'Export tools',
+];
+
 function CheckIcon({ active = true }) {
   return (
     <span style={{
@@ -297,6 +310,55 @@ export default function PricingPage() {
             {checkoutError}
           </p>
         )}
+      </section>
+
+      <section style={{ padding: '0 24px 72px', maxWidth: 1120, margin: '0 auto' }}>
+        <article style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 28,
+          alignItems: 'center',
+          background: '#fff',
+          border: '2px solid var(--tgm-gold)',
+          borderRadius: 16,
+          boxShadow: '0 18px 48px rgba(212,175,55,.18)',
+          padding: 28,
+        }}>
+          <div>
+            <p style={{ margin: '0 0 10px', color: '#B8960C', fontSize: 12, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>
+              Founder&apos;s Offer
+            </p>
+            <h2 style={{ margin: '0 0 10px', fontSize: 30, fontWeight: 900, color: 'var(--tgm-navy)' }}>
+              Lifetime Access — Early Supporter Deal
+            </h2>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 12 }}>
+              <span style={{ fontSize: 44, fontWeight: 900, color: 'var(--tgm-navy)' }}>$149</span>
+              <span style={{ fontSize: 15, color: 'var(--tgm-muted)', fontWeight: 800 }}>one-time</span>
+            </div>
+            <p style={{ margin: '0 0 14px', fontSize: 15, lineHeight: 1.7, color: 'var(--tgm-muted)' }}>
+              Limited to the first 200 users. Built for early adopters who want long-term access without a subscription.
+            </p>
+            <p style={{ margin: '0 0 22px', fontSize: 14, fontWeight: 900, color: 'var(--tgm-navy)' }}>
+              Includes everything in Pro, forever.
+            </p>
+            <UpgradeButton
+              tierKey="lifetime"
+              priceId={priceIds.lifetime}
+              onCheckout={priceIds.lifetime ? () => startCheckout(priceIds.lifetime) : undefined}
+              loading={checkoutLoading}
+            >
+              Unlock Lifetime Access
+            </UpgradeButton>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+            {LIFETIME_FEATURES.map((feature) => (
+              <div key={feature} style={{ display: 'flex', gap: 9, alignItems: 'center', background: '#FFFBEB', border: '1px solid rgba(212,175,55,.28)', borderRadius: 10, padding: '11px 12px' }}>
+                <CheckIcon />
+                <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--tgm-navy)' }}>{feature}</span>
+              </div>
+            ))}
+          </div>
+        </article>
       </section>
 
       <section style={{ background: '#fff', borderTop: '1px solid var(--tgm-border)', borderBottom: '1px solid var(--tgm-border)', padding: '64px 24px' }}>
