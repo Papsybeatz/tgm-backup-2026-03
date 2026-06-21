@@ -1,210 +1,295 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import UpgradeButton from './UpgradeButton';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
-import CaseStudiesSection from './CaseStudiesSection';
 
-// Stripe Live Price IDs
-const PRICE_IDS = {
-  starter:          'price_1TXqUt64TrQMI3mITWhRgTT0',
-  pro:              'price_1TXrGK64TrQMI3mILgb0Cvq7',
-  agency_starter:   'price_1TXrIy64TrQMI3mIQFIJhqCa',
-  agency_unlimited: 'price_1TXrNJ64TrQMI3mI4SWeRNVD',
-  lifetime:         'price_1TXrTl64TrQMI3mIKgqoP3iL',
-};
-
-const TIERS = [
+const PLAN_COPY = [
   {
     key: 'free',
+    stripeKey: null,
     name: 'Free',
+    eyebrow: 'For small teams getting started',
     price: '$0',
-    period: '/forever',
-    tagline: 'The Taste of Power',
-    description: 'Let them feel the magic. Hit the ceiling fast.',
-    features: ['5 drafts','Basic AI writing','1 project','No scoring','No matching','No analytics','No export'],
+    period: '/ forever',
+    bestFor: 'Small nonprofits writing 1-2 grants per year.',
+    features: [
+      'AI drafting (Steve)',
+      'Unlimited brainstorming',
+      '3 saved drafts',
+      'Basic Checkmate scoring',
+      'Export to PDF/Word',
+      'NY Grant Readiness Checklist',
+      'Access to NY Grants page',
+      'Email support',
+    ],
     cta: 'Start Free',
     href: '/signup',
-    highlighted: false
   },
   {
     key: 'starter',
+    stripeKey: 'starter',
     name: 'Starter',
-    price: '$19',
-    period: '/mo',
-    tagline: 'The Solo Writer',
-    description: 'Give them enough to succeed, but not enough to win consistently.',
-    features: ['100 drafts','Unlimited projects','Full AI writing','Export PDF/DOC','Basic scoring (10/mo)','Basic matching (10/mo)','Basic analytics'],
-    cta: 'Upgrade',
-    priceId: PRICE_IDS.starter,
-    highlighted: false
+    eyebrow: 'For growing nonprofits',
+    price: '$29',
+    period: '/ month',
+    bestFor: 'Nonprofits writing 3-10 grants per year.',
+    intro: 'Includes everything in Free, plus:',
+    features: [
+      'Unlimited drafts',
+      'Checkmate Pro (full scoring)',
+      'Funder alignment insights',
+      'Missing components detection',
+      'Compliance checks',
+      'Grant Fit Score',
+      'Template library (single-org)',
+      'Priority support',
+    ],
+    cta: 'Upgrade to Starter',
   },
   {
     key: 'pro',
+    stripeKey: 'pro',
     name: 'Pro',
-    price: '$49',
-    period: '/mo',
-    tagline: 'The Strategist',
-    description: 'Give professionals the tools to win repeatedly.',
-    features: ['Unlimited drafts','Full scoring engine','Full matching engine','Reviewer simulation','Advanced analytics','1 team seat','Priority AI','Grant calendar','Project templates'],
-    cta: 'Upgrade',
-    priceId: PRICE_IDS.pro,
-    highlighted: true
+    eyebrow: 'For teams writing grants monthly',
+    price: '$79',
+    period: '/ month',
+    bestFor: 'Nonprofits with recurring grant cycles.',
+    intro: 'Includes everything in Starter, plus:',
+    features: [
+      'Team seats (up to 3)',
+      'Shared workspace',
+      'Team templates',
+      'Team activity log',
+      'Advanced Checkmate analytics',
+      'NY funder intelligence',
+      'NY compliance rules',
+      'Document uploads',
+      'Custom export formatting',
+    ],
+    cta: 'Upgrade to Pro',
+    highlighted: true,
   },
   {
     key: 'agency_starter',
-    name: 'Agency Starter',
-    price: '$79',
-    period: '/mo',
-    tagline: 'The Small Firm',
-    description: 'Give small agencies the ability to manage clients without overwhelming them.',
-    features: ['Everything in Pro','3 team seats','Client folders','Shared workspace','Priority support','White-label reports'],
-    cta: 'Upgrade',
-    priceId: PRICE_IDS.agency_starter,
-    highlighted: false
+    stripeKey: 'agency_starter',
+    name: 'Agency',
+    eyebrow: 'For consultants & multi-client teams',
+    price: '$149',
+    period: '/ month',
+    bestFor: 'Consultants, agencies, and multi-client grant firms.',
+    intro: 'Includes everything in Pro, plus:',
+    features: [
+      'Multi-client dashboard',
+      'Client folders',
+      'Client-specific templates',
+      'White-label Checkmate reports',
+      'White-label proposal exports',
+      'Bulk Checkmate scoring',
+      'Bulk CSV export',
+      'Client activity logs',
+      'Team seats (up to 10)',
+      'Role-based permissions',
+      'Priority support',
+    ],
+    cta: 'Upgrade to Agency',
   },
   {
     key: 'agency_unlimited',
-    name: 'Agency Unlimited',
-    price: '$249',
-    period: '/mo',
-    tagline: 'The Grant Firm OS',
-    description: 'Give large agencies a full operating system.',
-    features: ['Everything in Agency Starter','Unlimited team seats','Bulk scoring','Bulk matching','Portfolio analytics','Multi-client dashboards','Admin controls','SLA support'],
-    cta: 'Upgrade',
-    priceId: PRICE_IDS.agency_unlimited,
-    highlighted: false
+    stripeKey: null,
+    name: 'Agency+',
+    eyebrow: 'For high-volume teams',
+    price: '$299',
+    period: '/ month',
+    bestFor: 'Large agencies, economic development teams, and enterprise-level grant operations.',
+    intro: 'Includes everything in Agency, plus:',
+    features: [
+      'Unlimited team seats',
+      'Unlimited client folders',
+      'Full white-label branding',
+      'API access (future)',
+      'Dedicated success manager',
+      'Quarterly strategy reviews',
+      'Early access to new features',
+    ],
+    cta: 'Contact Sales',
+    href: '/contact',
   },
-  {
-    key: 'lifetime',
-    name: 'Lifetime Deal',
-    price: '$149',
-    period: ' one-time',
-    tagline: 'The Founders Circle',
-    description: 'Lock in your earliest believers.',
-    features: ['Everything in Pro forever','Lifetime badge','Early access','Founding Member certificate','VIP support','No billing'],
-    cta: 'Buy Lifetime',
-    priceId: PRICE_IDS.lifetime,
-    highlighted: false,
-    special: true
-  }
 ];
 
+const COMPARISON_ROWS = [
+  ['AI drafting (Steve)', true, true, true, true, true],
+  ['Unlimited drafts', false, true, true, true, true],
+  ['Checkmate Pro scoring', false, true, true, true, true],
+  ['Funder alignment', false, true, true, true, true],
+  ['Grant Fit Score', false, true, true, true, true],
+  ['NY funder intelligence', false, false, true, true, true],
+  ['Team seats', false, false, '3', '10', 'Unlimited'],
+  ['Multi-client workspace', false, false, false, true, true],
+  ['White-label reports', false, false, false, true, true],
+  ['Bulk scoring', false, false, false, true, true],
+  ['Client templates', false, false, false, true, true],
+  ['Activity logs', false, false, true, true, true],
+];
+
+const FAQS = [
+  ['Do I need a credit card to start?', 'No — the Free plan is forever free.'],
+  ['Can I switch plans anytime?', 'Yes — upgrades and downgrades are instant.'],
+  ['Is my data private?', 'Yes. Your data is never used to train AI models.'],
+  ['Does TGM work outside New York?', 'Yes — NY is our first localized workspace, with more states coming soon.'],
+  ['Is TGM for consultants?', 'Yes — Agency and Agency+ are built specifically for multi-client workflows.'],
+];
+
+const SECURITY_POINTS = [
+  'Your data is never used to train AI models',
+  'Encrypted at rest and in transit',
+  'Human-in-the-loop workflows',
+  'SOC-2 style security practices',
+  'GDPR/CCPA aligned',
+  'Secure document storage',
+];
+
+function CheckIcon({ active = true }) {
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 18,
+      height: 18,
+      borderRadius: '50%',
+      background: active ? 'rgba(22,163,74,.12)' : '#F1F5F9',
+      color: active ? '#15803D' : '#94A3B8',
+      fontSize: 11,
+      fontWeight: 800,
+      flexShrink: 0,
+    }}>
+      {active ? '✓' : '✕'}
+    </span>
+  );
+}
+
+function cellValue(value) {
+  if (value === true) return <CheckIcon />;
+  if (value === false) return <CheckIcon active={false} />;
+  return <span style={{ fontWeight: 800, color: 'var(--tgm-navy)' }}>{value}</span>;
+}
+
 export default function PricingPage() {
-  const { t } = useTranslation();
   const { startCheckout, loading: checkoutLoading, error: checkoutError } = useStripeCheckout();
+  const [priceIds, setPriceIds] = useState({});
+
+  useEffect(() => {
+    fetch('/api/checkout/prices')
+      .then((res) => res.json())
+      .then((data) => setPriceIds(data.prices || {}))
+      .catch(() => setPriceIds({}));
+  }, []);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--tgm-bg)' }}>
-      {/* Hero */}
-      <div style={{
+    <div style={{ minHeight: '100vh', background: 'var(--tgm-bg)', color: 'var(--tgm-text)' }}>
+      <section style={{
         background: 'linear-gradient(135deg, var(--tgm-navy) 0%, var(--tgm-blue) 100%)',
-        padding: '64px 24px 72px',
+        padding: '72px 24px 84px',
         textAlign: 'center',
         color: '#fff',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 20 }}>
-          <div style={{
-            width: 44, height: 44, borderRadius: 12,
-            background: 'linear-gradient(135deg, var(--tgm-gold), var(--tgm-gold-light))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 800, fontSize: 16, color: 'var(--tgm-navy)'
-          }}>GM</div>
-          <Link to="/" style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: '-.3px' }}>
-            GrantsMaster
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          <p style={{ margin: '0 0 14px', color: 'var(--tgm-gold-light)', fontSize: 12, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase' }}>
+            Simple, transparent pricing
+          </p>
+          <h1 style={{ fontSize: 'clamp(34px, 5vw, 56px)', fontWeight: 900, margin: '0 0 18px', lineHeight: 1.05 }}>
+            Built for nonprofits, consultants, and agencies
+          </h1>
+          <p style={{ fontSize: 19, lineHeight: 1.7, opacity: .82, margin: '0 auto 28px', maxWidth: 720 }}>
+            Choose the plan that matches your grant-writing capacity. Start free. Upgrade anytime.
+          </p>
+          <Link to="/signup" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '14px 24px',
+            borderRadius: 10,
+            background: 'var(--tgm-gold)',
+            color: 'var(--tgm-navy)',
+            fontWeight: 900,
+            textDecoration: 'none',
+          }}>
+            Get Started Free
           </Link>
+          <p style={{ margin: '16px 0 0', fontSize: 13, opacity: .72 }}>No credit card required. Cancel anytime.</p>
         </div>
-        <h1 style={{ fontSize: 40, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.2 }}>
-          Pricing that scales with your impact
-        </h1>
-        <p style={{ fontSize: 18, opacity: .75, margin: 0 }}>
-          Start free. Upgrade when you're ready.
-        </p>
-      </div>
+      </section>
 
-      {/* RESULTS — case studies above pricing cards */}
-      <CaseStudiesSection variant="compact" />
-
-      {/* Cards */}
-      <div style={{ padding: '56px 24px 80px', maxWidth: 1280, margin: '0 auto' }}>
+      <section style={{ padding: '56px 24px 72px', maxWidth: 1280, margin: '0 auto' }}>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 24,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: 20,
+          alignItems: 'stretch',
         }}>
-          {TIERS.map((tier) => (
-            <div key={tier.key} style={{
-              background: 'var(--tgm-surface)',
-              borderRadius: 'var(--tgm-radius-lg)',
-              border: tier.highlighted
-                ? '2px solid var(--tgm-gold)'
-                : tier.special
-                  ? '2px solid #7E22CE'
-                  : '1px solid var(--tgm-border)',
-              boxShadow: tier.highlighted
-                ? '0 8px 32px rgba(212,175,55,.18)'
-                : 'var(--tgm-shadow-sm)',
-              padding: 28,
-              position: 'relative',
-              transition: 'box-shadow .2s, border-color .2s',
-            }}>
-              {tier.highlighted && (
-                <div style={{
-                  position: 'absolute', top: -13, left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: 'var(--tgm-gold)',
-                  color: 'var(--tgm-navy)',
-                  padding: '4px 18px', borderRadius: 20,
-                  fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
-                }}>Most Popular</div>
-              )}
-              {tier.special && (
-                <div style={{
-                  position: 'absolute', top: -13, left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: '#7E22CE',
-                  color: '#fff',
-                  padding: '4px 18px', borderRadius: 20,
-                  fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
-                }}>Founders Deal</div>
-              )}
-
-              <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--tgm-navy)', margin: '0 0 4px' }}>
-                {tier.name}
-              </h3>
-              <p style={{ fontSize: 13, color: 'var(--tgm-muted)', margin: '0 0 16px' }}>
-                {tier.tagline}
-              </p>
-
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 20 }}>
-                <span style={{ fontSize: 38, fontWeight: 800, color: 'var(--tgm-navy)' }}>{tier.price}</span>
-                <span style={{ fontSize: 14, color: 'var(--tgm-muted)' }}>{tier.period}</span>
-              </div>
-
-              <ul style={{ margin: '0 0 24px', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {tier.features.map((feature, i) => (
-                  <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: 'var(--tgm-text)' }}>
-                    <span style={{
-                      width: 18, height: 18, borderRadius: '50%', flexShrink: 0, marginTop: 1,
-                      background: 'rgba(212,175,55,.15)', color: 'var(--tgm-gold)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700,
-                    }}>✓</span>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <UpgradeButton
-                tierKey={tier.key}
-                href={tier.href}
-                priceId={tier.priceId}
-                onCheckout={tier.priceId ? () => startCheckout(tier.priceId) : undefined}
-                loading={checkoutLoading}
-              >
-                {tier.cta}
-              </UpgradeButton>
-            </div>
-          ))}
+          {PLAN_COPY.map((plan) => {
+            const priceId = plan.stripeKey ? priceIds[plan.stripeKey] : null;
+            return (
+              <article key={plan.key} style={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '100%',
+                background: '#fff',
+                borderRadius: 12,
+                border: plan.highlighted ? '2px solid var(--tgm-gold)' : '1px solid var(--tgm-border)',
+                boxShadow: plan.highlighted ? '0 14px 40px rgba(212,175,55,.18)' : 'var(--tgm-shadow-sm)',
+                padding: 24,
+              }}>
+                {plan.highlighted && (
+                  <div style={{
+                    position: 'absolute',
+                    top: -13,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'var(--tgm-gold)',
+                    color: 'var(--tgm-navy)',
+                    padding: '4px 16px',
+                    borderRadius: 999,
+                    fontSize: 12,
+                    fontWeight: 900,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    Most Popular
+                  </div>
+                )}
+                <p style={{ margin: '0 0 8px', color: '#B8960C', fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>
+                  {plan.eyebrow}
+                </p>
+                <h2 style={{ margin: '0 0 12px', fontSize: 24, fontWeight: 900, color: 'var(--tgm-navy)' }}>{plan.name}</h2>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 14 }}>
+                  <span style={{ fontSize: 42, fontWeight: 900, color: 'var(--tgm-navy)' }}>{plan.price}</span>
+                  <span style={{ fontSize: 14, color: 'var(--tgm-muted)', fontWeight: 700 }}>{plan.period}</span>
+                </div>
+                <p style={{ margin: '0 0 16px', minHeight: 44, fontSize: 14, lineHeight: 1.55, color: 'var(--tgm-muted)' }}>
+                  <strong style={{ color: 'var(--tgm-text)' }}>Best for:</strong> {plan.bestFor}
+                </p>
+                {plan.intro && <p style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 800, color: 'var(--tgm-navy)' }}>{plan.intro}</p>}
+                <ul style={{ margin: '0 0 24px', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 9, flex: 1 }}>
+                  {plan.features.map((feature) => (
+                    <li key={feature} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 13, lineHeight: 1.45 }}>
+                      <CheckIcon />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <UpgradeButton
+                  tierKey={plan.key}
+                  href={plan.href}
+                  priceId={priceId}
+                  onCheckout={priceId ? () => startCheckout(priceId) : undefined}
+                  loading={checkoutLoading}
+                >
+                  {plan.cta}
+                </UpgradeButton>
+              </article>
+            );
+          })}
         </div>
 
         {checkoutError && (
@@ -212,83 +297,104 @@ export default function PricingPage() {
             {checkoutError}
           </p>
         )}
-        <p style={{ textAlign: 'center', marginTop: 48, color: 'var(--tgm-muted)', fontSize: 14 }}>
-          All plans include a 14-day money-back guarantee
-        </p>
-      </div>
+      </section>
 
-      {/* TESTIMONIALS */}
-      <div style={{ background: '#F8F9FC', padding: '72px 24px' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <span style={{
-              display: 'inline-block', background: 'rgba(212,175,55,.15)',
-              color: '#B8960C', fontSize: 11, fontWeight: 700,
-              padding: '4px 14px', borderRadius: 20, letterSpacing: '0.08em', textTransform: 'uppercase',
-            }}>Beta Users</span>
-          </div>
-          <h2 style={{ textAlign: 'center', fontSize: 32, fontWeight: 800, color: 'var(--tgm-navy)', margin: '0 0 10px' }}>
-            Trusted by Early Grant Writers
-          </h2>
-          <p style={{ textAlign: 'center', color: 'var(--tgm-muted)', marginBottom: 48, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto' }}>
-            Real feedback from nonprofits, consultants, and agencies using TGM during beta.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
-            {[
-              { quote: 'GrantsMaster made me aware of documents I didn\'t even know I needed. My proposals are now funder-ready.', author: 'Amara J.', role: 'Nonprofit Director', location: 'Atlanta, GA', avatar: 'AJ', tier: 'Pro', stars: 5 },
-              { quote: 'We won our first federal grant in 3 weeks. The AI engine writes better than our consultants — and costs 10x less.', author: 'Marcus T.', role: 'Agency Owner', location: 'New York, NY', avatar: 'MT', tier: 'Agency', stars: 5 },
-              { quote: 'The Grant Readiness Checklist alone saved us from submitting an incomplete application. Game changer.', author: 'Priya S.', role: 'Grant Consultant', location: 'Chicago, IL', avatar: 'PS', tier: 'Starter', stars: 5 },
-              { quote: 'I went from blank page to a 12-page proposal in under an hour. The funder loved it.', author: 'David O.', role: 'Community Organiser', location: 'Houston, TX', avatar: 'DO', tier: 'Pro', stars: 5 },
-              { quote: 'Finally a tool built for real grant writers, not just tech people. The UI is clean and the AI actually understands nonprofit language.', author: 'Fatima K.', role: 'Programme Director', location: 'London, UK', avatar: 'FK', tier: 'Lifetime', stars: 5 },
-              { quote: 'Our team of 6 now manages 20+ client proposals simultaneously. The multi-workspace dashboard is exactly what we needed.', author: 'Rachel M.', role: 'Grants Manager', location: 'Toronto, CA', avatar: 'RM', tier: 'Agency', stars: 5 },
-            ].map(({ quote, author, role, location, avatar, tier, stars }) => (
-              <div key={author} style={{
-                background: '#fff', borderRadius: 16, border: '1px solid #F0F0F0',
-                padding: 24, display: 'flex', flexDirection: 'column', gap: 16,
-                boxShadow: '0 1px 4px rgba(0,0,0,.06)', transition: 'box-shadow .2s',
-              }}>
-                {/* Stars */}
-                <div style={{ display: 'flex', gap: 2 }}>
-                  {Array.from({ length: stars }).map((_, i) => (
-                    <svg key={i} width="16" height="16" fill="#D4AF37" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
+      <section style={{ background: '#fff', borderTop: '1px solid var(--tgm-border)', borderBottom: '1px solid var(--tgm-border)', padding: '64px 24px' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+          <h2 style={{ margin: '0 0 28px', fontSize: 32, fontWeight: 900, color: 'var(--tgm-navy)', textAlign: 'center' }}>Compare plans</h2>
+          <div style={{ overflowX: 'auto', border: '1px solid var(--tgm-border)', borderRadius: 12 }}>
+            <table style={{ width: '100%', minWidth: 780, borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr style={{ background: '#F8FAFC' }}>
+                  {['Feature', 'Free', 'Starter', 'Pro', 'Agency', 'Agency+'].map((heading) => (
+                    <th key={heading} style={{ padding: '14px 16px', textAlign: heading === 'Feature' ? 'left' : 'center', color: 'var(--tgm-navy)', borderBottom: '1px solid var(--tgm-border)' }}>
+                      {heading}
+                    </th>
                   ))}
-                </div>
-                {/* Quote */}
-                <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.65, flex: 1, margin: 0 }}>"{quote}"</p>
-                {/* Author */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 12, borderTop: '1px solid #F9F9F9' }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: '50%',
-                    background: 'var(--tgm-blue)', color: '#fff',
-                    fontSize: 11, fontWeight: 700,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>{avatar}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--tgm-navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{author}</p>
-                    <p style={{ margin: 0, fontSize: 12, color: 'var(--tgm-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{role} · {location}</p>
-                  </div>
-                  <span style={{
-                    fontSize: 10, fontWeight: 700,
-                    background: 'rgba(0,58,140,.1)', color: 'var(--tgm-blue)',
-                    padding: '3px 10px', borderRadius: 20, flexShrink: 0,
-                  }}>{tier}</span>
-                </div>
-              </div>
-            ))}
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARISON_ROWS.map(([feature, free, starter, pro, agency, agencyPlus]) => (
+                  <tr key={feature}>
+                    <td style={{ padding: '14px 16px', borderBottom: '1px solid #EEF2F7', fontWeight: 800 }}>{feature}</td>
+                    {[free, starter, pro, agency, agencyPlus].map((value, index) => (
+                      <td key={`${feature}-${index}`} style={{ padding: '14px 16px', borderBottom: '1px solid #EEF2F7', textAlign: 'center' }}>
+                        {cellValue(value)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          {/* Trust bar */}
-          <div style={{ marginTop: 56, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 48, textAlign: 'center' }}>
-            {[['500+', 'Beta Users'], ['$2.4M+', 'Grants Drafted'], ['4.9/5', 'Avg Rating'], ['94%', 'Would Recommend']].map(([val, label]) => (
-              <div key={label}>
-                <p style={{ margin: 0, fontSize: 26, fontWeight: 800, color: 'var(--tgm-blue)' }}>{val}</p>
-                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--tgm-muted)' }}>{label}</p>
+        </div>
+      </section>
+
+      <section style={{ padding: '72px 24px', background: '#F8F9FC' }}>
+        <div style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 28, alignItems: 'start' }}>
+          <div>
+            <p style={{ margin: '0 0 10px', color: '#B8960C', fontSize: 12, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>
+              Trust & Security
+            </p>
+            <h2 style={{ margin: '0 0 14px', fontSize: 32, fontWeight: 900, color: 'var(--tgm-navy)' }}>
+              Security, privacy, and compliance — built for nonprofits
+            </h2>
+            <p style={{ margin: '0 0 22px', color: 'var(--tgm-muted)', lineHeight: 1.7 }}>
+              Your data is protected with enterprise-grade security.
+            </p>
+            <Link to="/privacy" style={{ color: 'var(--tgm-blue)', fontWeight: 900, textDecoration: 'none' }}>
+              View Security & Privacy →
+            </Link>
+          </div>
+          <div style={{ display: 'grid', gap: 12 }}>
+            {SECURITY_POINTS.map((point) => (
+              <div key={point} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#fff', border: '1px solid var(--tgm-border)', borderRadius: 10, padding: 14 }}>
+                <CheckIcon />
+                <span style={{ fontSize: 14, fontWeight: 700 }}>{point}</span>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
+
+      <section style={{ padding: '72px 24px', background: '#fff' }}>
+        <div style={{ maxWidth: 980, margin: '0 auto' }}>
+          <h2 style={{ margin: '0 0 28px', fontSize: 32, fontWeight: 900, color: 'var(--tgm-navy)', textAlign: 'center' }}>
+            Frequently asked questions
+          </h2>
+          <div style={{ display: 'grid', gap: 14 }}>
+            {FAQS.map(([question, answer]) => (
+              <details key={question} style={{ border: '1px solid var(--tgm-border)', borderRadius: 10, padding: '16px 18px', background: '#fff' }}>
+                <summary style={{ cursor: 'pointer', fontWeight: 900, color: 'var(--tgm-navy)' }}>{question}</summary>
+                <p style={{ margin: '12px 0 0', color: 'var(--tgm-muted)', lineHeight: 1.65 }}>{answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={{
+        background: 'linear-gradient(135deg, var(--tgm-navy) 0%, var(--tgm-blue) 100%)',
+        color: '#fff',
+        textAlign: 'center',
+        padding: '72px 24px',
+      }}>
+        <h2 style={{ margin: '0 0 12px', fontSize: 36, fontWeight: 900 }}>Ready to increase your grant-writing capacity?</h2>
+        <p style={{ margin: '0 0 28px', fontSize: 18, opacity: .8 }}>Start free today — upgrade anytime.</p>
+        <Link to="/signup" style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '14px 24px',
+          borderRadius: 10,
+          background: 'var(--tgm-gold)',
+          color: 'var(--tgm-navy)',
+          fontWeight: 900,
+          textDecoration: 'none',
+        }}>
+          Get Started Free
+        </Link>
+      </section>
     </div>
   );
 }

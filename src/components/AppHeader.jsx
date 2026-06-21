@@ -36,8 +36,8 @@ const TIER_BADGE_DROPDOWN = {
   free:             { label: 'Free',             bg: 'rgba(255,255,255,0.1)',    color: 'rgba(255,255,255,0.55)' },
   starter:          { label: 'Starter',          bg: 'rgba(0,58,140,0.35)',      color: '#93C5FD' },
   pro:              { label: 'Pro',              bg: 'rgba(212,175,55,0.2)',     color: '#D4AF37' },
-  agency_starter:   { label: 'Agency Starter',   bg: 'rgba(22,101,52,0.3)',      color: '#6EE7B7' },
-  agency_unlimited: { label: 'Agency Unlimited', bg: 'rgba(6,95,70,0.35)',       color: '#34D399' },
+  agency_starter:   { label: 'Agency',           bg: 'rgba(22,101,52,0.3)',      color: '#6EE7B7' },
+  agency_unlimited: { label: 'Agency+',          bg: 'rgba(6,95,70,0.35)',       color: '#34D399' },
   lifetime:         { label: 'Lifetime ✦',       bg: 'rgba(126,34,206,0.3)',     color: '#C4B5FD' },
 };
 

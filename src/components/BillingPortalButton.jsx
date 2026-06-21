@@ -5,8 +5,8 @@ const TIER_LABELS = {
   free:             'Free',
   starter:          'Starter',
   pro:              'Pro',
-  agency_starter:   'Agency Starter',
-  agency_unlimited: 'Agency Unlimited',
+  agency_starter:   'Agency',
+  agency_unlimited: 'Agency+',
   lifetime:         'Lifetime',
 };
 
@@ -117,12 +117,12 @@ export default function BillingPortalButton({ compact = false }) {
       )}
       {tier === 'agency_starter' && (
         <p style={{ fontSize: 13, color: 'var(--tgm-muted)', marginBottom: 16 }}>
-          You're on Agency Starter. Upgrade to Agency Unlimited for unlimited clients and funder match intelligence.
+          You're on Agency. Upgrade to Agency+ for unlimited clients and funder match intelligence.
         </p>
       )}
       {tier === 'agency_unlimited' && (
         <p style={{ fontSize: 13, color: 'var(--tgm-muted)', marginBottom: 16 }}>
-          You have full Agency Unlimited access — all features, unlimited clients, and funder match intelligence.
+          You have full Agency+ access — all features, unlimited clients, and funder match intelligence.
         </p>
       )}
       {isLifetime && (

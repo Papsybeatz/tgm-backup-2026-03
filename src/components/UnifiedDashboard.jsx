@@ -19,8 +19,8 @@ const TIER_META = {
   free:             { label: 'Free',             color: '#475569', bg: '#F1F5F9' },
   starter:          { label: 'Starter',          color: '#1D4ED8', bg: '#EFF6FF' },
   pro:              { label: 'Pro',              color: '#92400E', bg: '#FEF9C3' },
-  agency_starter:   { label: 'Agency Starter',   color: '#166534', bg: '#F0FDF4' },
-  agency_unlimited: { label: 'Agency Unlimited', color: '#065F46', bg: '#ECFDF5' },
+  agency_starter:   { label: 'Agency',           color: '#166534', bg: '#F0FDF4' },
+  agency_unlimited: { label: 'Agency+',          color: '#065F46', bg: '#ECFDF5' },
   lifetime:         { label: 'Lifetime',         color: '#7E22CE', bg: '#FDF4FF' },
 };
 
@@ -214,7 +214,7 @@ export default function UnifiedDashboard() {
       {(tier === 'lifetime' || tier === 'agency_unlimited') ? (
         <section className="py-16 bg-gradient-to-br from-[#003A8C] to-[#0A0F1A] text-white text-center px-6">
           <p className="text-[#D4AF37] font-semibold mb-2 text-sm uppercase tracking-widest">
-            {tier === 'lifetime' ? 'Lifetime Member' : 'Agency Unlimited'}
+            {tier === 'lifetime' ? 'Lifetime Member' : 'Agency+'}
           </p>
           <h2 className="text-3xl font-bold mb-3">You have full access.</h2>
           <p className="text-gray-300 max-w-lg mx-auto mb-8 text-base">
@@ -231,7 +231,7 @@ export default function UnifiedDashboard() {
         <section className="py-16 bg-gradient-to-br from-[#003A8C] to-[#0A0F1A] text-white text-center px-6">
           <p className="text-[#D4AF37] font-semibold mb-2 text-sm uppercase tracking-widest">Unlock more power</p>
           <h2 className="text-3xl font-bold mb-3">
-            {tier === 'pro' ? 'Ready to scale to Agency?' : 'Upgrade to Agency Unlimited'}
+            {tier === 'pro' ? 'Ready to scale to Agency?' : 'Upgrade to Agency+'}
           </h2>
           <p className="text-gray-300 max-w-lg mx-auto mb-8 text-base">
             {tier === 'pro'
