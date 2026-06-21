@@ -11,6 +11,18 @@ import {
   getTodaysScottRotation,
 } from '../data/scottDistributionPlan';
 
+function normalizeEmail(email) {
+  if (Array.isArray(email)) {
+    return {
+      title: email[0],
+      subject: email[0],
+      body: [],
+      cta: email[1],
+    };
+  }
+  return email;
+}
+
 function Card({ title, eyebrow, children }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -94,13 +106,24 @@ export default function ScottDistributionPage() {
           {SCOTT_EMAIL_SEQUENCES.map((sequence) => (
             <Card key={sequence.id} title={sequence.name} eyebrow="Email Engine">
               <div className="grid gap-3">
-                {sequence.emails.map(([subject, cta], index) => (
-                  <div key={subject} className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+                {sequence.emails.map((rawEmail, index) => {
+                  const email = normalizeEmail(rawEmail);
+                  return (
+                  <div key={`${sequence.id}-${email.subject}`} className="rounded-lg border border-slate-100 bg-slate-50 p-4">
                     <p className="text-xs font-black uppercase tracking-widest text-slate-500">Email {index + 1}</p>
-                    <p className="mt-1 font-black text-slate-900">{subject}</p>
-                    <p className="mt-2 text-sm font-bold text-[#003A8C]">CTA: {cta}</p>
+                    <p className="mt-1 font-black text-slate-900">{email.title}</p>
+                    <p className="mt-2 rounded bg-white px-3 py-2 text-sm font-bold text-slate-700">Subject: {email.subject}</p>
+                    {email.body?.length > 0 && (
+                      <div className="mt-3 rounded-lg bg-white p-3 text-sm leading-6 text-slate-700">
+                        {email.body.map((line) => (
+                          <p key={line} className="mb-2 last:mb-0">{line}</p>
+                        ))}
+                      </div>
+                    )}
+                    <p className="mt-3 text-sm font-bold text-[#003A8C]">CTA: {email.cta} →</p>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </Card>
           ))}
