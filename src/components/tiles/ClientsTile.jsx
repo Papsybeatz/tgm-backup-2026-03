@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import TileShell from './TileShell';
 
 export default function ClientsTile() {
@@ -15,11 +16,12 @@ export default function ClientsTile() {
         <span style={{ fontSize: 12, color: 'var(--tgm-muted)', fontWeight: 600 }}>ACTIVE CLIENTS</span>
         <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--tgm-navy)' }}>0</span>
       </div>
-      <button style={{
+      <Link to="/clients" style={{
+        display: 'block', textAlign: 'center', textDecoration: 'none',
         width: '100%', padding: '10px', borderRadius: 'var(--tgm-radius-md)',
         background: 'var(--tgm-gold)', border: 'none',
         color: 'var(--tgm-navy)', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 'auto',
-      }}>Manage Clients</button>
+      }}>Manage Clients</Link>
     </TileShell>
   );
 }

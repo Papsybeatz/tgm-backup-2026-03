@@ -15,6 +15,8 @@ import TermsPage from './components/TermsPage';
 import NewYorkGrantsPage from './components/NewYorkGrantsPage';
 import NewYorkChecklistPage from './components/NewYorkChecklistPage';
 import ConsultantLandingPage from './components/ConsultantLandingPage';
+import ClientsPage from './components/ClientsPage';
+import ClientWorkspacePage from './components/ClientWorkspacePage';
 
 // Auth-gated pages
 import OnboardingPage from './components/OnboardingPage';
@@ -67,6 +69,8 @@ function App() {
                 <Route path="/terms"   element={<TermsPage />} />
                 <Route path="/onboarding" element={<RequireAuth><OnboardingPage /></RequireAuth>} />
                 <Route path="/dashboard"  element={<RequireOnboarding><UnifiedDashboard /></RequireOnboarding>} />
+                <Route path="/clients" element={<RequireOnboarding><ClientsPage /></RequireOnboarding>} />
+                <Route path="/clients/:id" element={<RequireOnboarding><ClientWorkspacePage /></RequireOnboarding>} />
                 <Route path="/admin/monitoring" element={<AdminGuard><MonitoringDashboard /></AdminGuard>} />
                 <Route path="/admin/billing" element={<AdminGuard><AdminBillingPage /></AdminGuard>} />
                 <Route path="/lead-magnet/grant-workflow-blueprint" element={<GrantWorkflowBlueprintPage />} />

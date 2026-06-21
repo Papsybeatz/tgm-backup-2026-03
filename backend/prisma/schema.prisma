@@ -27,6 +27,12 @@ model User {
 
   drafts    Draft[]
   sessions  Session[]
+  clientFolders ClientFolder[]
+  clientPermissions ClientPermission[]
+  clientActivityLogs ClientActivityLog[]
+  clientTemplates ClientTemplate[]
+  checkmateReports CheckmateReport[]
+  clientDocuments ClientDocument[]
 
   @@index([createdAt])
   @@index([tier])
@@ -43,13 +49,140 @@ model Session {
 model Draft {
   id              String   @id @default(uuid())
   userId          String
+  clientId        String?
   title           String
   content         String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   tierAtCreation  String
   user            User     @relation(fields: [userId], references: [id])
+  client          ClientFolder? @relation(fields: [clientId], references: [id], onDelete: SetNull)
   versions        DraftVersion[]
+  checkmateReports CheckmateReport[]
+
+  @@index([clientId])
+  @@index([userId, updatedAt])
+}
+
+model ClientFolder {
+  id          String   @id @default(cuid())
+  ownerId     String
+  name        String
+  sector      String?
+  state       String?
+  funders     Json?
+  notes       String?
+  brandLogoUrl String?
+  brandColor  String?
+  contactInfo String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  drafts      Draft[]
+  permissions ClientPermission[]
+  activityLogs ClientActivityLog[]
+  templates   ClientTemplate[]
+  reports     CheckmateReport[]
+  documents   ClientDocument[]
+
+  @@index([ownerId])
+  @@index([state])
+  @@index([sector])
+}
+
+model ClientPermission {
+  id        String   @id @default(cuid())
+  clientId  String
+  userId    String?
+  email     String?
+  role      String   @default("viewer")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client    ClientFolder @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user      User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([clientId])
+  @@index([userId])
+  @@index([email])
+}
+
+model ClientActivityLog {
+  id        String   @id @default(cuid())
+  clientId  String
+  userId    String?
+  action    String
+  detail    String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  client    ClientFolder @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user      User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([clientId, createdAt])
+  @@index([userId])
+}
+
+model ClientTemplate {
+  id        String   @id @default(cuid())
+  clientId  String
+  userId    String
+  type      String
+  title     String
+  content   String
+  isShared  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client    ClientFolder @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([userId])
+  @@index([type])
+}
+
+model CheckmateReport {
+  id        String   @id @default(cuid())
+  clientId  String
+  draftId   String?
+  userId    String
+  title     String
+  score     Int
+  strengths Json
+  weaknesses Json
+  missingComponents Json
+  complianceIssues Json
+  recommendedFixes Json
+  funderAlignment Json
+  exportedAs String?
+  createdAt DateTime @default(now())
+
+  client    ClientFolder @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  draft     Draft? @relation(fields: [draftId], references: [id], onDelete: SetNull)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, createdAt])
+  @@index([draftId])
+  @@index([userId])
+}
+
+model ClientDocument {
+  id        String   @id @default(cuid())
+  clientId  String
+  userId    String
+  name      String
+  type      String?
+  url       String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  client    ClientFolder @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([userId])
 }
 
 model Invite {

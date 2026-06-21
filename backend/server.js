@@ -118,6 +118,8 @@ app.use('/api/ai', aiRoutes);
 const documentsRoutes = require('./routes/documents');
 app.use('/api/documents', documentsRoutes);
 app.use('/api/drafts', draftsRoutes);
+const clientsRoutes = require('./routes/clients');
+app.use('/api/clients', clientsRoutes);
 app.use('/api/founder', founderAuditRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/billing', billingRoutes);

@@ -320,6 +320,14 @@ function DashboardNav() {
         onMouseOver={e => e.currentTarget.style.color = '#fff'}
         onMouseOut={e => e.currentTarget.style.color = isActive('/dashboard') ? '#D4AF37' : 'rgba(255,255,255,0.75)'}
       >Dashboard</Link>
+      <Link to="/clients" style={{
+        color: isActive('/clients') ? '#D4AF37' : 'rgba(255,255,255,0.75)',
+        fontWeight: isActive('/clients') ? 700 : 400,
+        textDecoration: 'none', transition: 'color .15s',
+      }}
+        onMouseOver={e => e.currentTarget.style.color = '#fff'}
+        onMouseOut={e => e.currentTarget.style.color = isActive('/clients') ? '#D4AF37' : 'rgba(255,255,255,0.75)'}
+      >Clients</Link>
       <DraftsDropdown />
     </nav>
   );
