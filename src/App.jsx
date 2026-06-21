@@ -17,6 +17,7 @@ import NewYorkChecklistPage from './components/NewYorkChecklistPage';
 import ConsultantLandingPage from './components/ConsultantLandingPage';
 import ClientsPage from './components/ClientsPage';
 import ClientWorkspacePage from './components/ClientWorkspacePage';
+import ScottDistributionPage from './components/ScottDistributionPage';
 
 // Auth-gated pages
 import OnboardingPage from './components/OnboardingPage';
@@ -71,6 +72,7 @@ function App() {
                 <Route path="/dashboard"  element={<RequireOnboarding><UnifiedDashboard /></RequireOnboarding>} />
                 <Route path="/clients" element={<RequireOnboarding><ClientsPage /></RequireOnboarding>} />
                 <Route path="/clients/:id" element={<RequireOnboarding><ClientWorkspacePage /></RequireOnboarding>} />
+                <Route path="/scott" element={<RequireOnboarding><ScottDistributionPage /></RequireOnboarding>} />
                 <Route path="/admin/monitoring" element={<AdminGuard><MonitoringDashboard /></AdminGuard>} />
                 <Route path="/admin/billing" element={<AdminGuard><AdminBillingPage /></AdminGuard>} />
                 <Route path="/lead-magnet/grant-workflow-blueprint" element={<GrantWorkflowBlueprintPage />} />

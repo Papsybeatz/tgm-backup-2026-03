@@ -15,6 +15,9 @@ const NY_OPPORTUNITIES = [
   'NY Youth Workforce Readiness Grant: good for youth development, workforce training, and career pathways.',
   'New York Housing Stability Initiative: good for housing, homelessness prevention, and wraparound services.',
 ];
+const SCOTT_DAILY = ['1 LinkedIn post', '10-20 outreach messages', '1 NY insight or consultant insight', '1 deadline reminder if applicable'];
+const SCOTT_WEEKLY = ['1 case study', '1 template', '1 guide', '1 email broadcast'];
+const SCOTT_FUNNELS = ['NY Funnel', 'Consultant Funnel', 'General Nonprofit Funnel'];
 
 function createMessage(role, content) {
   return {
@@ -32,6 +35,7 @@ function normalizeTier(tier) {
 function detectIntent(message, session) {
   const text = String(message || '').toLowerCase();
   if (text.includes('write') && text.includes('grant')) return 'draft_grant';
+  if (text.includes('scott') || text.includes('distribution plan') || text.includes('growth engine')) return 'scott_distribution';
   if (text.includes('ny grant') || text.includes('new york grant') || text.includes('ny nonprofit') || text.includes('ny arts')) return 'new_york_help';
   if (text.includes('draft') && text.includes('grant')) return 'draft_grant';
   if (text.includes('edit') || text.includes('revise') || text.includes('improve')) return 'edit_grant';
@@ -110,6 +114,8 @@ function buildReply({ intent, message, session }) {
       return 'I can review for clarity, evidence, funder alignment, and missing submission materials. Paste the draft or section you want checked.';
     case 'new_york_help':
       return `For New York grant work, start with fit, deadline, and proof. Current NY-focused examples in TGM include:\n\n- ${NY_OPPORTUNITIES.join('\n- ')}\n\nIf you are drafting, tell me your organization type, borough or service area, target population, program goal, budget range, and deadline.`;
+    case 'scott_distribution':
+      return `Scott runs TGM distribution through three funnels: ${SCOTT_FUNNELS.join(', ')}.\n\nDaily operating system:\n- ${SCOTT_DAILY.join('\n- ')}\n\nWeekly operating system:\n- ${SCOTT_WEEKLY.join('\n- ')}\n\nThe strongest conversion CTA is Lifetime Access: limited spots, Pro forever, with NY and consultant-specific urgency. Open /scott for the full operating dashboard.`;
     default:
       return 'I can help with grant drafting, editing, funding readiness, funder positioning, submission prep, or upgrade questions. What are you trying to get done right now?';
   }
