@@ -95,7 +95,7 @@ const PLAN_COPY = [
   },
   {
     key: 'agency_unlimited',
-    stripeKey: null,
+    stripeKey: 'agency_unlimited',
     name: 'Agency+',
     eyebrow: 'For high-volume teams',
     price: '$299',
@@ -111,8 +111,7 @@ const PLAN_COPY = [
       'Quarterly strategy reviews',
       'Early access to new features',
     ],
-    cta: 'Contact Sales',
-    href: '/contact',
+    cta: 'Upgrade to Agency+',
   },
 ];
 
