@@ -155,11 +155,64 @@ async function createSession(res, user) {
 
 function publicUserPayload(user, token) {
   return {
+    id: user.id,
     token,
     email: user.email,
+    name: user.name,
+    role: user.role,
     tier: user.tier,
+    onboardingCompleted: user.onboardingCompleted,
+    onboardingData: user.onboardingData,
+    audienceRole: user.audienceRole,
+    location: user.location,
+    workspaceMode: user.workspaceMode,
+    pricingRecommendation: user.pricingRecommendation,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
+  };
+}
+
+function deriveOnboardingProfile(input) {
+  const role = input.role || '';
+  const state = input.state || '';
+  const grantVolume = input.grantVolume || '';
+  const urgency = input.urgency || '';
+  const painPoints = Array.isArray(input.painPoints) ? input.painPoints : [];
+  const primaryFunderTypes = Array.isArray(input.primaryFunderTypes) ? input.primaryFunderTypes : [];
+
+  const nyMode = state === 'NY' || primaryFunderTypes.includes('ny_funders');
+  const consultantMode = role === 'consultant' || painPoints.includes('managing_clients');
+  const agencyMode = role === 'agency';
+  const workspaceMode = agencyMode ? 'agency' : consultantMode ? 'consultant' : nyMode ? 'new_york' : 'standard';
+  const highVolume = ['10_25', '25_plus'].includes(grantVolume);
+  const pricingRecommendation = grantVolume === '25_plus'
+    ? 'agency_unlimited'
+    : agencyMode || consultantMode || highVolume
+      ? 'agency_starter'
+      : grantVolume === '3_10'
+        ? 'pro'
+        : 'starter';
+
+  return {
+    ...input,
+    nyMode,
+    consultantMode,
+    agencyMode,
+    workspaceMode,
+    pricingRecommendation,
+    postOnboardingCta: urgency === 'deadline' ? 'start_draft_now' : 'open_dashboard',
+    stevePromptSet: {
+      sector: input.sector || 'general',
+      funderTypes: primaryFunderTypes,
+      role,
+      urgency,
+    },
+    checkmateRules: {
+      stateAware: Boolean(state),
+      nyAware: nyMode,
+      sectorAware: Boolean(input.sector),
+      funderAware: primaryFunderTypes.length > 0,
+    },
   };
 }
 
@@ -245,12 +298,51 @@ router.get('/me', async (req, res) => {
       name:               user.name,
       role:               user.role,
       tier:               user.tier,
+      onboardingCompleted: user.onboardingCompleted,
+      onboardingData:     user.onboardingData,
+      audienceRole:       user.audienceRole,
+      location:           user.location,
+      workspaceMode:      user.workspaceMode,
+      pricingRecommendation: user.pricingRecommendation,
       subscriptionStatus: user.subscriptionStatus,
       subscriptionType:   user.subscriptionType,
       currentPeriodEnd:   user.currentPeriodEnd,
       createdAt:          user.createdAt,
       updatedAt:          user.updatedAt,
     });
+  } catch (error) {
+    handleAuthError(res, error);
+  }
+});
+
+router.post('/onboarding', async (req, res) => {
+  try {
+    if (!databaseReady(res)) return;
+    let token = null;
+    const auth = req.headers.authorization;
+    if (auth && auth.startsWith('Bearer ')) token = auth.replace('Bearer ', '');
+    if (!token && req.cookies && req.cookies.session) token = req.cookies.session;
+    if (!token) return res.status(401).json({ success: false, message: 'Missing or invalid token.' });
+
+    const session = await prisma.session.findUnique({ where: { token } });
+    if (!session || new Date() > session.expiresAt) return res.status(401).json({ success: false, message: 'Session expired.' });
+    const user = await prisma.user.findUnique({ where: { email: session.email } });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+    const profile = deriveOnboardingProfile(req.body || {});
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        onboardingCompleted: true,
+        onboardingData: profile,
+        audienceRole: profile.role || null,
+        location: profile.nyMode ? 'new_york' : profile.state || null,
+        workspaceMode: profile.workspaceMode,
+        pricingRecommendation: profile.pricingRecommendation,
+      },
+    });
+
+    res.json({ success: true, user: publicUserPayload(updated, token), profile });
   } catch (error) {
     handleAuthError(res, error);
   }

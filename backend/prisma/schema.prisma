@@ -13,6 +13,12 @@ model User {
   password           String
   name               String?
   role               String   @default("user")
+  onboardingCompleted Boolean @default(false)
+  onboardingData     Json?
+  audienceRole       String?
+  location           String?
+  workspaceMode      String?
+  pricingRecommendation String?
 
   tier               String    @default("free")
   subscriptionStatus String    @default("inactive")
