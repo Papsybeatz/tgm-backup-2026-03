@@ -6,6 +6,11 @@ const router = express.Router();
 
 const requireAuth = require('../middleware/auth');
 const { logAiAction } = require('../utils/logging');
+const {
+  buildDraftDocx,
+  buildDraftPdf,
+  safeFilename,
+} = require('../services/exportDocuments');
 
 console.log('[DRAFTS ROUTE] loaded from file:', __filename);
 
@@ -72,6 +77,44 @@ router.get('/:id', requireAuth, async (req, res) => {
   } catch (e) {
     console.error('[DRAFTS] get error', e && e.message ? e.message : e);
     return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// GET /api/drafts/:id/export.pdf — native PDF export for authenticated draft owners
+router.get('/:id/export.pdf', requireAuth, async (req, res) => {
+  try {
+    const draft = await prisma.draft.findFirst({ where: { id: req.params.id, userId: req.user.id } });
+    if (!draft) return res.status(404).json({ success: false, message: 'Draft not found' });
+    const buffer = await buildDraftPdf({
+      title: draft.title,
+      content: draft.content,
+      subtitle: `Prepared in The Grants Master | ${new Date().toLocaleDateString('en-US')}`,
+    });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename(draft.title)}.pdf"`);
+    res.send(buffer);
+  } catch (e) {
+    console.error('[DRAFTS] pdf export error', e?.message || e);
+    res.status(500).json({ success: false, message: 'Export failed' });
+  }
+});
+
+// GET /api/drafts/:id/export.docx — native DOCX export for authenticated draft owners
+router.get('/:id/export.docx', requireAuth, async (req, res) => {
+  try {
+    const draft = await prisma.draft.findFirst({ where: { id: req.params.id, userId: req.user.id } });
+    if (!draft) return res.status(404).json({ success: false, message: 'Draft not found' });
+    const buffer = await buildDraftDocx({
+      title: draft.title,
+      content: draft.content,
+      subtitle: `Prepared in The Grants Master | ${new Date().toLocaleDateString('en-US')}`,
+    });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename(draft.title)}.docx"`);
+    res.send(buffer);
+  } catch (e) {
+    console.error('[DRAFTS] docx export error', e?.message || e);
+    res.status(500).json({ success: false, message: 'Export failed' });
   }
 });
 
@@ -147,4 +190,3 @@ router.delete('/:id', requireAuth, async (req, res) => {
 });
 
 module.exports = router;
-

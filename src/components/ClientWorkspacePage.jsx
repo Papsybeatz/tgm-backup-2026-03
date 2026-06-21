@@ -155,12 +155,21 @@ export default function ClientWorkspacePage() {
     downloadBlob(blob, 'tgm-bulk-checkmate-results.csv');
   };
 
-  const exportReport = async (report) => {
-    const res = await fetch(`/api/clients/${id}/reports/${report.id}/export`, {
+  const exportReport = async (report, format = 'html') => {
+    const suffix = format === 'html' ? 'export' : `export.${format}`;
+    const res = await fetch(`/api/clients/${id}/reports/${report.id}/${suffix}`, {
       headers: authHeaders(),
     });
     const blob = await res.blob();
-    downloadBlob(blob, `${client.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-checkmate-report.html`);
+    downloadBlob(blob, `${client.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-checkmate-report.${format}`);
+  };
+
+  const exportDraft = async (draft, format) => {
+    const res = await fetch(`/api/drafts/${draft.id}/export.${format}`, {
+      headers: authHeaders(),
+    });
+    const blob = await res.blob();
+    downloadBlob(blob, `${(draft.title || 'client-draft').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.${format}`);
   };
 
   const featureStatus = useMemo(() => ([
@@ -275,6 +284,8 @@ export default function ClientWorkspacePage() {
                       </label>
                       <div className="flex gap-2">
                         <Link to={`/workspace/${draft.id}`} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 no-underline">Open</Link>
+                        <button onClick={() => exportDraft(draft, 'pdf')} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700">PDF</button>
+                        <button onClick={() => exportDraft(draft, 'docx')} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700">DOCX</button>
                         <button onClick={() => runReport(draft.id)} className="rounded-lg bg-[#003A8C] px-3 py-2 text-xs font-bold text-white">Score</button>
                       </div>
                     </div>
@@ -332,7 +343,13 @@ export default function ClientWorkspacePage() {
                       <td className="py-3"><span className="rounded-full bg-emerald-50 px-3 py-1 font-bold text-emerald-700">{report.score}/100</span></td>
                       <td className="py-3 text-slate-600">{[...(report.missingComponents || []), ...(report.complianceIssues || [])].slice(0, 3).join('; ') || 'No critical issues flagged'}</td>
                       <td className="py-3"><button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700">Ask Steve to fix</button></td>
-                      <td className="py-3"><button onClick={() => exportReport(report)} className="rounded-lg bg-[#003A8C] px-3 py-2 text-xs font-bold text-white">White-label HTML</button></td>
+                      <td className="py-3">
+                        <div className="flex flex-wrap gap-2">
+                          <button onClick={() => exportReport(report, 'pdf')} className="rounded-lg bg-[#003A8C] px-3 py-2 text-xs font-bold text-white">PDF</button>
+                          <button onClick={() => exportReport(report, 'docx')} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700">DOCX</button>
+                          <button onClick={() => exportReport(report, 'html')} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700">HTML</button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -2,6 +2,11 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const requireAuth = require('../middleware/auth');
 const { requireFeature } = require('../middleware/tierAuth');
+const {
+  buildReportDocx,
+  buildReportPdf,
+  safeFilename,
+} = require('../services/exportDocuments');
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -480,6 +485,44 @@ ${['strengths','weaknesses','missingComponents','complianceIssues','recommendedF
   } catch (error) {
     console.error('[CLIENTS] report export error', error?.message || error);
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.get('/:id/reports/:reportId/export.pdf', requireClient, async (req, res) => {
+  try {
+    const report = await prisma.checkmateReport.findFirst({
+      where: { id: req.params.reportId, clientId: req.params.id },
+      include: { client: true, draft: true },
+    });
+    if (!report) return res.status(404).json({ success: false, message: 'Report not found' });
+
+    const buffer = await buildReportPdf({ report, client: report.client });
+    await logActivity(req.params.id, req.user.id, 'report.exported', `Exported ${report.title}`, { reportId: report.id, format: 'pdf' });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename(`${report.client?.name || 'client'}-${report.title}`)}.pdf"`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('[CLIENTS] report pdf export error', error?.message || error);
+    res.status(500).json({ success: false, message: 'PDF export failed' });
+  }
+});
+
+router.get('/:id/reports/:reportId/export.docx', requireClient, async (req, res) => {
+  try {
+    const report = await prisma.checkmateReport.findFirst({
+      where: { id: req.params.reportId, clientId: req.params.id },
+      include: { client: true, draft: true },
+    });
+    if (!report) return res.status(404).json({ success: false, message: 'Report not found' });
+
+    const buffer = await buildReportDocx({ report, client: report.client });
+    await logActivity(req.params.id, req.user.id, 'report.exported', `Exported ${report.title}`, { reportId: report.id, format: 'docx' });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename(`${report.client?.name || 'client'}-${report.title}`)}.docx"`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('[CLIENTS] report docx export error', error?.message || error);
+    res.status(500).json({ success: false, message: 'DOCX export failed' });
   }
 });
 
