@@ -14,6 +14,7 @@ import PrivacyPage from './components/PrivacyPage';
 import TermsPage from './components/TermsPage';
 import NewYorkGrantsPage from './components/NewYorkGrantsPage';
 import NewYorkChecklistPage from './components/NewYorkChecklistPage';
+import ConsultantLandingPage from './components/ConsultantLandingPage';
 
 // Auth-gated pages
 import OnboardingPage from './components/OnboardingPage';
@@ -58,6 +59,8 @@ function App() {
                 <Route path="/upgrade" element={<UpgradePage />} />
                 <Route path="/billing/processing" element={<BillingProcessingPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+                <Route path="/consultants" element={<ConsultantLandingPage />} />
+                <Route path="/consultant-mode" element={<ConsultantLandingPage />} />
                 <Route path="/new-york-grants" element={<NewYorkGrantsPage />} />
                 <Route path="/new-york-grants/checklist" element={<NewYorkChecklistPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />

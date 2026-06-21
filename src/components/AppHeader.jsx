@@ -185,6 +185,7 @@ function MarketingNav() {
       {[
         { label: 'Features',     to: '/#features' },
         { label: 'NY Grants',     to: '/new-york-grants' },
+        { label: 'Consultants',   to: '/consultants' },
         { label: 'Testimonials', to: '/#testimonials' },
         { label: 'Pricing',      to: '/pricing' },
         { label: 'Contact',      to: '/contact' },

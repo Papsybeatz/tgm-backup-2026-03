@@ -606,6 +606,7 @@ export default function LandingPage() {
           <div className="flex gap-6 text-sm">
             <Link to="/pricing" className="hover:text-[#D4AF37] transition">Pricing</Link>
             <Link to="/new-york-grants" className="hover:text-[#D4AF37] transition">NY Grants</Link>
+            <Link to="/consultants" className="hover:text-[#D4AF37] transition">Consultants</Link>
             <Link to="/lead-magnet/grant-workflow-blueprint" className="hover:text-[#D4AF37] transition">Free Blueprint</Link>
             <Link to="/contact" className="hover:text-[#D4AF37] transition">Contact</Link>
             <Link to="/privacy" className="hover:text-[#D4AF37] transition">Privacy</Link>
