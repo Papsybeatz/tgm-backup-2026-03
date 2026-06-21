@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import CaseStudiesSection from './CaseStudiesSection';
 
 
 /* ── Demo Modal ── */
@@ -128,21 +126,65 @@ function DemoModal({ onClose }) {
 }
 
 export default function LandingPage() {
-  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [showDemo, setShowDemo] = useState(false);
 
+  const outcomeStats = [
+    ['3.5 hrs', 'Average proposal time'],
+    ['41%', 'Win rate, up from 22%'],
+    ['$180k', 'Won in the first 90 days'],
+    ['40%', 'Cost reduction for teams'],
+  ];
 
-  // Re-render when language changes
-  const lang = i18n.language;
+  const capacityBullets = [
+    'Produce more proposals with the same staff',
+    'Never miss a deadline again',
+    'Standardize quality across your team',
+    'Reduce burnout and bottlenecks',
+  ];
 
-  const features = [
-    { title: t('ai_drafting', 'AI-Powered Drafting'), desc: 'Generate funder-ready grant proposals in minutes, not weeks.' },
-    { title: t('compliance', 'Compliance Validation'), desc: 'Automatically check your draft against funder requirements.' },
-    { title: t('collaboration', 'Team Collaboration'), desc: 'Invite your team, assign sections, and review together.' },
-    { title: t('refinement', 'Matching Engine'), desc: 'Find the right grants for your mission from thousands of sources.' },
-    { title: t('export', 'Scoring Engine'), desc: 'Get an AI score on your draft before you submit.' },
-    { title: t('features', 'Analytics Dashboard'), desc: 'Track submissions, win rates, and funding pipeline.' },
+  const securityBullets = [
+    'Your data is never used to train AI models',
+    'Encrypted at rest and in transit',
+    'Human-in-the-loop workflows',
+    'Transparent AI governance for nonprofits',
+    'SOC-2 style security practices',
+  ];
+
+  const alignmentBullets = [
+    'Funder alignment',
+    'Missing components',
+    'Compliance issues',
+    'Narrative gaps',
+    'Budget inconsistencies',
+    'NYSCA / NYSED / ESD / NYC Arts / Robin Hood rules',
+  ];
+
+  const nyBullets = [
+    'Curated NY grant opportunities',
+    'NY deadlines & reminders',
+    'NY compliance rules',
+    'NY funder intelligence',
+    'NY Grant Readiness Checklist',
+    'NY Grant Fit Score',
+  ];
+
+  const consultantBullets = [
+    'Multi-client folders',
+    'White-label reports',
+    'Bulk Checkmate scoring',
+    'Client onboarding templates',
+    'Team collaboration',
+    'Faster turnaround = higher margins',
+  ];
+
+  const comparisonRows = [
+    ['Grant drafting', true, true, false],
+    ['Funder alignment', true, false, true],
+    ['Compliance scoring', true, false, false],
+    ['NY personalization', true, false, false],
+    ['Grant readiness score', true, false, false],
+    ['Consultant mode', true, false, false],
   ];
 
   const testimonials = [
@@ -181,26 +223,25 @@ export default function LandingPage() {
   return (
     <div className="w-full min-h-screen bg-white text-gray-900">
 
-      {/* NAV */}
       {/* HERO */}
       <section className="bg-gradient-to-br from-[#0A0F1A] to-[#003A8C] text-white py-24 px-6">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div>
             <p className="text-[#E8D28C] font-semibold mb-3 flex items-center gap-2">
-              <span>🏆</span> Award-Winning Grant Writing Platform
+              Capacity engine for grant teams
             </p>
             <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
-              {t('hero_title', 'The fastest, smartest way to draft and win more grants.')}
+              Add a grant writer to your team — without hiring one.
             </h1>
             <p className="text-lg text-[#E8D28C] mb-8">
-              {t('hero_subtitle', 'AI-powered grant writing built for nonprofits, agencies, and consultants.')}
+              Draft, evaluate, and align funder-ready proposals in hours, not weeks. Built for nonprofits, consultants, and agencies who need more capacity — fast.
             </p>
             <div className="flex flex-wrap gap-4">
               <button
                 onClick={() => navigate('/signup')}
                 className="px-6 py-3 rounded-lg bg-[#D4AF37] text-[#0A0F1A] font-semibold shadow-md hover:shadow-xl transition"
               >
-                {t('get_started', 'Get Started Free')}
+                Start Free — No Credit Card
               </button>
               <button
                 onClick={() => setShowDemo(true)}
@@ -210,78 +251,150 @@ export default function LandingPage() {
               </button>
             </div>
             <p className="mt-4 text-sm text-gray-400">
-              {t('no_credit_card', 'No credit card required')} · {t('cancel_anytime', 'Cancel anytime')} ·{' '}
-              <Link to="/lead-magnet/grant-workflow-blueprint" className="text-[#D4AF37] hover:underline">
-                Free Blueprint ↓
-              </Link>
+              Trusted by 500+ organizations. $2.4M+ in grants drafted.
             </p>
           </div>
 
-          {/* AI Preview Card */}
           <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 shadow-xl border border-white/20">
-            <p className="text-[#E8D28C] font-semibold mb-3 text-sm">✦ AI Draft Preview</p>
+            <p className="text-[#E8D28C] font-semibold mb-3 text-sm">TGM Capacity Preview</p>
             <div className="bg-white text-gray-800 p-5 rounded-lg shadow-md mb-4">
-              <p className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Grant: Community Health Initiative</p>
+              <p className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Proposal: Community Health Initiative</p>
               <p className="text-sm text-gray-700 leading-relaxed italic">
-                "Our organization seeks funding to expand access to preventive healthcare services in underserved communities. Through evidence-based interventions and community partnerships…"
+                "TGM found three missing proof points, strengthened funder alignment, and prepared a reviewer-ready narrative for submission."
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
-              <span className="text-xs text-gray-300">AI is generating your draft…</span>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              {[
+                ['Draft', 'Ready'],
+                ['Checkmate', '94%'],
+                ['Deadline', 'On track'],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-lg bg-white/10 px-3 py-3">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-300">{label}</p>
+                  <p className="mt-1 text-sm font-bold text-[#D4AF37]">{value}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* RESULTS — case studies above the fold */}
-      <CaseStudiesSection variant="full" />
-
-      {/* VALUE STRIP */}
-      <section className="py-16 bg-[#F7F9FB] border-t-4 border-[#D4AF37]">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8 text-center px-6">
-          {[
-            { title: 'AI-Powered Drafting', icon: '✍️' },
-            { title: 'Compliance Validation', icon: '✅' },
-            { title: 'Team Collaboration', icon: '👥' },
-          ].map(({ title, icon }) => (
-            <div key={title} className="p-6 bg-white rounded-xl shadow-sm border-t-4 border-[#D4AF37]">
-              <div className="text-3xl mb-3">{icon}</div>
-              <h3 className="text-lg font-semibold text-[#003A8C] mb-2">{title}</h3>
-              <p className="text-gray-600 text-sm">Built to help you move from idea to funder-ready proposal.</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* FEATURE GRID */}
-      <section id="features" className="py-20 bg-white px-6">
+      {/* OUTCOME PROOF */}
+      <section className="py-16 bg-[#F7F9FB] border-t-4 border-[#D4AF37] px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-[#D4AF37] font-semibold mb-2">Everything you need</p>
-            <h2 className="text-3xl font-bold text-[#0A0F1A]">Built for grant winners</h2>
-            <p className="text-gray-600 mt-2 max-w-xl mx-auto">Every tool you need to research, draft, validate, and win grants — in one platform.</p>
+          <div className="text-center mb-10">
+            <p className="text-[#B8960C] text-xs font-bold uppercase tracking-widest mb-2">Outcome proof</p>
+            <h2 className="text-3xl font-bold text-[#0A0F1A]">Grant writers win more with TGM</h2>
+            <p className="text-gray-600 mt-3 max-w-3xl mx-auto">
+              TGM turns your ideas into funder-aligned proposals with the accuracy, structure, and compliance reviewers expect.
+            </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {features.map(({ title, desc }) => (
-              <div key={title} className="p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#D4AF37]/40 transition">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#E8D28C] mb-4" />
-                <h3 className="font-semibold text-[#003A8C] mb-2">{title}</h3>
-                <p className="text-sm text-gray-600">{desc}</p>
+          <div className="grid gap-4 md:grid-cols-4">
+            {outcomeStats.map(([value, label]) => (
+              <div key={label} className="rounded-xl border border-[#E2E8F0] bg-white p-6 text-center shadow-sm">
+                <p className="text-3xl font-bold text-[#003A8C]">{value}</p>
+                <p className="mt-2 text-sm font-semibold text-gray-600">{label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* LOCAL RELEVANCE */}
-      <section className="py-16 bg-[#F7F9FB] px-6">
-        <div className="max-w-6xl mx-auto grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+      {/* CAPACITY */}
+      <section id="features" className="py-20 bg-white px-6">
+        <div className="max-w-6xl mx-auto grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center">
           <div>
-            <p className="text-[#B8960C] text-xs font-bold uppercase tracking-widest mb-2">Local relevance</p>
-            <h2 className="text-3xl font-bold text-[#0A0F1A] mb-3">New York organizations can move faster with NY-specific grant support.</h2>
+            <p className="text-[#B8960C] text-xs font-bold uppercase tracking-widest mb-2">Capacity engine</p>
+            <h2 className="text-3xl font-bold text-[#0A0F1A] mb-4">Your team just gained capacity</h2>
             <p className="text-gray-600 leading-7 mb-6">
-              TGM stays built for grant seekers everywhere. New York users can also explore curated NY opportunities, deadlines, readiness checks, and assistant prompts.
+              Most organizations don’t struggle with writing — they struggle with time. TGM expands your grant-writing capacity instantly.
+            </p>
+            <button
+              onClick={() => setShowDemo(true)}
+              className="rounded-lg border border-[#003A8C] px-5 py-3 text-sm font-bold text-[#003A8C] transition hover:bg-[#003A8C] hover:text-white"
+            >
+              See how it works →
+            </button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {capacityBullets.map((item) => (
+              <div key={item} className="rounded-xl border border-[#E2E8F0] bg-[#F7F9FB] p-5">
+                <p className="text-sm font-bold text-[#003A8C]">{item}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TRUST & SECURITY */}
+      <section className="py-20 bg-[#0A0F1A] text-white px-6">
+        <div className="max-w-6xl mx-auto grid gap-10 md:grid-cols-[1fr_1fr] md:items-center">
+          <div>
+            <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest mb-2">Trust & security</p>
+            <h2 className="text-3xl font-bold mb-4">Built for trust, privacy, and compliance</h2>
+            <p className="text-gray-300 leading-7 mb-6">
+              Grant proposals contain sensitive data. TGM protects it with enterprise-grade security.
+            </p>
+            <Link
+              to="/privacy"
+              className="inline-flex rounded-lg border border-white/30 px-5 py-3 text-sm font-bold text-white no-underline transition hover:bg-white/10"
+            >
+              View Security & Privacy →
+            </Link>
+          </div>
+          <div className="grid gap-3">
+            {securityBullets.map((item) => (
+              <div key={item} className="rounded-lg border border-white/10 bg-white/10 px-5 py-4 text-sm font-semibold text-[#E8D28C]">
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FUNDER ALIGNMENT */}
+      <section className="py-20 bg-white px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-10 max-w-3xl">
+            <p className="text-[#B8960C] text-xs font-bold uppercase tracking-widest mb-2">Checkmate + Steve</p>
+            <h2 className="text-3xl font-bold text-[#0A0F1A] mb-4">Funder-aligned proposals, every time</h2>
+            <p className="text-gray-600 leading-7">
+              TGM doesn’t just write — it evaluates. Our Checkmate engine analyzes your draft, then Steve, your in-app assistant, helps fix every weakness in one click.
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-[1fr_0.8fr]">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {alignmentBullets.map((item) => (
+                <div key={item} className="rounded-xl border border-[#E2E8F0] bg-[#F7F9FB] p-5">
+                  <p className="text-sm font-bold text-[#003A8C]">{item}</p>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-xl border border-[#D4AF37]/40 bg-[#FFF9E8] p-6">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#92400E] mb-3">Checkmate result</p>
+              <h3 className="text-2xl font-bold text-[#0A0F1A] mb-3">Reviewer-ready in fewer passes</h3>
+              <p className="text-sm leading-6 text-gray-700 mb-5">
+                Score alignment, compliance, narrative strength, and budget consistency before a funder ever sees the application.
+              </p>
+              <button
+                onClick={() => navigate('/signup')}
+                className="rounded-lg bg-[#003A8C] px-5 py-3 text-sm font-bold text-white"
+              >
+                Try Checkmate →
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* NY PERSONALIZATION */}
+      <section className="py-20 bg-[#F7F9FB] px-6">
+        <div className="max-w-6xl mx-auto grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+          <div>
+            <p className="text-[#B8960C] text-xs font-bold uppercase tracking-widest mb-2">New York beachhead</p>
+            <h2 className="text-3xl font-bold text-[#0A0F1A] mb-4">New York organizations: get a local advantage</h2>
+            <p className="text-gray-600 leading-7 mb-6">
+              TGM includes a dedicated NY workspace for grant seekers who need local opportunities, deadlines, rules, and funder intelligence.
             </p>
             <Link
               to="/new-york-grants"
@@ -290,39 +403,75 @@ export default function LandingPage() {
               Explore NY Grants →
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              ['NY Grants', 'Curated opportunities by focus and fit'],
-              ['NY Deadlines', 'Upcoming cycles surfaced in one view'],
-              ['NY Readiness', 'Checklist for proof, budget, and eligibility'],
-            ].map(([title, body]) => (
-              <div key={title} className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-                <h3 className="mb-2 text-base font-bold text-[#003A8C]">{title}</h3>
-                <p className="text-sm leading-6 text-gray-600">{body}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {nyBullets.map((item) => (
+              <div key={item} className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+                <p className="text-sm font-bold text-[#003A8C]">{item}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* AI ENGINE SECTION */}
-      <section className="py-20 bg-[#0A0F1A] text-white text-center px-6">
-        <p className="text-[#D4AF37] font-semibold mb-2">Trusted by award committees and funding reviewers nationwide</p>
-        <h2 className="text-3xl font-bold text-[#D4AF37] mb-4">Powered by the GrantsMaster AI Engine</h2>
-        <p className="text-gray-300 max-w-2xl mx-auto mb-10">
-          Generate tailored drafts, refine clarity, and align with funder requirements — all in one intelligent workflow.
-        </p>
-        <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-6 text-left">
-          {[
-            { stat: '10x', label: 'Faster than manual drafting' },
-            { stat: '94%', label: 'Funder alignment score' },
-            { stat: '$2M+', label: 'Grants won by our users' },
-          ].map(({ stat, label }) => (
-            <div key={stat} className="bg-white/10 rounded-xl p-6 border border-white/10">
-              <p className="text-3xl font-bold text-[#D4AF37] mb-1">{stat}</p>
-              <p className="text-gray-300 text-sm">{label}</p>
-            </div>
-          ))}
+      {/* CONSULTANT MODE */}
+      <section className="py-20 bg-white px-6">
+        <div className="max-w-6xl mx-auto grid gap-10 md:grid-cols-[1fr_1fr] md:items-center">
+          <div className="rounded-xl border border-[#E2E8F0] bg-[#F7F9FB] p-6">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#B8960C] mb-3">Consultant mode</p>
+            <h2 className="text-3xl font-bold text-[#0A0F1A] mb-4">For consultants & agencies</h2>
+            <p className="text-gray-600 leading-7 mb-6">
+              Scale your client workload without sacrificing quality.
+            </p>
+            <Link
+              to="/pricing"
+              className="inline-flex rounded-lg bg-[#D4AF37] px-5 py-3 text-sm font-bold text-[#0A0F1A] no-underline"
+            >
+              See Consultant Mode →
+            </Link>
+          </div>
+          <div className="grid gap-3">
+            {consultantBullets.map((item) => (
+              <div key={item} className="rounded-lg border border-[#E2E8F0] bg-white px-5 py-4 text-sm font-semibold text-gray-700 shadow-sm">
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* COMPARISON */}
+      <section className="py-20 bg-[#F7F9FB] px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8 text-center">
+            <p className="text-[#B8960C] text-xs font-bold uppercase tracking-widest mb-2">Built for grants</p>
+            <h2 className="text-3xl font-bold text-[#0A0F1A]">Why teams choose TGM over generic AI tools</h2>
+            <p className="text-gray-600 mt-3">TGM is built specifically for grants — not general writing.</p>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
+            <table className="min-w-full border-collapse text-left text-sm">
+              <thead className="bg-[#0A0F1A] text-white">
+                <tr>
+                  {['Feature', 'TGM', 'ChatGPT', 'Instrumentl'].map((heading) => (
+                    <th key={heading} className="px-5 py-4 font-bold">{heading}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonRows.map(([feature, tgm, chatgpt, instrumentl]) => (
+                  <tr key={feature} className="border-t border-[#E2E8F0]">
+                    <td className="px-5 py-4 font-semibold text-gray-800">{feature}</td>
+                    {[tgm, chatgpt, instrumentl].map((enabled, index) => (
+                      <td key={`${feature}-${index}`} className="px-5 py-4">
+                        <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${enabled ? 'bg-[#D4AF37] text-[#0A0F1A]' : 'bg-gray-100 text-gray-400'}`}>
+                          {enabled ? '✓' : '—'}
+                        </span>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -331,9 +480,8 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto">
           <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest mb-3">See It In Action</p>
           <h2 className="text-3xl font-bold text-white mb-4">From idea to funder-ready proposal in 2 minutes</h2>
-          <p className="text-gray-400 mb-10 text-lg">Watch how GrantsMaster generates a complete, professional grant letter from a single sentence.</p>
+          <p className="text-gray-400 mb-10 text-lg">Watch how GrantsMaster adds drafting, evaluation, and alignment capacity to your team.</p>
 
-          {/* Demo preview card */}
           <div
             onClick={() => setShowDemo(true)}
             className="relative cursor-pointer group mx-auto"
@@ -345,28 +493,23 @@ export default function LandingPage() {
               border: '1px solid rgba(212,175,55,.3)',
               boxShadow: '0 24px 64px rgba(0,0,0,.5)',
             }}>
-              {/* Fake browser chrome */}
               <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
                 {['#EF4444','#F59E0B','#22C55E'].map(c => (
                   <div key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />
                 ))}
               </div>
-              {/* Fake editor lines */}
-              {['## Grant Proposal — U-Smile Foundation','','**Executive Summary**',
-                'U-Smile Foundation respectfully submits this proposal…','',
-                '**Statement of Need**','Rural orphanages lack access to…'].map((line, i) => (
+              {['## Checkmate Review','','Funder alignment: strong','Missing component: evaluation plan','Budget narrative: needs clarification','','Steve suggested 5 fixes'].map((line, i) => (
                 <div key={i} style={{
                   height: line === '' ? 8 : 12, marginBottom: 8,
                   background: line.startsWith('##') ? 'rgba(212,175,55,.6)'
-                    : line.startsWith('**') ? 'rgba(255,255,255,.5)'
+                    : line.includes(':') ? 'rgba(255,255,255,.5)'
                     : 'rgba(255,255,255,.2)',
                   borderRadius: 4,
-                  width: line === '' ? 0 : line.length > 40 ? '90%' : line.length > 20 ? '65%' : '45%',
+                  width: line === '' ? 0 : line.length > 36 ? '86%' : line.length > 20 ? '64%' : '42%',
                 }} />
               ))}
             </div>
 
-            {/* Play button overlay */}
             <div style={{
               position: 'absolute', inset: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -395,8 +538,8 @@ export default function LandingPage() {
           <div className="text-center mb-4">
             <span className="inline-block bg-[#D4AF37]/15 text-[#B8960C] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Beta Users</span>
           </div>
-          <h2 className="text-3xl font-bold text-center text-[#0A0F1A] mb-3">Trusted by Early Grant Writers</h2>
-          <p className="text-center text-gray-500 mb-12 max-w-xl mx-auto">Real feedback from nonprofits, consultants, and agencies using TGM during beta.</p>
+          <h2 className="text-3xl font-bold text-center text-[#0A0F1A] mb-3">Trusted by nonprofits, consultants, and agencies</h2>
+          <p className="text-center text-gray-500 mb-12 max-w-xl mx-auto">500+ beta users. 4.9/5 average rating. 94% would recommend TGM.</p>
           <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map(({ quote, author, role, location, avatar, tier, stars }) => (
               <div key={author} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4 hover:shadow-md transition-shadow">
@@ -445,7 +588,7 @@ export default function LandingPage() {
           onClick={() => navigate('/signup')}
           className="px-10 py-4 bg-[#D4AF37] text-[#0A0F1A] rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl transition"
         >
-          {t('get_started', 'Get Started Free')}
+          Get Started Free
         </button>
       </section>
 
