@@ -161,12 +161,6 @@ function publicUserPayload(user, token) {
     name: user.name,
     role: user.role,
     tier: user.tier,
-    onboardingCompleted: user.onboardingCompleted,
-    onboardingData: user.onboardingData,
-    audienceRole: user.audienceRole,
-    location: user.location,
-    workspaceMode: user.workspaceMode,
-    pricingRecommendation: user.pricingRecommendation,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
@@ -298,12 +292,6 @@ router.get('/me', async (req, res) => {
       name:               user.name,
       role:               user.role,
       tier:               user.tier,
-      onboardingCompleted: user.onboardingCompleted,
-      onboardingData:     user.onboardingData,
-      audienceRole:       user.audienceRole,
-      location:           user.location,
-      workspaceMode:      user.workspaceMode,
-      pricingRecommendation: user.pricingRecommendation,
       subscriptionStatus: user.subscriptionStatus,
       subscriptionType:   user.subscriptionType,
       currentPeriodEnd:   user.currentPeriodEnd,
@@ -330,19 +318,18 @@ router.post('/onboarding', async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
 
     const profile = deriveOnboardingProfile(req.body || {});
-    const updated = await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        onboardingCompleted: true,
-        onboardingData: profile,
-        audienceRole: profile.role || null,
-        location: profile.nyMode ? 'new_york' : profile.state || null,
-        workspaceMode: profile.workspaceMode,
-        pricingRecommendation: profile.pricingRecommendation,
-      },
-    });
+    try {
+      await prisma.aiLog.create({
+        data: {
+          userId: user.id,
+          action: 'onboarding_completed',
+        },
+      });
+    } catch (logError) {
+      console.warn('[AUTH] onboarding log failed:', logError.message);
+    }
 
-    res.json({ success: true, user: publicUserPayload(updated, token), profile });
+    res.json({ success: true, user: publicUserPayload(user, token), profile });
   } catch (error) {
     handleAuthError(res, error);
   }
