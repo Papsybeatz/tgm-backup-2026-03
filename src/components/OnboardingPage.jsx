@@ -86,6 +86,15 @@ const INITIAL_FORM = {
   primaryFunderTypes: [],
 };
 
+const FIELD_STYLE = {
+  borderRadius: 10,
+  border: '1px solid rgba(255,255,255,.2)',
+  background: '#fff',
+  color: '#0A0F1A',
+  padding: 12,
+  fontSize: 15,
+};
+
 function authHeaders(extra = {}) {
   const token = localStorage.getItem('token');
   return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
@@ -382,19 +391,19 @@ export default function OnboardingPage() {
             <div style={{ display: 'grid', gap: 14 }}>
               <label style={{ display: 'grid', gap: 6, fontSize: 13, fontWeight: 900, color: 'rgba(255,255,255,.78)' }}>
                 Organization name
-                <input value={form.organizationName} onChange={(event) => update('organizationName', event.target.value)} style={{ borderRadius: 10, border: '1px solid rgba(255,255,255,.2)', padding: 12, fontSize: 15 }} />
+                <input value={form.organizationName} onChange={(event) => update('organizationName', event.target.value)} style={FIELD_STYLE} />
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
                 <label style={{ display: 'grid', gap: 6, fontSize: 13, fontWeight: 900, color: 'rgba(255,255,255,.78)' }}>
                   Sector
-                  <select value={form.sector} onChange={(event) => update('sector', event.target.value)} style={{ borderRadius: 10, border: '1px solid rgba(255,255,255,.2)', padding: 12, fontSize: 15 }}>
+                  <select value={form.sector} onChange={(event) => update('sector', event.target.value)} style={FIELD_STYLE}>
                     <option value="">Select sector</option>
                     {SECTORS.map((sector) => <option key={sector} value={sector}>{sector}</option>)}
                   </select>
                 </label>
                 <label style={{ display: 'grid', gap: 6, fontSize: 13, fontWeight: 900, color: 'rgba(255,255,255,.78)' }}>
                   Team size
-                  <select value={form.teamSize} onChange={(event) => update('teamSize', event.target.value)} style={{ borderRadius: 10, border: '1px solid rgba(255,255,255,.2)', padding: 12, fontSize: 15 }}>
+                  <select value={form.teamSize} onChange={(event) => update('teamSize', event.target.value)} style={FIELD_STYLE}>
                     <option value="">Select team size</option>
                     {TEAM_SIZES.map((size) => <option key={size} value={size}>{size}</option>)}
                   </select>
