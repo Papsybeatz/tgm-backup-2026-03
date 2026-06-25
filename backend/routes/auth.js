@@ -1,15 +1,20 @@
 // backend/routes/auth.js
 const express = require('express');
+const crypto = require('crypto');
+const https = require('https');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const { generateSessionToken, getSessionExpiry } = require('../utils/session');
 const { sanitizeInput, validateEmail } = require('../utils/sanitize');
+const { passwordResetLimiter } = require('../middleware/rateLimit');
 
 const prisma = new PrismaClient();
 const router = express.Router();
 const STRIPE_PAID_TIERS = new Set(['starter', 'pro', 'agency_starter', 'agency_unlimited']);
 const MANUAL_COMP_PROVIDER = 'manual_comp';
 const MANUAL_COMP_TYPE = 'manual_comp';
+const APP_URL = process.env.APP_URL || 'https://www.thegrantsmaster.com';
+const PASSWORD_RESET_TTL_MINUTES = 30;
 
 function databaseReady(res) {
   if (process.env.DATABASE_URL) return true;
@@ -44,6 +49,24 @@ function normalizeEmail(input) {
   return String(input || '').trim().toLowerCase();
 }
 
+function hashResetToken(token) {
+  return crypto.createHash('sha256').update(String(token || '')).digest('hex');
+}
+
+async function ensurePasswordResetTable() {
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "PasswordResetToken" (
+      "id" TEXT PRIMARY KEY,
+      "email" TEXT NOT NULL,
+      "tokenHash" TEXT NOT NULL UNIQUE,
+      "expiresAt" TIMESTAMP(3) NOT NULL,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "PasswordResetToken_email_idx" ON "PasswordResetToken"("email")');
+  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "PasswordResetToken_expiresAt_idx" ON "PasswordResetToken"("expiresAt")');
+}
+
 function getPriceTierMap() {
   return {
     [process.env.STRIPE_STARTER_PRICE_ID]: 'starter',
@@ -74,6 +97,70 @@ async function findUserByEmail(email) {
   } catch {
     return prisma.user.findFirst({ where: { email: normalizedEmail } });
   }
+}
+
+async function sendPasswordResetEmail(email, resetLink) {
+  const apiKey = process.env.BREVO_API_KEY;
+  const from = process.env.BREVO_FROM_EMAIL || 'noreply@thegrantsmaster.com';
+  const fromName = process.env.BREVO_FROM_NAME || 'The Grants Master';
+
+  if (!apiKey) {
+    console.log(`[EMAIL STUB] Password reset for ${email}: ${resetLink}`);
+    return true;
+  }
+
+  const payload = JSON.stringify({
+    sender: { name: fromName, email: from },
+    to: [{ email }],
+    subject: 'Reset your TGM password',
+    htmlContent: `
+      <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;background:#F7F9FB;padding:32px 24px;">
+        <div style="background:#0A0F1A;border-radius:14px;padding:28px;text-align:center;margin-bottom:20px;">
+          <div style="color:#D4AF37;font-size:18px;font-weight:800;margin-bottom:8px;">The Grants Master</div>
+          <h1 style="color:#fff;font-size:24px;line-height:1.25;margin:0;">Reset your password</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:28px;">
+          <p style="color:#1A202C;font-size:15px;line-height:1.6;margin:0 0 20px;">
+            We received a request to reset your TGM password. This link expires in ${PASSWORD_RESET_TTL_MINUTES} minutes.
+          </p>
+          <a href="${resetLink}" style="display:block;text-align:center;background:#D4AF37;color:#0A0F1A;border-radius:10px;padding:14px 20px;font-weight:800;text-decoration:none;">
+            Reset Password
+          </a>
+          <p style="color:#64748B;font-size:12px;line-height:1.5;margin:20px 0 0;">
+            If you did not request this, you can ignore this email.
+          </p>
+        </div>
+      </div>
+    `,
+  });
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'api.brevo.com',
+      path: '/v3/smtp/email',
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload),
+      },
+    }, (response) => {
+      let body = '';
+      response.on('data', chunk => { body += chunk; });
+      response.on('end', () => {
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          resolve(true);
+        } else {
+          console.error('[AUTH] Brevo password reset error:', response.statusCode, body);
+          reject(new Error('Failed to send password reset email'));
+        }
+      });
+    });
+    req.setTimeout(10000, () => req.destroy(new Error('Brevo request timed out')));
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
 }
 
 async function logAuthBillingEvent(userId, message) {
@@ -309,6 +396,80 @@ router.post('/login', async (req, res) => {
     const verifiedUser = await validateStripeEntitlement(freshUser);
     const token = await createSession(res, verifiedUser);
     res.json(publicUserPayload(verifiedUser, token));
+  } catch (error) {
+    handleAuthError(res, error);
+  }
+});
+
+// POST /api/auth/request-password-reset
+router.post('/request-password-reset', passwordResetLimiter, async (req, res) => {
+  try {
+    if (!databaseReady(res)) return;
+    const email = normalizeEmail(sanitizeInput(req.body.email));
+    if (!validateEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Enter a valid email address.' });
+    }
+
+    const generic = {
+      success: true,
+      message: 'If an account exists for this email, a password reset link has been sent.',
+    };
+
+    const user = await findUserByEmail(email);
+    if (!user) return res.json(generic);
+
+    await ensurePasswordResetTable();
+    await prisma.$executeRaw`DELETE FROM "PasswordResetToken" WHERE "email" = ${user.email} OR "expiresAt" <= NOW()`;
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = hashResetToken(token);
+    const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MINUTES * 60 * 1000);
+    const resetLink = `${APP_URL.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
+
+    await prisma.$executeRaw`
+      INSERT INTO "PasswordResetToken" ("id", "email", "tokenHash", "expiresAt")
+      VALUES (${crypto.randomUUID()}, ${user.email}, ${tokenHash}, ${expiresAt})
+    `;
+    await sendPasswordResetEmail(user.email, resetLink);
+    return res.json(generic);
+  } catch (error) {
+    handleAuthError(res, error);
+  }
+});
+
+// POST /api/auth/reset-password
+router.post('/reset-password', async (req, res) => {
+  try {
+    if (!databaseReady(res)) return;
+    const token = String(req.body.token || '').trim();
+    const password = typeof req.body.password === 'string' ? req.body.password : '';
+    if (!token) return res.status(400).json({ success: false, message: 'Reset token is missing.' });
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+    }
+
+    await ensurePasswordResetTable();
+    const tokenHash = hashResetToken(token);
+    const rows = await prisma.$queryRaw`
+      SELECT "email"
+      FROM "PasswordResetToken"
+      WHERE "tokenHash" = ${tokenHash} AND "expiresAt" > NOW()
+      LIMIT 1
+    `;
+    const row = Array.isArray(rows) ? rows[0] : null;
+    if (!row?.email) return res.status(400).json({ success: false, message: 'This reset link is invalid or expired.' });
+
+    const user = await findUserByEmail(row.email);
+    if (!user) return res.status(400).json({ success: false, message: 'This reset link is invalid or expired.' });
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    await prisma.user.update({ where: { id: user.id }, data: { password: passwordHash } });
+    await prisma.session.deleteMany({ where: { email: user.email } });
+    await prisma.$executeRaw`DELETE FROM "PasswordResetToken" WHERE "email" = ${user.email}`;
+
+    const freshUser = await prisma.user.findUnique({ where: { id: user.id } });
+    const tokenAfterReset = await createSession(res, freshUser);
+    return res.json(publicUserPayload(freshUser, tokenAfterReset));
   } catch (error) {
     handleAuthError(res, error);
   }

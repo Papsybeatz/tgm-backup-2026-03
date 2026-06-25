@@ -222,6 +222,11 @@ const LoginPage = () => {
                 <EyeIcon open={showPassword} />
               </button>
             </div>
+            <div style={{ textAlign: 'right', marginTop: 8 }}>
+              <Link to="/reset-password" style={{ color: 'var(--tgm-blue)', fontWeight: 700, fontSize: 13 }}>
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           {status === 'error' && (

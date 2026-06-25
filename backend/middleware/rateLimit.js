@@ -20,7 +20,16 @@ const uploadLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: 'Too many password reset requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 module.exports = {
   agentLimiter,
   uploadLimiter,
+  passwordResetLimiter,
 };
