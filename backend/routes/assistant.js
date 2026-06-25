@@ -9,6 +9,7 @@ const { generateGrantDraft } = require('../services/grantDraft');
 
 const router = express.Router();
 const UPGRADE_LINK = 'https://www.thegrantsmaster.com/pricing';
+const SIGNED_OUT_DRAFT_REPLY = 'Great — I can help you write a new grant. To start drafting, you’ll need to create your free TGM workspace. Once you’re inside, I’ll guide you step‑by‑step, collect your project details, and generate your first draft. Click “Get Started Free” to open your workspace and we’ll begin.';
 const NY_OPPORTUNITIES = [
   'NYC Arts & Culture Capacity Grant: good for arts, culture, and creative programming.',
   'New York Community Health Equity Fund: good for health access, prevention, and wellness programs.',
@@ -67,6 +68,12 @@ function getUpgradeRequirement(tier, intent, message) {
     upgradeLink: UPGRADE_LINK,
     reply: 'You are ready for a more complete funding workflow. To unlock advanced review, unlimited drafts, or a submission pack, you will need the Pro or Unlimited tier. Here is the upgrade link.',
   };
+}
+
+function isSignedOutDraftRequest({ intent, userId, context }) {
+  if (intent !== 'draft_grant') return false;
+  if (context?.isSignedIn === true) return false;
+  return !userId || userId === 'guest' || context?.isSignedIn === false;
 }
 
 function handleDraftGrant(session, message) {
@@ -132,6 +139,15 @@ router.post('/', (req, res) => {
 
   const intent = detectIntent(message, session);
   updateIntent(userId, intent);
+
+  if (isSignedOutDraftRequest({ intent, userId, context })) {
+    addMessage(userId, createMessage('assistant', SIGNED_OUT_DRAFT_REPLY));
+    return res.json({
+      reply: SIGNED_OUT_DRAFT_REPLY,
+      intent,
+      requiresUpgrade: false,
+    });
+  }
 
   const upgrade = getUpgradeRequirement(tier, intent, message);
   const reply = upgrade?.reply || buildReply({ intent, message, session, context });
