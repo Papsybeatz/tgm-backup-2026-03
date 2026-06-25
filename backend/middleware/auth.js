@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const PASSWORD_RESET_TOKEN_PREFIX = 'pwdreset_';
 
 /**
  * Simple auth middleware that validates a session token (Bearer) and
@@ -13,6 +14,7 @@ module.exports = async function requireAuth(req, res, next) {
     if (!token && req.cookies && req.cookies.session) token = req.cookies.session;
     if (!token) token = req.body?.token || null;
     if (!token) return res.status(401).json({ success: false, message: 'Not authenticated' });
+    if (token.startsWith(PASSWORD_RESET_TOKEN_PREFIX)) return res.status(401).json({ success: false, message: 'Not authenticated' });
     const session = await prisma.session.findUnique({ where: { token } });
     if (!session || new Date() > session.expiresAt) return res.status(401).json({ success: false, message: 'Session not found or expired' });
     const user = await prisma.user.findUnique({ where: { email: session.email } });

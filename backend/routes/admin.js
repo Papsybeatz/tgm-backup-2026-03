@@ -9,6 +9,7 @@ const MANUAL_ACCESS_TIERS = new Set(['starter', 'pro', 'agency_starter', 'agency
 const MAX_MANUAL_ACCESS_DAYS = 90;
 const MANUAL_COMP_PROVIDER = 'manual_comp';
 const MANUAL_COMP_TYPE = 'manual_comp';
+const PASSWORD_RESET_TOKEN_PREFIX = 'pwdreset_';
 
 // Protect all admin routes
 async function requireAdmin(req, res, next) {
@@ -17,6 +18,7 @@ async function requireAdmin(req, res, next) {
       (req.headers.authorization || '').replace('Bearer ', '') ||
       req.cookies?.session || '';
     if (!token) return res.status(401).json({ success: false, message: 'Not authenticated' });
+    if (token.startsWith(PASSWORD_RESET_TOKEN_PREFIX)) return res.status(401).json({ success: false, message: 'Not authenticated' });
 
     const session = await prisma.session.findUnique({ where: { token } });
     if (!session || new Date() > session.expiresAt)

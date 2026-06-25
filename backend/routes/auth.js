@@ -15,6 +15,7 @@ const MANUAL_COMP_PROVIDER = 'manual_comp';
 const MANUAL_COMP_TYPE = 'manual_comp';
 const APP_URL = process.env.APP_URL || 'https://www.thegrantsmaster.com';
 const PASSWORD_RESET_TTL_MINUTES = 30;
+const PASSWORD_RESET_TOKEN_PREFIX = 'pwdreset_';
 
 function databaseReady(res) {
   if (process.env.DATABASE_URL) return true;
@@ -47,24 +48,6 @@ function getStripe() {
 
 function normalizeEmail(input) {
   return String(input || '').trim().toLowerCase();
-}
-
-function hashResetToken(token) {
-  return crypto.createHash('sha256').update(String(token || '')).digest('hex');
-}
-
-async function ensurePasswordResetTable() {
-  await prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS "PasswordResetToken" (
-      "id" TEXT PRIMARY KEY,
-      "email" TEXT NOT NULL,
-      "tokenHash" TEXT NOT NULL UNIQUE,
-      "expiresAt" TIMESTAMP(3) NOT NULL,
-      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "PasswordResetToken_email_idx" ON "PasswordResetToken"("email")');
-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "PasswordResetToken_expiresAt_idx" ON "PasswordResetToken"("expiresAt")');
 }
 
 function getPriceTierMap() {
@@ -161,6 +144,36 @@ async function sendPasswordResetEmail(email, resetLink) {
     req.write(payload);
     req.end();
   });
+}
+
+async function createPasswordResetSession(user) {
+  const now = new Date();
+  await prisma.session.deleteMany({
+    where: {
+      OR: [
+        { email: user.email, token: { startsWith: PASSWORD_RESET_TOKEN_PREFIX } },
+        { token: { startsWith: PASSWORD_RESET_TOKEN_PREFIX }, expiresAt: { lte: now } },
+      ],
+    },
+  });
+
+  const token = `${PASSWORD_RESET_TOKEN_PREFIX}${crypto.randomBytes(32).toString('hex')}`;
+  const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MINUTES * 60 * 1000);
+  await prisma.session.create({
+    data: {
+      token,
+      email: user.email,
+      expiresAt,
+    },
+  });
+  return token;
+}
+
+async function getValidPasswordResetSession(token) {
+  if (!token || !token.startsWith(PASSWORD_RESET_TOKEN_PREFIX)) return null;
+  const session = await prisma.session.findUnique({ where: { token } });
+  if (!session || new Date() > session.expiresAt) return null;
+  return session;
 }
 
 async function logAuthBillingEvent(userId, message) {
@@ -418,18 +431,9 @@ router.post('/request-password-reset', passwordResetLimiter, async (req, res) =>
     const user = await findUserByEmail(email);
     if (!user) return res.json(generic);
 
-    await ensurePasswordResetTable();
-    await prisma.$executeRaw`DELETE FROM "PasswordResetToken" WHERE "email" = ${user.email} OR "expiresAt" <= NOW()`;
-
-    const token = crypto.randomBytes(32).toString('hex');
-    const tokenHash = hashResetToken(token);
-    const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MINUTES * 60 * 1000);
+    const token = await createPasswordResetSession(user);
     const resetLink = `${APP_URL.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
 
-    await prisma.$executeRaw`
-      INSERT INTO "PasswordResetToken" ("id", "email", "tokenHash", "expiresAt")
-      VALUES (${crypto.randomUUID()}, ${user.email}, ${tokenHash}, ${expiresAt})
-    `;
     await sendPasswordResetEmail(user.email, resetLink);
     return res.json(generic);
   } catch (error) {
@@ -448,24 +452,15 @@ router.post('/reset-password', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
     }
 
-    await ensurePasswordResetTable();
-    const tokenHash = hashResetToken(token);
-    const rows = await prisma.$queryRaw`
-      SELECT "email"
-      FROM "PasswordResetToken"
-      WHERE "tokenHash" = ${tokenHash} AND "expiresAt" > NOW()
-      LIMIT 1
-    `;
-    const row = Array.isArray(rows) ? rows[0] : null;
-    if (!row?.email) return res.status(400).json({ success: false, message: 'This reset link is invalid or expired.' });
+    const resetSession = await getValidPasswordResetSession(token);
+    if (!resetSession?.email) return res.status(400).json({ success: false, message: 'This reset link is invalid or expired.' });
 
-    const user = await findUserByEmail(row.email);
+    const user = await findUserByEmail(resetSession.email);
     if (!user) return res.status(400).json({ success: false, message: 'This reset link is invalid or expired.' });
 
     const passwordHash = await bcrypt.hash(password, 12);
     await prisma.user.update({ where: { id: user.id }, data: { password: passwordHash } });
     await prisma.session.deleteMany({ where: { email: user.email } });
-    await prisma.$executeRaw`DELETE FROM "PasswordResetToken" WHERE "email" = ${user.email}`;
 
     const freshUser = await prisma.user.findUnique({ where: { id: user.id } });
     const tokenAfterReset = await createSession(res, freshUser);
@@ -498,6 +493,7 @@ router.get('/me', async (req, res) => {
     if (auth && auth.startsWith('Bearer ')) token = auth.replace('Bearer ', '');
     if (!token && req.cookies && req.cookies.session) token = req.cookies.session;
     if (!token) return res.status(401).json({ success: false, message: 'Missing or invalid token.' });
+    if (token.startsWith(PASSWORD_RESET_TOKEN_PREFIX)) return res.status(401).json({ success: false, message: 'Missing or invalid token.' });
     const session = await prisma.session.findUnique({ where: { token } });
     if (!session || new Date() > session.expiresAt) return res.status(401).json({ success: false, message: 'Session expired.' });
     let user = await findUserByEmail(session.email);
@@ -528,6 +524,7 @@ router.post('/onboarding', async (req, res) => {
     if (auth && auth.startsWith('Bearer ')) token = auth.replace('Bearer ', '');
     if (!token && req.cookies && req.cookies.session) token = req.cookies.session;
     if (!token) return res.status(401).json({ success: false, message: 'Missing or invalid token.' });
+    if (token.startsWith(PASSWORD_RESET_TOKEN_PREFIX)) return res.status(401).json({ success: false, message: 'Missing or invalid token.' });
 
     const session = await prisma.session.findUnique({ where: { token } });
     if (!session || new Date() > session.expiresAt) return res.status(401).json({ success: false, message: 'Session expired.' });

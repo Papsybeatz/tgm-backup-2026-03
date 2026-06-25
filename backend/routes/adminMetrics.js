@@ -7,6 +7,7 @@ const { getPlausibleStats } = require('../utils/plausible');
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.FOUNDER_EMAIL || 'Clotteythomas41@gmail.com';
 const LIFETIME_CAP = 200;
+const PASSWORD_RESET_TOKEN_PREFIX = 'pwdreset_';
 
 let metricsCache = null;
 let cacheTime = 0;
@@ -18,6 +19,9 @@ function adminOnly(req, res, next) {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
   const token = authHeader.slice(7);
+  if (token.startsWith(PASSWORD_RESET_TOKEN_PREFIX)) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
   prisma.session.findUnique({ where: { token } })
     .then(session => {
       if (!session) return res.status(401).json({ success: false, message: 'Unauthorized' });
