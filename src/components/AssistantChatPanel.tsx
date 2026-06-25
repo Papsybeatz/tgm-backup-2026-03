@@ -133,7 +133,24 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
           type="button"
           onClick={onClose}
           aria-label="Close TGM Assistant"
-          className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 text-2xl font-bold leading-none text-white transition hover:border-[#D4AF37] hover:text-[#E8D28C] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/40"
+          className="absolute right-4 top-1/2 -translate-y-1/2"
+          style={{
+            zIndex: 2,
+            width: 44,
+            height: 44,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 12,
+            border: '1px solid rgba(255,255,255,.35)',
+            background: 'rgba(255,255,255,.12)',
+            color: '#FFFFFF',
+            fontSize: 28,
+            fontWeight: 900,
+            lineHeight: 1,
+            cursor: 'pointer',
+            boxShadow: '0 8px 18px rgba(0,0,0,.18)',
+          }}
         >
           ×
         </button>
