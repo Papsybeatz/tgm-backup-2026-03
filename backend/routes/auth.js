@@ -40,6 +40,42 @@ function getStripe() {
   }
 }
 
+function normalizeEmail(input) {
+  return String(input || '').trim().toLowerCase();
+}
+
+function getPriceTierMap() {
+  return {
+    [process.env.STRIPE_STARTER_PRICE_ID]: 'starter',
+    [process.env.STRIPE_PRO_PRICE_ID]: 'pro',
+    [process.env.STRIPE_ANNUAL_PRO_PRICE_ID]: 'pro',
+    [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]: 'agency_starter',
+    [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
+    [process.env.STRIPE_LIFETIME_PRICE_ID]: 'lifetime',
+  };
+}
+
+function tierForStripePrice(priceId) {
+  if (!priceId) return null;
+  return getPriceTierMap()[priceId] || null;
+}
+
+async function findUserByEmail(email) {
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) return null;
+
+  const exact = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+  if (exact) return exact;
+
+  try {
+    return await prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+    });
+  } catch {
+    return prisma.user.findFirst({ where: { email: normalizedEmail } });
+  }
+}
+
 async function logAuthBillingEvent(userId, message) {
   try {
     await prisma.errorLog.create({
@@ -90,6 +126,20 @@ async function validateStripeEntitlement(user) {
     if (user.subscriptionId) {
       const subscription = await stripe.subscriptions.retrieve(user.subscriptionId);
       if (['active', 'trialing'].includes(subscription.status)) {
+        const priceId = subscription.items?.data?.[0]?.price?.id || null;
+        const currentTier = tierForStripePrice(priceId);
+        if (!currentTier) return downgrade(`invalid subscription (unrecognized stripe price ${priceId || 'missing'})`);
+        if (currentTier !== user.tier) {
+          return prisma.user.update({
+            where: { id: user.id },
+            data: {
+              tier: currentTier,
+              subscriptionStatus: subscription.status,
+              currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : user.currentPeriodEnd,
+              provider: 'stripe',
+            },
+          });
+        }
         return user;
       }
     }
@@ -99,11 +149,17 @@ async function validateStripeEntitlement(user) {
       status: 'all',
       limit: 10,
     });
-    const active = subscriptions.data.find((subscription) => ['active', 'trialing'].includes(subscription.status));
+    const active = subscriptions.data.find((subscription) => {
+      if (!['active', 'trialing'].includes(subscription.status)) return false;
+      const priceId = subscription.items?.data?.[0]?.price?.id || null;
+      return Boolean(tierForStripePrice(priceId));
+    });
     if (active) {
+      const priceId = active.items?.data?.[0]?.price?.id || null;
       return prisma.user.update({
         where: { id: user.id },
         data: {
+          tier: tierForStripePrice(priceId) || user.tier,
           subscriptionId: active.id,
           subscriptionStatus: active.status,
           currentPeriodEnd: active.current_period_end ? new Date(active.current_period_end * 1000) : user.currentPeriodEnd,
@@ -120,7 +176,7 @@ async function validateStripeEntitlement(user) {
 }
 
 function validateCredentialsInput(req, res) {
-  const email = sanitizeInput(req.body.email);
+  const email = normalizeEmail(sanitizeInput(req.body.email));
   const password = typeof req.body.password === 'string' ? req.body.password : '';
   if (!validateEmail(email)) {
     res.status(400).json({ success: false, message: 'Invalid email.' });
@@ -217,7 +273,7 @@ router.post('/signup', async (req, res) => {
     const credentials = validateCredentialsInput(req, res);
     if (!credentials) return;
 
-    const existingUser = await prisma.user.findUnique({ where: { email: credentials.email } });
+    const existingUser = await findUserByEmail(credentials.email);
     if (existingUser) return res.status(409).json({ success: false, message: 'An account already exists for this email.' });
 
     const passwordHash = await bcrypt.hash(credentials.password, 12);
@@ -242,14 +298,14 @@ router.post('/login', async (req, res) => {
     const credentials = validateCredentialsInput(req, res);
     if (!credentials) return;
 
-    const user = await prisma.user.findUnique({ where: { email: credentials.email } });
+    const user = await findUserByEmail(credentials.email);
     if (!user) return res.status(401).json({ success: false, message: 'Invalid email or password.' });
 
     const passwordMatches = await bcrypt.compare(credentials.password, user.password);
     if (!passwordMatches) return res.status(401).json({ success: false, message: 'Invalid email or password.' });
 
-    await prisma.user.update({ where: { email: user.email }, data: { tier: user.tier } });
-    const freshUser = await prisma.user.findUnique({ where: { email: user.email } });
+    await prisma.user.update({ where: { id: user.id }, data: { tier: user.tier } });
+    const freshUser = await prisma.user.findUnique({ where: { id: user.id } });
     const verifiedUser = await validateStripeEntitlement(freshUser);
     const token = await createSession(res, verifiedUser);
     res.json(publicUserPayload(verifiedUser, token));
@@ -283,7 +339,7 @@ router.get('/me', async (req, res) => {
     if (!token) return res.status(401).json({ success: false, message: 'Missing or invalid token.' });
     const session = await prisma.session.findUnique({ where: { token } });
     if (!session || new Date() > session.expiresAt) return res.status(401).json({ success: false, message: 'Session expired.' });
-    let user = await prisma.user.findUnique({ where: { email: session.email } });
+    let user = await findUserByEmail(session.email);
     if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
     user = await validateStripeEntitlement(user);
     res.json({
@@ -314,7 +370,7 @@ router.post('/onboarding', async (req, res) => {
 
     const session = await prisma.session.findUnique({ where: { token } });
     if (!session || new Date() > session.expiresAt) return res.status(401).json({ success: false, message: 'Session expired.' });
-    const user = await prisma.user.findUnique({ where: { email: session.email } });
+    const user = await findUserByEmail(session.email);
     if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
 
     const profile = deriveOnboardingProfile(req.body || {});

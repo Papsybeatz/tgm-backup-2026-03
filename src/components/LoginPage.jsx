@@ -46,14 +46,15 @@ const LoginPage = () => {
     e.preventDefault();
     setStatus('loading');
     setMessage('');
-    if (!email || !password) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) {
       setStatus('error'); setMessage('Please enter email and password.'); return;
     }
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: normalizedEmail, password })
       });
       const data = await safeJson(res);
       if (!res.ok) throw new Error(data.message || 'Login failed');

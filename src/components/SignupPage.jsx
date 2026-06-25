@@ -21,8 +21,9 @@ export default function SignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
+    const normalizedEmail = form.email.trim().toLowerCase();
 
-    if (!form.email || !form.password || !form.confirmPassword) {
+    if (!normalizedEmail || !form.password || !form.confirmPassword) {
       setStatus('error'); setMessage('Please fill in all fields.'); return;
     }
     if (form.password !== form.confirmPassword) {
@@ -37,7 +38,7 @@ export default function SignupPage() {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email, password: form.password })
+        body: JSON.stringify({ email: normalizedEmail, password: form.password })
       });
       const data = await safeJson(res);
       if (!res.ok) throw new Error(data.message || 'Signup failed');
