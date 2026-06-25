@@ -120,9 +120,10 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
   return (
     <aside
       aria-label="TGM Assistant chat panel"
-      className={`fixed inset-x-3 bottom-3 top-3 z-50 flex w-auto flex-col overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-2xl transition-transform duration-300 sm:inset-x-auto sm:right-0 sm:top-0 sm:bottom-0 sm:h-[100dvh] sm:w-full sm:max-w-[420px] sm:rounded-none sm:border-y-0 sm:border-r-0 ${
+      className={`fixed inset-x-3 bottom-3 top-3 flex w-auto flex-col overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-2xl transition-transform duration-300 sm:inset-x-auto sm:right-0 sm:top-0 sm:bottom-0 sm:h-[100dvh] sm:w-full sm:max-w-[420px] sm:rounded-none sm:border-y-0 sm:border-r-0 ${
         open ? 'translate-x-0' : 'translate-x-[calc(100%+1rem)] sm:translate-x-full'
       }`}
+      style={{ zIndex: 10050 }}
     >
       <header className="relative flex shrink-0 items-center justify-between border-b border-[#E2E8F0] bg-[#0A0F1A] px-5 py-4 pr-16 text-white">
         <div className="min-w-0">
