@@ -21,7 +21,6 @@ const teamInvitesRoutes = require('./routes/teamInvites');
 const authRoutes = require('./routes/auth');
 const draftsRoutes = require('./routes/drafts');
 const assistantRoutes = require('./routes/assistant');
-const testEmailRoutes = require('./routes/testEmail');
 const { agentLimiter, uploadLimiter } = require('./middleware/rateLimit');
 const requireAuth = require('./middleware/auth');
 const { requireFeature } = require('./middleware/tierAuth');
@@ -124,10 +123,6 @@ app.use('/api/clients', clientsRoutes);
 app.use('/api/founder', founderAuditRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/billing', billingRoutes);
-
-// SMTP health check — GET /test-email or GET /api/test-email
-app.use('/test-email', testEmailRoutes);
-app.use('/api/test-email', testEmailRoutes);
 
 const upload = multer();
 app.post('/api/upload', uploadLimiter, upload.single('file'), (req, res) => {
