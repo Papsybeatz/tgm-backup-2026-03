@@ -16,7 +16,7 @@ export default function WorkspaceLayout({
   const [activeSection, setActiveSection] = useState('Executive Summary');
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen flex-col overflow-hidden bg-gradient-to-br from-[#EEF2F7] via-[#F5F7FB] to-[#EDF2F8]">
       {/* Top bar */}
       <Topbar
         title={title}
@@ -27,7 +27,7 @@ export default function WorkspaceLayout({
       />
 
       {/* Main 3-pane area */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 gap-5 overflow-hidden px-4 py-5 md:px-6">
         {/* Left sidebar — sections */}
         <Sidebar
           activeSection={activeSection}
@@ -35,7 +35,7 @@ export default function WorkspaceLayout({
         />
 
         {/* Editor area */}
-        <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <main className="flex-1 overflow-y-auto rounded-2xl border border-[#D4AF37]/50 bg-white p-6 shadow-[0_20px_45px_rgba(15,23,42,0.08)]">
           {children}
         </main>
 
@@ -44,9 +44,9 @@ export default function WorkspaceLayout({
       </div>
 
       {/* Status bar */}
-      <div className="h-9 border-t bg-white flex items-center justify-between px-6 text-xs text-gray-400 flex-shrink-0">
+      <div className="h-10 border-t border-slate-200 bg-white/90 px-6 text-xs font-medium text-slate-500 flex items-center justify-between flex-shrink-0">
         <span>Words: {wordCount} · Reading time: {readingTime} min</span>
-        <span className={saved ? 'text-green-600' : 'text-amber-500'}>
+        <span className={saved ? 'text-emerald-600' : 'text-amber-600'}>
           {saved ? '✓ All changes saved' : '● Saving…'}
         </span>
       </div>

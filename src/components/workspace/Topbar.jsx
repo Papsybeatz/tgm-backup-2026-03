@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../UserContext';
 
@@ -6,6 +6,19 @@ export default function Topbar({ title, setTitle, saved, wordCount, readingTime 
   const navigate = useNavigate();
   const { user } = useUser();
   const tier = user?.tier || 'free';
+  const [lastSavedAt, setLastSavedAt] = useState(null);
+
+  useEffect(() => {
+    if (saved) {
+      setLastSavedAt(new Date());
+    }
+  }, [saved]);
+
+  const status = useMemo(() => {
+    if ((wordCount || 0) === 0) return 'Draft';
+    if ((wordCount || 0) < 200) return 'In Progress';
+    return 'Ready';
+  }, [wordCount]);
 
   const tierLabel = {
     free: 'Free',
@@ -25,13 +38,20 @@ export default function Topbar({ title, setTitle, saved, wordCount, readingTime 
     lifetime: 'bg-[#D4AF37]/15 text-[#B8960C]',
   }[tier] || 'bg-gray-100 text-gray-600';
 
+  const statusClass = {
+    Draft: 'bg-slate-100 text-slate-700 border-slate-200',
+    'In Progress': 'bg-amber-50 text-amber-700 border-amber-200',
+    Ready: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  }[status];
+
   return (
-    <div className="h-14 border-b bg-white flex items-center px-6 justify-between flex-shrink-0 shadow-sm">
-      <div className="flex items-center gap-3">
+    <div className="border-b border-slate-200/90 border-t-2 border-t-[#D4AF37]/70 bg-white/95 px-4 py-3 md:px-6 flex-shrink-0">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
         {/* Back */}
         <button
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-[#003A8C] transition mr-2 px-2 py-1 rounded hover:bg-gray-100"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-[#D4AF37] hover:text-[#0A0F1A]"
           title="Back to Dashboard"
         >
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -41,16 +61,19 @@ export default function Topbar({ title, setTitle, saved, wordCount, readingTime 
         </button>
         {/* Draft title */}
         <input
-          className="text-base font-semibold bg-transparent outline-none border-b border-transparent focus:border-[#D4AF37] transition w-64 text-[#0A0F1A] placeholder-gray-400"
+          className="min-w-[220px] max-w-[560px] flex-1 border-none bg-transparent text-base font-bold tracking-tight text-[#0A0F1A] outline-none md:text-lg"
           placeholder="Untitled Draft"
           value={title || ''}
           onChange={e => setTitle && setTitle(e.target.value)}
         />
-        <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">Draft</span>
-      </div>
-      <div className="flex items-center gap-4 text-sm text-gray-500">
-        <span>{saved ? '✓ Saved' : 'Saving…'}</span>
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${tierColor}`}>{tierLabel} Tier</span>
+        <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide md:text-xs ${statusClass}`}>{status}</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5 text-xs md:text-sm">
+          <span className={saved ? 'font-semibold text-emerald-600' : 'font-semibold text-amber-600'}>{saved ? 'Saved' : 'Saving...'}</span>
+          <span className="text-slate-500 tabular-nums">Last saved: {lastSavedAt ? lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Not yet'}</span>
+          <span className="text-slate-500">{readingTime} min read</span>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${tierColor}`}>{tierLabel} Tier</span>
+        </div>
       </div>
     </div>
   );
