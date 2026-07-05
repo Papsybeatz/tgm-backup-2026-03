@@ -24,6 +24,171 @@ const TIER_META = {
   lifetime:         { label: 'Lifetime',         color: '#7E22CE', bg: '#FDF4FF' },
 };
 
+function FreeDashboard() {
+  const navigate = useNavigate();
+
+  const sidebarItems = [
+    { label: 'Dashboard', to: '/dashboard' },
+    { label: 'Drafts', to: '/dashboard' },
+    { label: 'Billing', to: '/billing' },
+    { label: 'Support', to: '/contact' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#F7F9FB] text-gray-900">
+      <section className="border-b border-[#E2E8F0] bg-white px-6 py-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">TGM Free</p>
+            <h1 className="text-3xl font-bold text-[#0A0F1A]">Welcome to TGM Free</h1>
+          </div>
+          <Link
+            to="/plans"
+            className="w-fit rounded-lg bg-[#003A8C] px-5 py-2.5 text-sm font-bold text-white no-underline transition hover:bg-[#062E6F]"
+          >
+            Upgrade to unlock full grant writing power
+          </Link>
+        </div>
+      </section>
+
+      <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 md:grid-cols-[220px_1fr]">
+        <aside className="h-fit rounded-lg border border-[#E2E8F0] bg-white p-3">
+          <nav className="flex flex-col gap-1">
+            {sidebarItems.map((item) => (
+              <Link
+                key={item.label}
+                to={item.to}
+                className="rounded-md px-3 py-2 text-sm font-semibold text-[#334155] no-underline transition hover:bg-[#F1F5F9] hover:text-[#003A8C]"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </aside>
+
+        <main>
+          <section className="rounded-lg border border-[#E2E8F0] bg-white p-8 shadow-sm">
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Start here</p>
+            <h2 className="mb-3 text-2xl font-bold text-[#003A8C]">Start your first draft</h2>
+            <p className="mb-6 max-w-xl text-sm leading-6 text-gray-600">
+              Write grants with AI assistance. Upgrade for full drafting, scoring, and funder matching.
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => navigate('/workspace/new-draft')}
+                className="rounded-lg bg-[#D4AF37] px-5 py-3 text-sm font-bold text-[#0A0F1A] transition hover:bg-[#E8D28C]"
+              >
+                Create Draft
+              </button>
+              <Link
+                to="/plans"
+                className="rounded-lg border border-[#CBD5E1] px-5 py-3 text-center text-sm font-bold text-[#003A8C] no-underline transition hover:border-[#003A8C] hover:bg-[#F8FAFC]"
+              >
+                View upgrade options
+              </Link>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      <footer className="border-t border-[#E2E8F0] bg-white px-6 py-6">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} GrantsMaster</p>
+          <div className="flex gap-6">
+            <Link to="/plans" className="text-gray-500 no-underline transition hover:text-[#003A8C]">Pricing</Link>
+            <Link to="/terms" className="text-gray-500 no-underline transition hover:text-[#003A8C]">Terms</Link>
+            <Link to="/privacy" className="text-gray-500 no-underline transition hover:text-[#003A8C]">Privacy</Link>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function StarterDashboard({ tierConfig }) {
+  const navigate = useNavigate();
+  const starterFeatures = [
+    {
+      title: 'Draft workspace',
+      detail: 'Create and manage your grant drafts from one focused workspace.',
+      action: 'Create Draft',
+      onClick: () => navigate('/workspace/new-draft'),
+    },
+    {
+      title: 'AI drafting help',
+      detail: 'Use assisted writing and rewrite tools to move from blank page to funder-ready language.',
+      action: 'Open Workspace',
+      onClick: () => navigate('/workspace/new-draft'),
+    },
+    {
+      title: 'Score and match',
+      detail: 'Use Starter scoring and basic funder fit checks while advanced team tools stay on Plans.',
+      action: 'View Plans',
+      to: '/plans',
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#F7F9FB] text-gray-900">
+      <section className="border-b border-[#E2E8F0] bg-white px-6 py-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">TGM Starter</p>
+            <h1 className="text-3xl font-bold text-[#0A0F1A]">Your grant writing workspace</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
+              Starter keeps the dashboard focused on the core product: drafting, improvement, and funder fit.
+            </p>
+          </div>
+          <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Plan</p>
+            <p className="text-lg font-bold text-[#003A8C]">{tierConfig.name}</p>
+          </div>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        <section className="mb-10 grid gap-4 md:grid-cols-3">
+          {starterFeatures.map((feature) => (
+            <div key={feature.title} className="rounded-lg border border-[#E2E8F0] bg-white p-6 shadow-sm">
+              <h2 className="mb-2 text-lg font-bold text-[#003A8C]">{feature.title}</h2>
+              <p className="mb-5 text-sm leading-6 text-gray-600">{feature.detail}</p>
+              {feature.to ? (
+                <Link to={feature.to} className="text-sm font-bold text-[#003A8C] no-underline hover:text-[#B8960C]">
+                  {feature.action}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={feature.onClick}
+                  className="rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-[#0A0F1A] transition hover:bg-[#E8D28C]"
+                >
+                  {feature.action}
+                </button>
+              )}
+            </div>
+          ))}
+        </section>
+
+        <section className="rounded-lg border border-[#E2E8F0] bg-white p-6 shadow-sm">
+          <DraftsList />
+        </section>
+      </main>
+
+      <footer className="border-t border-[#E2E8F0] bg-white px-6 py-6">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} GrantsMaster</p>
+          <div className="flex gap-6">
+            <Link to="/plans" className="text-gray-500 no-underline transition hover:text-[#003A8C]">Plans</Link>
+            <Link to="/billing" className="text-gray-500 no-underline transition hover:text-[#003A8C]">Billing</Link>
+            <Link to="/contact" className="text-gray-500 no-underline transition hover:text-[#003A8C]">Support</Link>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
 export default function UnifiedDashboard() {
   const { user } = useUser() || {};
   const navigate = useNavigate();
@@ -33,6 +198,14 @@ export default function UnifiedDashboard() {
   const isNewYorkUser = user?.location === 'new_york';
 
   const unlocked = (key) => FEATURE_MAP[key]?.includes(tier);
+
+  if (tier === 'free') {
+    return <FreeDashboard />;
+  }
+
+  if (tier === 'starter') {
+    return <StarterDashboard tierConfig={tierConfig} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F7F9FB] text-gray-900">
@@ -61,7 +234,7 @@ export default function UnifiedDashboard() {
               </div>
             ))}
             {tier === 'free' && (
-              <Link to="/pricing" className="flex items-center gap-2 bg-[#D4AF37] rounded-xl px-5 py-3 text-[#0A0F1A] font-bold text-sm no-underline self-center ml-2">
+              <Link to="/plans" className="flex items-center gap-2 bg-[#D4AF37] rounded-xl px-5 py-3 text-[#0A0F1A] font-bold text-sm no-underline self-center ml-2">
                 ⚡ Upgrade Plan
               </Link>
             )}
@@ -136,7 +309,7 @@ export default function UnifiedDashboard() {
       <section className="max-w-7xl mx-auto px-6 pb-12">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-2xl font-bold text-[#003A8C]">Platform Features</h3>
-          <Link to="/pricing" className="text-sm font-semibold text-[#003A8C] border border-[#E2E8F0] px-4 py-1.5 rounded-lg no-underline hover:border-[#D4AF37] transition">
+          <Link to="/plans" className="text-sm font-semibold text-[#003A8C] border border-[#E2E8F0] px-4 py-1.5 rounded-lg no-underline hover:border-[#D4AF37] transition">
             View all plans →
           </Link>
         </div>
@@ -173,7 +346,7 @@ export default function UnifiedDashboard() {
                     className="text-sm font-bold text-[#003A8C] hover:text-[#D4AF37] transition">
                     Open →
                   </button>
-                : <Link to="/pricing" className="text-sm font-bold text-gray-400 hover:text-[#003A8C] transition no-underline">
+                : <Link to="/plans" className="text-sm font-bold text-gray-400 hover:text-[#003A8C] transition no-underline">
                     Upgrade to unlock →
                   </Link>}
             </div>
@@ -238,7 +411,7 @@ export default function UnifiedDashboard() {
               ? 'Add multi-client workspaces, AI reviewer, and funder match intelligence.'
               : 'Remove all limits — unlimited clients, seats, and funder match intelligence.'}
           </p>
-          <Link to="/pricing"
+          <Link to="/plans"
             className="inline-block px-10 py-4 bg-[#D4AF37] text-[#0A0F1A] rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl transition no-underline">
             View Upgrade Options →
           </Link>
@@ -250,7 +423,7 @@ export default function UnifiedDashboard() {
           <p className="text-gray-300 max-w-lg mx-auto mb-8 text-base">
             Unlock compliance validation, team workspaces, and the AI reviewer engine.
           </p>
-          <Link to="/pricing"
+          <Link to="/plans"
             className="inline-block px-10 py-4 bg-[#D4AF37] text-[#0A0F1A] rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl transition no-underline">
             Explore Pro & Agency →
           </Link>
@@ -260,7 +433,7 @@ export default function UnifiedDashboard() {
         <section className="py-20 bg-gradient-to-br from-[#003A8C] to-[#0A0F1A] text-white text-center px-6">
           <p className="text-[#D4AF37] font-semibold mb-2 text-sm uppercase tracking-widest">Unlock the full GrantsMaster experience</p>
           <h2 className="text-4xl font-bold mb-6">Ready to elevate your grant writing?</h2>
-          <Link to="/pricing"
+          <Link to="/plans"
             className="inline-block px-10 py-4 bg-[#D4AF37] text-[#0A0F1A] rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl transition no-underline">
             Explore Full Access
           </Link>
@@ -272,7 +445,7 @@ export default function UnifiedDashboard() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <p className="text-xs">© {new Date().getFullYear()} GrantsMaster · All rights reserved</p>
           <div className="flex gap-6 text-xs">
-            <Link to="/pricing" className="hover:text-[#D4AF37] transition no-underline text-gray-500">Pricing</Link>
+            <Link to="/plans" className="hover:text-[#D4AF37] transition no-underline text-gray-500">Pricing</Link>
             <Link to="/contact" className="hover:text-[#D4AF37] transition no-underline text-gray-500">Support</Link>
             <Link to="/privacy" className="hover:text-[#D4AF37] transition no-underline text-gray-500">Privacy</Link>
             <Link to="/terms"   className="hover:text-[#D4AF37] transition no-underline text-gray-500">Terms</Link>

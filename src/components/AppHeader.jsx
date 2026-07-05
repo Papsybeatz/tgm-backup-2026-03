@@ -71,8 +71,8 @@ function UserDropdown({ user }) {
   const NAV_ITEMS = [
     { label: 'Dashboard', to: '/dashboard' },
     { label: 'My Drafts',  to: '/dashboard' },
-    ...(tier === 'free' ? [{ label: 'Upgrade Plan', to: '/pricing', highlight: true }] : []),
-    { label: 'Billing',   to: '/dashboard' },
+    ...(tier === 'free' ? [{ label: 'Upgrade Plan', to: '/plans', highlight: true }] : []),
+    { label: 'Billing',   to: '/billing' },
   ];
 
   return (

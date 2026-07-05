@@ -140,7 +140,7 @@ export default function BillingPortalButton({ compact = false }) {
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         {isFree ? (
           <a
-            href="/pricing"
+            href="/plans"
             className="btn-primary"
             style={{ textDecoration: 'none', display: 'inline-block' }}
           >

@@ -13,6 +13,7 @@ const router = express.Router();
 const STRIPE_PAID_TIERS = new Set(['starter', 'pro', 'agency_starter', 'agency_unlimited']);
 const MANUAL_COMP_PROVIDER = 'manual_comp';
 const MANUAL_COMP_TYPE = 'manual_comp';
+const PREVIEW_PROVIDER = 'preview';
 const APP_URL = process.env.APP_URL || 'https://www.thegrantsmaster.com';
 const PASSWORD_RESET_TTL_MINUTES = 30;
 const PASSWORD_RESET_TOKEN_PREFIX = 'pwdreset_';
@@ -193,6 +194,7 @@ async function logAuthBillingEvent(userId, message) {
 
 async function validateStripeEntitlement(user) {
   if (!user || !STRIPE_PAID_TIERS.has(user.tier)) return user;
+  if (process.env.NODE_ENV !== 'production' && user.provider === PREVIEW_PROVIDER) return user;
 
   const downgrade = async (reason) => {
     await logAuthBillingEvent(user.id, `Auto-downgrade: ${reason}`);

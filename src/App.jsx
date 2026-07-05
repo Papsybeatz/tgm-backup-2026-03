@@ -9,6 +9,7 @@ import SignupPage from './components/SignupPage';
 import ResetPasswordPage from './components/ResetPasswordPage';
 import PricingPage from './components/PricingPage';
 import UpgradePage from './components/UpgradePage';
+import BillingPage from './components/BillingPage';
 import BillingProcessingPage from './components/BillingProcessingPage';
 import ContactPage from './components/ContactPage';
 import PrivacyPage from './components/PrivacyPage';
@@ -61,7 +62,9 @@ function App() {
                 <Route path="/signup"  element={<SignupPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/plans" element={<PricingPage />} />
                 <Route path="/upgrade" element={<UpgradePage />} />
+                <Route path="/billing" element={<RequireOnboarding><BillingPage /></RequireOnboarding>} />
                 <Route path="/billing/processing" element={<BillingProcessingPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/consultants" element={<ConsultantLandingPage />} />
