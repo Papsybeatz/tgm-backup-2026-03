@@ -20,11 +20,8 @@ const teamRoutes = require('./routes/team');
 const teamInvitesRoutes = require('./routes/teamInvites');
 const authRoutes = require('./routes/auth');
 const draftsRoutes = require('./routes/drafts');
-<<<<<<< Updated upstream
 const assistantRoutes = require('./routes/assistant');
-=======
-const testEmailRoutes   = require('./routes/testEmail');
->>>>>>> Stashed changes
+const testEmailRoutes = require('./routes/testEmail');
 const { agentLimiter, uploadLimiter } = require('./middleware/rateLimit');
 const requireAuth = require('./middleware/auth');
 const { requireFeature } = require('./middleware/tierAuth');
