@@ -49,18 +49,15 @@ model Session {
 model Draft {
   id              String   @id @default(uuid())
   userId          String
-  clientId        String?
   title           String
   content         String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   tierAtCreation  String
   user            User     @relation(fields: [userId], references: [id])
-  client          ClientFolder? @relation(fields: [clientId], references: [id], onDelete: SetNull)
   versions        DraftVersion[]
   checkmateReports CheckmateReport[]
 
-  @@index([clientId])
   @@index([userId, updatedAt])
 }
 
@@ -79,7 +76,6 @@ model ClientFolder {
   updatedAt   DateTime @updatedAt
 
   owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  drafts      Draft[]
   permissions ClientPermission[]
   activityLogs ClientActivityLog[]
   templates   ClientTemplate[]
