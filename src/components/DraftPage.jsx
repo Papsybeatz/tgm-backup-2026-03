@@ -27,7 +27,12 @@ const AI_GROUPS = [
     title: 'Generation Tools',
     actions: [
       { label: 'Generate', template: '[Generated grant draft]\n' },
-      { label: 'Generate Section', template: '[Generated grant section]\n' },
+      {
+        label: 'Generate Section',
+        template: '[Generated grant section]\n',
+        requiresStarter: true,
+        lockedHint: 'Upgrade to Starter to generate full sections.',
+      },
     ],
   },
 ];
@@ -81,6 +86,8 @@ export default function DraftPage() {
   }, []);
 
   const canAccessGrantMatches = tierAtLeast(tier, 'starter');
+  const isStarterPlus = tierAtLeast(tier, 'starter');
+  const canSave = text.trim().length > 0;
 
   const statusClass = {
     Draft: 'bg-slate-100 text-slate-700 border-slate-200',
@@ -103,10 +110,6 @@ export default function DraftPage() {
     setText(next);
   };
 
-  const saveLabel = saving ? 'Saving...' : saved ? 'Saved' : 'Unsaved';
-  const saveColor = saving ? 'text-amber-600' : saved ? 'text-emerald-600' : 'text-slate-500';
-  const sectionIcons = ['📝', '📄', '📌', '🧭', '📊', '✅', '💡'];
-
   const savedAgo = useMemo(() => {
     if (!lastSavedAt) return 'Not yet';
     const diffMs = Math.max(0, nowTs - lastSavedAt.getTime());
@@ -117,8 +120,17 @@ export default function DraftPage() {
     return `${hrs}h ago`;
   }, [lastSavedAt, nowTs]);
 
+  const saveLabel = saving ? 'Saving...' : saved ? `Saved • ${savedAgo}` : 'Unsaved';
+  const saveColor = saving ? 'text-amber-600' : saved ? 'text-emerald-600' : 'text-slate-500';
+  const sectionIcons = ['📝', '📄', '📌', '🧭', '📊', '✅', '💡'];
+
   const handleManualSave = () => {
+    if (!canSave) return;
     onBlur();
+  };
+
+  const handleExportPdf = () => {
+    window.print();
   };
 
   return (
@@ -150,8 +162,19 @@ export default function DraftPage() {
                 Last saved: {lastSavedAt ? `${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${savedAgo}` : 'Not yet'}
               </span>
               <button
+                onClick={handleExportPdf}
+                className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
+              >
+                Export PDF
+              </button>
+              <button
                 onClick={handleManualSave}
-                className="rounded-lg bg-[#0A0F1A] px-3 py-1.5 text-xs font-semibold text-[#D4AF37] transition hover:opacity-90"
+                disabled={!canSave}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  canSave
+                    ? 'bg-[#0A0F1A] text-[#D4AF37] hover:opacity-90'
+                    : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                }`}
               >
                 Save Draft
               </button>
@@ -201,7 +224,7 @@ export default function DraftPage() {
                 {activeSection}
               </div>
               <div className="p-6">
-                <h3 className="mb-3 text-base font-semibold text-[#0A0F1A]">{activeSection}: Introduction</h3>
+                <h3 className="mb-3 text-base font-semibold text-[#0A0F1A]">{activeSection}</h3>
                 <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                   <div className="mb-2 flex items-center justify-between">
                     <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Draft Metadata</p>
@@ -211,7 +234,8 @@ export default function DraftPage() {
                     <input disabled value="Grant Type: General Operating" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
                     <input disabled value="Funder: Not set" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
                     <input disabled value={`Status: ${status}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
-                    <input disabled value="Notes: Upgrade to unlock" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
+                    <input disabled value="Notes: Starter Feature" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
+                    <input disabled value="Draft Limit: 1 of 1 (Free Tier)" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 md:col-span-2" />
                   </div>
                 </div>
                 <textarea
@@ -241,6 +265,12 @@ export default function DraftPage() {
             </div>
 
             {tier === 'free' && (
+              <div className="mb-3 rounded-lg border border-[#003A8C]/20 bg-[#003A8C]/5 px-2.5 py-1.5 text-[11px] font-semibold text-[#003A8C]">
+                Basic AI Tools (Free Tier)
+              </div>
+            )}
+
+            {tier === 'free' && (
               <div className="mb-4 flex justify-end">
                 <a
                   href="/upgrade"
@@ -256,15 +286,24 @@ export default function DraftPage() {
                 <div key={group.title}>
                   <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">{group.title}</p>
                   <div className="space-y-2">
-                    {group.actions.map((item) => (
+                    {group.actions.map((item) => {
+                      const locked = item.requiresStarter && !isStarterPlus;
+                      return (
                       <button
                         key={item.label}
-                        onClick={() => handleAIAction(item.label, item.template)}
-                        className="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10"
+                        onClick={() => !locked && handleAIAction(item.label, item.template)}
+                        title={locked ? item.lockedHint : undefined}
+                        disabled={locked}
+                        className={`w-full rounded-lg border px-3.5 py-2.5 text-left text-sm font-medium transition ${
+                          locked
+                            ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
+                            : 'border-slate-200 text-slate-700 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10'
+                        }`}
                       >
-                        {item.label}
+                        {item.label}{locked ? ' (Starter)' : ''}
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -278,7 +317,7 @@ export default function DraftPage() {
             )}
 
             <button onClick={() => setShowLockedDrawer(true)} className="btn btn-secondary mt-5 w-full !px-3 !py-2.5 !text-sm !font-medium !text-slate-600 hover:!text-[#0A0F1A]">
-              View Locked Features
+              Upgrade for Advanced Tools
             </button>
 
             {draftId && (
