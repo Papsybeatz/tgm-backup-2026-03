@@ -10,6 +10,7 @@ const AI_GROUPS = [
   {
     title: 'Rewrite Tools',
     actions: [
+      { label: 'Rewrite', template: '[Rewritten version]\n' },
       { label: 'Improve Writing', template: '[Improved writing]\n' },
       { label: 'Rewrite for Clarity', template: '[Rewritten for clarity]\n' },
       { label: 'Rewrite for Impact', template: '[Rewritten for impact]\n' },
@@ -24,7 +25,10 @@ const AI_GROUPS = [
   },
   {
     title: 'Generation Tools',
-    actions: [{ label: 'Generate Section', template: '[Generated grant section]\n' }],
+    actions: [
+      { label: 'Generate', template: '[Generated grant draft]\n' },
+      { label: 'Generate Section', template: '[Generated grant section]\n' },
+    ],
   },
 ];
 
@@ -41,6 +45,7 @@ export default function DraftPage() {
   const tier = user?.tier || 'free';
   const [status, setStatus] = useState('Draft');
   const [lastSavedAt, setLastSavedAt] = useState(null);
+  const [nowTs, setNowTs] = useState(Date.now());
 
   const { saving, saved, draftId, onBlur } = useAutosave({ content: text, title, draftId: null, debounceMs: 1500 });
 
@@ -70,6 +75,11 @@ export default function DraftPage() {
     }
   }, [saved, saving, text]);
 
+  useEffect(() => {
+    const timer = setInterval(() => setNowTs(Date.now()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+
   const canAccessGrantMatches = tierAtLeast(tier, 'starter');
 
   const statusClass = {
@@ -96,6 +106,16 @@ export default function DraftPage() {
   const saveLabel = saving ? 'Saving...' : saved ? 'Saved' : 'Unsaved';
   const saveColor = saving ? 'text-amber-600' : saved ? 'text-emerald-600' : 'text-slate-500';
   const sectionIcons = ['📝', '📄', '📌', '🧭', '📊', '✅', '💡'];
+
+  const savedAgo = useMemo(() => {
+    if (!lastSavedAt) return 'Not yet';
+    const diffMs = Math.max(0, nowTs - lastSavedAt.getTime());
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    return `${hrs}h ago`;
+  }, [lastSavedAt, nowTs]);
 
   const handleManualSave = () => {
     onBlur();
@@ -127,7 +147,7 @@ export default function DraftPage() {
               <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide md:text-xs ${statusClass}`}>{status}</span>
               <span className={`font-semibold ${saveColor}`}>{saveLabel}</span>
               <span className="text-slate-500 tabular-nums">
-                Last saved: {lastSavedAt ? lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Not yet'}
+                Last saved: {lastSavedAt ? `${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${savedAgo}` : 'Not yet'}
               </span>
               <button
                 onClick={handleManualSave}
@@ -149,8 +169,8 @@ export default function DraftPage() {
                   onClick={() => setActiveSection(section)}
                   className={`w-full rounded-lg px-3 py-2.5 text-left text-sm transition ${
                     activeSection === section
-                      ? 'bg-[#003A8C]/10 font-semibold text-[#003A8C] border border-[#003A8C]/20'
-                      : 'text-slate-600 hover:bg-slate-50 border border-transparent'
+                      ? 'bg-[#003A8C]/10 font-semibold text-[#003A8C] border-l-4 border-l-[#003A8C] border-y border-r border-[#003A8C]/20'
+                      : 'text-slate-500 hover:bg-slate-50 border border-transparent'
                   }`}
                 >
                   <span className="mr-2">{sectionIcons[index % sectionIcons.length]}</span>
@@ -181,6 +201,7 @@ export default function DraftPage() {
                 {activeSection}
               </div>
               <div className="p-6">
+                <h3 className="mb-3 text-base font-semibold text-[#0A0F1A]">{activeSection}: Introduction</h3>
                 <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                   <div className="mb-2 flex items-center justify-between">
                     <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Draft Metadata</p>
@@ -202,7 +223,7 @@ export default function DraftPage() {
                   }}
                   onBlur={onBlur}
                   placeholder="Write your grant proposal here..."
-                  className="min-h-[58vh] w-full resize-y rounded-xl border border-slate-200 bg-white px-6 py-5 text-base leading-8 text-slate-800 shadow-sm outline-none focus:border-[#D4AF37]"
+                  className="min-h-[58vh] w-full resize-y rounded-xl border border-slate-200 bg-white px-5 py-5 text-[15px] leading-[1.6] text-slate-800 shadow-sm outline-none focus:border-[#D4AF37]"
                 />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/75 px-6 py-2.5 text-xs font-medium text-slate-500">
@@ -218,6 +239,17 @@ export default function DraftPage() {
               <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#0A0F1A]">AI Assistant</h2>
               <span className="text-xs text-slate-400">{activeAction || 'Ready'}</span>
             </div>
+
+            {tier === 'free' && (
+              <div className="mb-4 flex justify-end">
+                <a
+                  href="/upgrade"
+                  className="rounded-full bg-[#D4AF37] px-3.5 py-1.5 text-xs font-bold text-[#0A0F1A] shadow-sm ring-1 ring-[#B8960C]/30 transition hover:brightness-95"
+                >
+                  Upgrade to Starter
+                </a>
+              </div>
+            )}
 
             <div className="space-y-5">
               {AI_GROUPS.map((group) => (
@@ -248,15 +280,6 @@ export default function DraftPage() {
             <button onClick={() => setShowLockedDrawer(true)} className="btn btn-secondary mt-5 w-full !px-3 !py-2.5 !text-sm !font-medium !text-slate-600 hover:!text-[#0A0F1A]">
               View Locked Features
             </button>
-
-            {tier === 'free' && (
-              <a
-                href="/upgrade"
-                className="mt-2.5 block rounded-lg bg-[#0A0F1A] px-3 py-2.5 text-center text-sm font-semibold text-[#D4AF37] shadow-sm transition hover:opacity-90"
-              >
-                Upgrade Plan
-              </a>
-            )}
 
             {draftId && (
               <p className="mt-3 text-[11px] text-slate-400">Draft ID: {draftId}</p>
