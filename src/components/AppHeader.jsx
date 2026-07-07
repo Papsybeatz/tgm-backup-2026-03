@@ -48,6 +48,7 @@ function UserDropdown({ user }) {
   const { setUser } = useUser();
 
   const tier = user?.tier || 'free';
+  const isFreeTier = tier === 'free';
   const tierBadge = TIER_BADGE_DROPDOWN[tier] || TIER_BADGE_DROPDOWN.free;
   const initials = (user?.email || 'GM').slice(0, 2).toUpperCase();
 
@@ -80,21 +81,22 @@ function UserDropdown({ user }) {
       {/* Trigger button */}
       <button onClick={() => setOpen(o => !o)} style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '5px 12px 5px 6px', borderRadius: 10,
+        padding: isFreeTier ? '7px 12px' : '5px 12px 5px 6px', borderRadius: 10,
         background: open ? 'rgba(212,175,55,0.18)' : 'rgba(255,255,255,0.1)',
         border: `1px solid ${open ? 'rgba(212,175,55,0.5)' : 'rgba(255,255,255,0.18)'}`,
         color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 500,
         transition: 'all .15s',
       }}>
-        {/* Avatar */}
-        <div style={{
-          width: 28, height: 28, borderRadius: 7, flexShrink: 0,
-          background: 'linear-gradient(135deg,#D4AF37,#E8D28C)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 11, fontWeight: 800, color: '#0A0F1A',
-        }}>{initials}</div>
+        {!isFreeTier && (
+          <div style={{
+            width: 28, height: 28, borderRadius: 7, flexShrink: 0,
+            background: 'linear-gradient(135deg,#D4AF37,#E8D28C)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, fontWeight: 800, color: '#0A0F1A',
+          }}>{initials}</div>
+        )}
         <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {user?.email}
+          {isFreeTier ? 'User' : user?.email}
         </span>
         <span style={{ fontSize: 9, opacity: .6, marginLeft: 2 }}>▼</span>
       </button>
@@ -307,9 +309,24 @@ function DraftsDropdown() {
   );
 }
 
-function DashboardNav() {
+function DashboardNav({ isFreeTier }) {
   const location = useLocation();
   const isActive = (path) => location.pathname.startsWith(path);
+  if (isFreeTier) {
+    return (
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 24, fontSize: 14 }}>
+        <Link to="/dashboard" style={{
+          color: isActive('/dashboard') ? '#D4AF37' : 'rgba(255,255,255,0.75)',
+          fontWeight: isActive('/dashboard') ? 700 : 500,
+          textDecoration: 'none', transition: 'color .15s',
+        }}
+          onMouseOver={e => e.currentTarget.style.color = '#fff'}
+          onMouseOut={e => e.currentTarget.style.color = isActive('/dashboard') ? '#D4AF37' : 'rgba(255,255,255,0.75)'}
+        >Dashboard</Link>
+      </nav>
+    );
+  }
+
   return (
     <nav style={{ display: 'flex', alignItems: 'center', gap: 24, fontSize: 14 }}>
       <Link to="/dashboard" style={{
@@ -344,6 +361,8 @@ function DashboardNav() {
 export default function AppHeader() {
   const { user } = useUser();
   const [scrolled, setScrolled] = useState(false);
+  const isFreeTier = user?.tier === 'free';
+  const tierBadgeLabel = user?.tier === 'free' ? 'Free Tier' : null;
 
   // Scroll shadow
   useEffect(() => {
@@ -373,7 +392,7 @@ export default function AppHeader() {
           fontSize: 13, fontWeight: 800, color: '#0A0F1A',
         }}>GM</div>
         <span style={{ fontSize: 17, fontWeight: 800, color: '#fff', letterSpacing: '-.3px' }}>
-          GrantsMaster
+          {user ? (isFreeTier ? 'GM Dashboard' : 'GrantsMaster') : 'GrantsMaster'}
         </span>
       </Link>
 
@@ -386,7 +405,7 @@ export default function AppHeader() {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
           >
-            <DashboardNav />
+            <DashboardNav isFreeTier={isFreeTier} />
           </motion.div>
         ) : (
           <motion.div key="marketing-nav"
@@ -442,6 +461,17 @@ export default function AppHeader() {
             </motion.div>
           )}
         </AnimatePresence>
+        {tierBadgeLabel && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center',
+            padding: '4px 9px', borderRadius: 999,
+            border: '1px solid rgba(255,255,255,0.25)',
+            color: 'rgba(255,255,255,0.85)', fontSize: 11, fontWeight: 700,
+            letterSpacing: '.2px',
+          }}>
+            {tierBadgeLabel}
+          </span>
+        )}
       </div>
     </header>
   );
