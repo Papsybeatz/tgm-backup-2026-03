@@ -96,7 +96,7 @@ function UserDropdown({ user }) {
           }}>{initials}</div>
         )}
         <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {isFreeTier ? 'User' : user?.email}
+          {isFreeTier ? 'User Menu' : user?.email}
         </span>
         <span style={{ fontSize: 9, opacity: .6, marginLeft: 2 }}>▼</span>
       </button>
@@ -420,8 +420,21 @@ export default function AppHeader() {
       </AnimatePresence>
 
       {/* Right side — also animated */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <LangSwitcher />
+        {tierBadgeLabel && <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12 }}>|</span>}
+        {tierBadgeLabel && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center',
+            padding: '4px 9px', borderRadius: 999,
+            border: '1px solid rgba(255,255,255,0.25)',
+            color: 'rgba(255,255,255,0.85)', fontSize: 11, fontWeight: 700,
+            letterSpacing: '.2px',
+          }}>
+            {tierBadgeLabel}
+          </span>
+        )}
+        {tierBadgeLabel && <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12 }}>|</span>}
         <AnimatePresence mode="wait">
           {user ? (
             <motion.div key="user-dropdown"
@@ -461,17 +474,6 @@ export default function AppHeader() {
             </motion.div>
           )}
         </AnimatePresence>
-        {tierBadgeLabel && (
-          <span style={{
-            display: 'inline-flex', alignItems: 'center',
-            padding: '4px 9px', borderRadius: 999,
-            border: '1px solid rgba(255,255,255,0.25)',
-            color: 'rgba(255,255,255,0.85)', fontSize: 11, fontWeight: 700,
-            letterSpacing: '.2px',
-          }}>
-            {tierBadgeLabel}
-          </span>
-        )}
       </div>
     </header>
   );
