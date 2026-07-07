@@ -244,7 +244,7 @@ export default function DraftPage() {
               <div className="mb-4 flex justify-end">
                 <a
                   href="/upgrade"
-                  className="rounded-full bg-[#D4AF37] px-3.5 py-1.5 text-xs font-bold text-[#0A0F1A] shadow-sm ring-1 ring-[#B8960C]/30 transition hover:brightness-95"
+                  className="rounded-[8px] bg-[#D4AF37] px-3.5 py-2 text-xs font-semibold text-[#003A8C] shadow-sm border-0 transition hover:brightness-95"
                 >
                   Upgrade to Starter
                 </a>
