@@ -8,7 +8,7 @@ const DEFAULT_SECTIONS = ['Section 1', 'Section 2', 'Section 3'];
 
 const AI_GROUPS = [
   {
-    title: 'Rewrite',
+    title: 'Rewrite Tools',
     actions: [
       { label: 'Improve Writing', template: '[Improved writing]\n' },
       { label: 'Rewrite for Clarity', template: '[Rewritten for clarity]\n' },
@@ -16,14 +16,14 @@ const AI_GROUPS = [
     ],
   },
   {
-    title: 'Length',
+    title: 'Length Tools',
     actions: [
       { label: 'Expand', template: '[Expanded draft section]\n' },
       { label: 'Shorten', template: '[Shortened draft section]\n' },
     ],
   },
   {
-    title: 'Generate',
+    title: 'Generation Tools',
     actions: [{ label: 'Generate Section', template: '[Generated grant section]\n' }],
   },
 ];
@@ -95,6 +95,11 @@ export default function DraftPage() {
 
   const saveLabel = saving ? 'Saving...' : saved ? 'Saved' : 'Unsaved';
   const saveColor = saving ? 'text-amber-600' : saved ? 'text-emerald-600' : 'text-slate-500';
+  const sectionIcons = ['📝', '📄', '📌', '🧭', '📊', '✅', '💡'];
+
+  const handleManualSave = () => {
+    onBlur();
+  };
 
   return (
     <WorkspaceLayout>
@@ -124,6 +129,12 @@ export default function DraftPage() {
               <span className="text-slate-500 tabular-nums">
                 Last saved: {lastSavedAt ? lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Not yet'}
               </span>
+              <button
+                onClick={handleManualSave}
+                className="rounded-lg bg-[#0A0F1A] px-3 py-1.5 text-xs font-semibold text-[#D4AF37] transition hover:opacity-90"
+              >
+                Save Draft
+              </button>
             </div>
           </div>
         </div>
@@ -132,7 +143,7 @@ export default function DraftPage() {
           <aside className="order-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:order-1">
             <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Sections</div>
             <div className="space-y-2">
-              {sections.map((section) => (
+              {sections.map((section, index) => (
                 <button
                   key={section}
                   onClick={() => setActiveSection(section)}
@@ -142,6 +153,7 @@ export default function DraftPage() {
                       : 'text-slate-600 hover:bg-slate-50 border border-transparent'
                   }`}
                 >
+                  <span className="mr-2">{sectionIcons[index % sectionIcons.length]}</span>
                   {section}
                 </button>
               ))}
@@ -169,6 +181,18 @@ export default function DraftPage() {
                 {activeSection}
               </div>
               <div className="p-6">
+                <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Draft Metadata</p>
+                    <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Free Tier Preview</span>
+                  </div>
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <input disabled value="Grant Type: General Operating" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
+                    <input disabled value="Funder: Not set" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
+                    <input disabled value={`Status: ${status}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
+                    <input disabled value="Notes: Upgrade to unlock" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
+                  </div>
+                </div>
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
@@ -178,7 +202,7 @@ export default function DraftPage() {
                   }}
                   onBlur={onBlur}
                   placeholder="Write your grant proposal here..."
-                  className="min-h-[58vh] w-full resize-y rounded-xl border border-slate-200 bg-white px-5 py-4 text-base leading-8 text-slate-800 outline-none focus:border-[#D4AF37]"
+                  className="min-h-[58vh] w-full resize-y rounded-xl border border-slate-200 bg-white px-6 py-5 text-base leading-8 text-slate-800 shadow-sm outline-none focus:border-[#D4AF37]"
                 />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/75 px-6 py-2.5 text-xs font-medium text-slate-500">
@@ -255,8 +279,11 @@ export default function DraftPage() {
             </div>
 
             <ul className="space-y-2.5 text-sm text-slate-700">
-              <li>Grant Matching</li>
-              <li>Scoring Engine</li>
+              <li>Scoring</li>
+              <li>Funder Matching</li>
+              <li>Full AI Drafting</li>
+              <li>Templates Library</li>
+              <li>Multi-Section Generation</li>
               <li>Reviewer Engine</li>
               <li>Team Workspace</li>
             </ul>
