@@ -14,8 +14,7 @@ export function AppLayout({ children }) {
   const showWorkspaceFooter = Boolean(
     user &&
     !location.pathname.startsWith('/workspace') &&
-    (location.pathname.startsWith('/dashboard') ||
-      location.pathname.startsWith('/clients') ||
+    (location.pathname.startsWith('/clients') ||
       location.pathname.startsWith('/scott'))
   );
 
