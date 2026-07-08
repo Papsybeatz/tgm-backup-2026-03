@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { WorkspaceLayout } from './WorkspaceLayout';
 import { useUser } from './UserContext';
 import useAutosave from '../hooks/useAutosave';
@@ -53,6 +53,7 @@ export default function DraftPage() {
   const [status, setStatus] = useState('Draft');
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
+  const editorRef = useRef(null);
 
   const { saving, saved, draftId, onBlur } = useAutosave({ content: text, title, draftId: null, debounceMs: 1500 });
 
@@ -86,6 +87,13 @@ export default function DraftPage() {
     const timer = setInterval(() => setNowTs(Date.now()), 30000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!editorRef.current) return;
+    if (editorRef.current.innerHTML !== text) {
+      editorRef.current.innerHTML = text;
+    }
+  }, [text]);
 
   const canAccessGrantMatches = tierAtLeast(tier, 'starter');
   const isStarterPlus = tierAtLeast(tier, 'starter');
@@ -290,15 +298,50 @@ export default function DraftPage() {
                   </div>
                 </div>
                 <textarea
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  onSelect={(e) => {
-                    const target = e.target;
-                    setSelectedText(target.value.substring(target.selectionStart, target.selectionEnd));
-                  }}
+                <style>{`
+                  .tgm-html-editor {
+                    min-height: 58vh;
+                    width: 100%;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 0.75rem;
+                    background: #fff;
+                    padding: 20px;
+                    font-size: 15px;
+                    line-height: 1.6;
+                    color: #1e293b;
+                    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+                    outline: none;
+                    overflow: auto;
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                  }
+                  .tgm-html-editor:focus {
+                    border-color: #d4af37;
+                  }
+                  .tgm-html-editor:empty:before {
+                    content: attr(data-placeholder);
+                    color: #94a3b8;
+                  }
+                  .tgm-html-editor h1, .tgm-html-editor h2, .tgm-html-editor h3 {
+                    color: #0a0f1a;
+                    margin: 0.8rem 0 0.4rem;
+                  }
+                  .tgm-html-editor p { margin: 0 0 0.75rem; }
+                  .tgm-html-editor ul, .tgm-html-editor ol {
+                    margin: 0 0 0.9rem;
+                    padding-left: 1.2rem;
+                  }
+                `}</style>
+                <div
+                  ref={editorRef}
+                  contentEditable
+                  suppressContentEditableWarning
+                  data-placeholder="Write your grant proposal here..."
+                  className="tgm-html-editor"
+                  onInput={(e) => setText(e.currentTarget.innerHTML)}
+                  onMouseUp={() => setSelectedText(window.getSelection()?.toString() || '')}
+                  onKeyUp={() => setSelectedText(window.getSelection()?.toString() || '')}
                   onBlur={onBlur}
-                  placeholder="Write your grant proposal here..."
-                  className="min-h-[58vh] w-full resize-y rounded-xl border border-slate-200 bg-white px-5 py-5 text-[15px] leading-[1.6] text-slate-800 shadow-sm outline-none focus:border-[#D4AF37]"
                 />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/75 px-6 py-2.5 text-xs font-medium text-slate-500">
