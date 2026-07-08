@@ -34,6 +34,19 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
     setSaving(false);
   };
 
+  const saveNow = () => {
+    if (!token || !content) return;
+    const payload = { title, content };
+    if (JSON.stringify(payload) === JSON.stringify(lastPayload.current)) {
+      // No-op when payload hasn't changed since last queued save.
+      setSaved(true);
+      return;
+    }
+    lastPayload.current = payload;
+    if (timer.current) clearTimeout(timer.current);
+    saveDraft(payload);
+  };
+
   // Debounced autosave on content/title/email change
   useEffect(() => {
     if (!token || !content) return;
@@ -48,11 +61,7 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
   }, [content, title, token]);
 
   // Save on blur
-  const onBlur = () => {
-    if (!token || !content) return;
-    const payload = { title, content };
-    saveDraft(payload);
-  };
+  const onBlur = () => saveNow();
 
-  return { saving, saved, draftId: currentDraftId, onBlur };
+  return { saving, saved, draftId: currentDraftId, onBlur, saveNow };
 }

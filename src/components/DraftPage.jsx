@@ -102,8 +102,9 @@ export default function DraftPage() {
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
   const editorRef = useRef(null);
+  const syncEditorFromStateRef = useRef(false);
 
-  const { saving, saved, draftId, onBlur } = useAutosave({ content: text, title, draftId: null, debounceMs: 1500 });
+  const { saving, saved, draftId, onBlur, saveNow } = useAutosave({ content: text, title, draftId: null, debounceMs: 1500 });
 
   const words = useMemo(() => {
     const trimmed = text.trim();
@@ -138,9 +139,11 @@ export default function DraftPage() {
 
   useEffect(() => {
     if (!editorRef.current) return;
+    if (!syncEditorFromStateRef.current) return;
     if (editorRef.current.innerHTML !== text) {
       editorRef.current.innerHTML = text;
     }
+    syncEditorFromStateRef.current = false;
   }, [text]);
 
   const canAccessGrantMatches = tierAtLeast(tier, 'starter');
@@ -212,6 +215,7 @@ export default function DraftPage() {
       }
 
       if (output) {
+        syncEditorFromStateRef.current = true;
         setText(endpoint === '/api/ai/brainstorm' ? normalizeAiHtml(output) : normalizeAiHtml(output));
       } else {
         setAiError('No AI output returned. Please try again.');
@@ -239,7 +243,7 @@ export default function DraftPage() {
 
   const handleManualSave = () => {
     if (!canSave) return;
-    onBlur();
+    saveNow();
   };
 
   const handleExportPdf = () => {
@@ -394,7 +398,6 @@ export default function DraftPage() {
                   onInput={(e) => setText(e.currentTarget.innerHTML)}
                   onMouseUp={() => setSelectedText(window.getSelection()?.toString() || '')}
                   onKeyUp={() => setSelectedText(window.getSelection()?.toString() || '')}
-                  onBlur={onBlur}
                 />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/75 px-6 py-2.5 text-xs font-medium text-slate-500">
