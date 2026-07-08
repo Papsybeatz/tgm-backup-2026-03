@@ -50,6 +50,10 @@ function normalizeAiHtml(raw = '') {
   return input;
 }
 
+function stripHtml(value = '') {
+  return String(value).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 const AI_GROUPS = [
   {
     title: 'Rewrite Tools',
@@ -168,11 +172,17 @@ export default function DraftPage() {
 
     try {
       const token = getToken();
-      const endpoint = action === 'generate' || action === 'generate_section' ? '/api/ai/draft' : '/api/ai/improve';
+      const isFreeGenerate = action === 'generate' && !isStarterPlus;
+      const endpoint = isFreeGenerate
+        ? '/api/ai/brainstorm'
+        : action === 'generate' || action === 'generate_section'
+          ? '/api/ai/draft'
+          : '/api/ai/improve';
 
       const baseContent = selectedText || text || '';
-      const body = endpoint === '/api/ai/draft'
-        ? { prompt: title || baseContent || 'Write a grant proposal', template: 'general' }
+      const plainContent = stripHtml(baseContent);
+      const body = endpoint === '/api/ai/draft' || endpoint === '/api/ai/brainstorm'
+        ? { prompt: plainContent || title || 'Write a grant proposal', template: 'general' }
         : { content: baseContent || title || 'Improve this grant draft', instruction: action };
 
       const res = await fetch(endpoint, {
@@ -202,7 +212,7 @@ export default function DraftPage() {
       }
 
       if (output) {
-        setText(normalizeAiHtml(output));
+        setText(endpoint === '/api/ai/brainstorm' ? normalizeAiHtml(output) : normalizeAiHtml(output));
       } else {
         setAiError('No AI output returned. Please try again.');
       }

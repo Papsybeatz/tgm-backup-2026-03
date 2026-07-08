@@ -107,6 +107,45 @@ ${html}
 </ul>`;
 }
 
+function templateBrainstorm(prompt) {
+  const cleanedPrompt = String(prompt || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const projectText = cleanedPrompt || 'a community project in need of support';
+  return [
+    `This grant request seeks funding to support ${projectText}. The proposal focuses on a clear, immediate need and explains how targeted funding will improve day-to-day care, stability, and long-term outcomes for the people being served.`,
+    `Funding would help cover core programme needs, staffing, supplies, and a safe operating environment while giving the organisation a stronger foundation for measurable impact. This summary can be expanded into a full proposal once the project goals, budget, and expected outcomes are confirmed.`,
+  ].join('\n\n');
+}
+
+/* ── POST /api/ai/brainstorm ── */
+router.post('/brainstorm', requireAuth, async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ message: 'prompt is required' });
+
+  try {
+    let text;
+    try {
+      text = await groqChat([
+        {
+          role: 'system',
+          content: `You are a grant-writing brainstorming assistant for a free-tier workspace. Expand the user's idea into 1-2 short, topic-aligned paragraphs in plain text. Do not output HTML. Do not invent unrelated sectors or template sections. Stay tightly grounded in the user's prompt and keep the response concise, specific, and easy to build on.`,
+        },
+        { role: 'user', content: `Expand this grant idea into a short brainstorming draft:\n\n${prompt}` },
+      ], 220);
+    } catch (e) {
+      if (e.message === 'NO_KEY') {
+        text = templateBrainstorm(prompt);
+      } else {
+        throw e;
+      }
+    }
+    logAiAction('brainstorm_generated', { email: req.user?.email, promptLength: prompt.length });
+    return res.json({ text });
+  } catch (err) {
+    logError('AI_BRAINSTORM', err, { email: req.user?.email });
+    return res.status(500).json({ message: err.message || 'AI brainstorming failed' });
+  }
+});
+
 /* ── POST /api/ai/draft ── */
 router.post('/draft', requireAuth, async (req, res) => {
   const { prompt } = req.body;
