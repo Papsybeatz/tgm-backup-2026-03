@@ -10,26 +10,26 @@ const AI_GROUPS = [
   {
     title: 'Rewrite Tools',
     actions: [
-      { label: 'Rewrite', template: '[Rewritten version]\n' },
-      { label: 'Improve Writing', template: '[Improved writing]\n' },
-      { label: 'Rewrite for Clarity', template: '[Rewritten for clarity]\n' },
-      { label: 'Rewrite for Impact', template: '[Rewritten for impact]\n' },
+      { label: 'Rewrite', action: 'rewrite' },
+      { label: 'Improve Writing', action: 'improve' },
+      { label: 'Rewrite for Clarity', action: 'clarity' },
+      { label: 'Rewrite for Impact', action: 'impact' },
     ],
   },
   {
     title: 'Length Tools',
     actions: [
-      { label: 'Expand', template: '[Expanded draft section]\n' },
-      { label: 'Shorten', template: '[Shortened draft section]\n' },
+      { label: 'Expand', action: 'expand' },
+      { label: 'Shorten', action: 'shorten' },
     ],
   },
   {
     title: 'Generation Tools',
     actions: [
-      { label: 'Generate', template: '[Generated grant draft]\n' },
+      { label: 'Generate', action: 'generate' },
       {
         label: 'Generate Section',
-        template: '[Generated grant section]\n',
+        action: 'generate_section',
         requiresStarter: true,
         lockedHint: 'Upgrade to Starter to generate full sections.',
       },
@@ -46,6 +46,8 @@ export default function DraftPage() {
   const [activeSection, setActiveSection] = useState(DEFAULT_SECTIONS[0]);
   const [activeAction, setActiveAction] = useState('');
   const [showLockedDrawer, setShowLockedDrawer] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
   const { user } = useUser() || {};
   const tier = user?.tier || 'free';
   const [status, setStatus] = useState('Draft');
@@ -103,11 +105,60 @@ export default function DraftPage() {
     setNewSection('');
   };
 
-  const handleAIAction = (label, template) => {
+  function getToken() {
+    return localStorage.getItem('token') || '';
+  }
+
+  const handleAIAction = async (label, action) => {
     setActiveAction(label);
-    const context = selectedText || text || '';
-    const next = context ? `${context}\n\n${template}` : template;
-    setText(next);
+    setAiError('');
+    setAiLoading(true);
+
+    try {
+      const token = getToken();
+      const endpoint = action === 'generate' || action === 'generate_section' ? '/api/ai/draft' : '/api/ai/improve';
+
+      const baseContent = selectedText || text || '';
+      const body = endpoint === '/api/ai/draft'
+        ? { prompt: title || baseContent || 'Write a grant proposal', template: 'general' }
+        : { content: baseContent || title || 'Improve this grant draft', instruction: action };
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      const output =
+        data?.rewritten ||
+        data?.improved ||
+        data?.clarity ||
+        data?.draft ||
+        data?.output ||
+        data?.text ||
+        data?.result ||
+        data?.content ||
+        '';
+
+      if (!res.ok) {
+        setAiError(data?.message || 'AI request failed. Please try again.');
+        return;
+      }
+
+      if (output) {
+        setText(output);
+      } else {
+        setAiError('No AI output returned. Please try again.');
+      }
+    } catch (error) {
+      setAiError('AI request failed. Please check your connection and try again.');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const savedAgo = useMemo(() => {
@@ -261,7 +312,7 @@ export default function DraftPage() {
           <aside className="order-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3.5">
               <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#0A0F1A]">AI Assistant</h2>
-              <span className="text-xs text-slate-400">{activeAction || 'Ready'}</span>
+              <span className="text-xs text-slate-400">{aiLoading ? `Working: ${activeAction}` : activeAction || 'Ready'}</span>
             </div>
 
             {tier === 'free' && (
@@ -291,16 +342,16 @@ export default function DraftPage() {
                       return (
                       <button
                         key={item.label}
-                        onClick={() => !locked && handleAIAction(item.label, item.template)}
+                        onClick={() => !locked && handleAIAction(item.label, item.action)}
                         title={locked ? item.lockedHint : undefined}
-                        disabled={locked}
+                        disabled={locked || aiLoading}
                         className={`w-full rounded-lg border px-3.5 py-2.5 text-left text-sm font-medium transition ${
                           locked
                             ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
                             : 'border-slate-200 text-slate-700 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10'
                         }`}
                       >
-                        {item.label}{locked ? ' (Starter)' : ''}
+                        {aiLoading && activeAction === item.label ? 'Working...' : item.label}{locked ? ' (Starter)' : ''}
                       </button>
                       );
                     })}
@@ -308,6 +359,10 @@ export default function DraftPage() {
                 </div>
               ))}
             </div>
+
+            {aiError && (
+              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{aiError}</p>
+            )}
 
             {canAccessGrantMatches && (
               <div className="mt-5 rounded-xl border border-[#D4AF37]/40 bg-[#FFFAEC] p-3.5 text-xs text-slate-700">
