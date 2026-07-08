@@ -6,6 +6,50 @@ import { tierAtLeast } from '../config/tiers';
 
 const DEFAULT_SECTIONS = ['Section 1', 'Section 2', 'Section 3'];
 
+function decodeHtmlEntities(value = '') {
+  if (!value) return '';
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = value;
+  return textarea.value;
+}
+
+function normalizeAiHtml(raw = '') {
+  if (!raw) return '';
+
+  let input = String(raw).trim();
+
+  // Remove markdown code fences if the model wraps HTML in ```html blocks.
+  input = input.replace(/^```(?:html)?\s*/i, '').replace(/\s*```$/i, '').trim();
+
+  // Decode escaped HTML (e.g., &lt;h2&gt;Title&lt;/h2&gt;).
+  if (/&lt;\/?[a-z][\s\S]*&gt;/i.test(input)) {
+    input = decodeHtmlEntities(input);
+  }
+
+  // If AI returned a full HTML document, render only the body contents.
+  if (/<!doctype|<html|<head|<body/i.test(input)) {
+    const parsed = new window.DOMParser().parseFromString(input, 'text/html');
+    const bodyHtml = parsed?.body?.innerHTML?.trim();
+    if (bodyHtml) input = bodyHtml;
+  }
+
+  // Remove elements that should not be injected into the editable surface.
+  input = input
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<meta[^>]*>/gi, '')
+    .replace(/<link[^>]*>/gi, '')
+    .replace(/<title[\s\S]*?<\/title>/gi, '')
+    .trim();
+
+  // If no HTML tags remain, present as readable paragraph text.
+  if (!/<[a-z][\s\S]*>/i.test(input)) {
+    return `<p>${input.replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br/>')}</p>`;
+  }
+
+  return input;
+}
+
 const AI_GROUPS = [
   {
     title: 'Rewrite Tools',
@@ -158,7 +202,7 @@ export default function DraftPage() {
       }
 
       if (output) {
-        setText(output);
+        setText(normalizeAiHtml(output));
       } else {
         setAiError('No AI output returned. Please try again.');
       }
