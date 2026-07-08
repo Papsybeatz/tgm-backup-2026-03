@@ -351,7 +351,6 @@ export default function DraftPage() {
                     <input disabled value="Draft Limit: 1 of 1 (Free Tier)" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 md:col-span-2" />
                   </div>
                 </div>
-                <textarea
                 <style>{`
                   .tgm-html-editor {
                     min-height: 58vh;
