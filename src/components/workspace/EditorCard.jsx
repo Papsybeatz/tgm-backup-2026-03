@@ -46,6 +46,52 @@ export default function EditorCard({ onContentChange, onWordCount, aiOutput }) {
     }
   }, [aiOutput, editor]);
 
+  React.useEffect(() => {
+    if (!editor) return;
+
+    const placeCaretAtStart = (element) => {
+      if (!element) return;
+      const range = document.createRange();
+      const selection = window.getSelection();
+      range.selectNodeContents(element);
+      range.collapse(true);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    };
+
+    const ensureSectionExists = (sectionName) => {
+      const root = editor.view.dom;
+      const headings = Array.from(root.querySelectorAll('h2'));
+      const exists = headings.some((h) => (h.textContent || '').trim().toLowerCase() === sectionName.toLowerCase());
+      if (exists) return;
+      const nextHtml = `${editor.getHTML()}<h2>${sectionName}</h2><p></p>`;
+      editor.commands.setContent(nextHtml);
+    };
+
+    const highlightAndFocusSection = (sectionName) => {
+      const root = editor.view.dom;
+      const headings = Array.from(root.querySelectorAll('h2'));
+      const target = headings.find((h) => (h.textContent || '').trim().toLowerCase() === sectionName.toLowerCase());
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.classList.add('tgm-section-flash');
+      window.setTimeout(() => target.classList.remove('tgm-section-flash'), 900);
+      editor.commands.focus();
+      const editableTarget = target.nextElementSibling || target;
+      placeCaretAtStart(editableTarget);
+    };
+
+    const onSectionSelect = (event) => {
+      const sectionName = event?.detail?.section;
+      if (!sectionName) return;
+      ensureSectionExists(sectionName);
+      window.setTimeout(() => highlightAndFocusSection(sectionName), 50);
+    };
+
+    window.addEventListener('tgm:section-select', onSectionSelect);
+    return () => window.removeEventListener('tgm:section-select', onSectionSelect);
+  }, [editor]);
+
   const saveContent = useCallback(async () => {
     if (!editor) return;
     setSaving(true);
@@ -100,6 +146,7 @@ export default function EditorCard({ onContentChange, onWordCount, aiOutput }) {
           .tiptap p { margin: 0 0 0.8rem; }
           .tiptap ul, .tiptap ol { padding-left: 1.5rem; margin-bottom: 0.8rem; }
           .tiptap blockquote { border-left: 3px solid #D4AF37; padding-left: 1rem; color: #555; font-style: italic; }
+          .tiptap h2.tgm-section-flash { background: #eff6ff; border-radius: 6px; transition: background .5s ease; }
           .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #aaa; pointer-events: none; float: left; height: 0; }
         `}</style>
         <EditorContent editor={editor} className="tiptap" />

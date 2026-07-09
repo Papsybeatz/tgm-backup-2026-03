@@ -21,6 +21,11 @@ export default function Sidebar({ activeSection, setActiveSection }) {
     setAdding(false);
   }
 
+  function handleSectionClick(section) {
+    setActiveSection && setActiveSection(section);
+    window.dispatchEvent(new CustomEvent('tgm:section-select', { detail: { section } }));
+  }
+
   return (
     <aside className="w-[230px] rounded-2xl border border-slate-200 bg-white flex flex-col flex-shrink-0 overflow-hidden shadow-sm">
       {/* Header */}
@@ -33,7 +38,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
         {sections.map((s, i) => (
           <button
             key={i}
-            onClick={() => setActiveSection && setActiveSection(s)}
+            onClick={() => handleSectionClick(s)}
             className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition mb-1 border ${
               activeSection === s
                 ? 'bg-[#003A8C]/10 text-[#003A8C] font-semibold border-[#003A8C]/20'
