@@ -213,6 +213,15 @@ export default function WorkspacePage() {
     }
   }, [title, editorContent, isStarterPlus]);
 
+  const handleUploadImported = useCallback(({ name, text }) => {
+    const safeText = String(text || '').trim();
+    const body = safeText
+      ? `<h2>Imported Document</h2><p>${safeText.replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br/>')}</p>`
+      : `<h2>Imported Document</h2><p>Imported file: ${name}. Upload complete. Text extraction preview is limited for this format.</p>`;
+    const merged = `${editorContent || ''}\n\n${body}`.trim();
+    setAiOutput(merged);
+  }, [editorContent]);
+
   // Error state
   if (loadError) {
     return (
@@ -232,6 +241,7 @@ export default function WorkspacePage() {
       readingTime={readingTime}
       onAIAction={handleAIAction}
       aiLoading={aiLoading}
+      onUploadImported={handleUploadImported}
     >
       <EditorCard
         onContentChange={handleContentChange}

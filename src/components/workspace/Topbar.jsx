@@ -1,12 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../UserContext';
 
-export default function Topbar({ title, setTitle, saved, wordCount, readingTime }) {
+export default function Topbar({ title, setTitle, saved, wordCount, readingTime, onUploadImported }) {
   const navigate = useNavigate();
   const { user } = useUser();
   const tier = user?.tier || 'free';
   const [lastSavedAt, setLastSavedAt] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState('');
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (saved) {
@@ -38,8 +40,37 @@ export default function Topbar({ title, setTitle, saved, wordCount, readingTime 
     lifetime: 'bg-[#D4AF37]/15 text-[#B8960C]',
   }[tier] || 'bg-gray-100 text-gray-600';
 
+  const handleFileSelected = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    event.target.value = '';
+    setUploadStatus('Uploading...');
+    try {
+      const token = localStorage.getItem('token') || '';
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadRes = await fetch('/api/documents/upload', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok || !uploadData?.success) {
+        throw new Error(uploadData?.message || 'Upload failed');
+      }
+
+      const isTextLike = /\.(txt|md|csv)$/i.test(file.name) || file.type.startsWith('text/');
+      const extracted = isTextLike ? await file.text() : '';
+      onUploadImported && onUploadImported({ name: file.name, text: extracted });
+      setUploadStatus(`Uploaded: ${file.name}`);
+      window.setTimeout(() => setUploadStatus(''), 3000);
+    } catch (error) {
+      setUploadStatus(error?.message || 'Upload failed');
+    }
+  };
+
   const handleUploadDraft = () => {
-    window.alert('Upload Draft (PDF, DOCX, Google Drive) is enabled for Starter and will be connected in this workspace flow.');
+    fileInputRef.current?.click();
   };
 
   const statusClass = {
@@ -85,6 +116,14 @@ export default function Topbar({ title, setTitle, saved, wordCount, readingTime 
           >
             Upload Draft (PDF, DOCX, Google Drive)
           </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.docx,.doc,.txt,.md,.csv"
+            className="hidden"
+            onChange={handleFileSelected}
+          />
+          {uploadStatus && <span className="text-xs text-slate-600">{uploadStatus}</span>}
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${tierColor}`}>{tierLabel} Tier</span>
         </div>
       </div>

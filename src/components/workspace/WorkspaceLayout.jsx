@@ -12,6 +12,7 @@ export default function WorkspaceLayout({
   readingTime = 0,
   onAIAction,
   aiLoading,
+  onUploadImported,
 }) {
   const [activeSection, setActiveSection] = useState('Executive Summary');
 
@@ -24,6 +25,7 @@ export default function WorkspaceLayout({
         saved={saved}
         wordCount={wordCount}
         readingTime={readingTime}
+        onUploadImported={onUploadImported}
       />
 
       {/* Main 3-pane area */}

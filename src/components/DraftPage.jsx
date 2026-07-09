@@ -152,7 +152,10 @@ export default function DraftPage() {
   const [status, setStatus] = useState('Draft');
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
+  const [uploadStatus, setUploadStatus] = useState('');
+  const [uploadError, setUploadError] = useState('');
   const editorRef = useRef(null);
+  const fileInputRef = useRef(null);
   const syncEditorFromStateRef = useRef(false);
 
   const { saving, saved, draftId, onBlur, saveNow } = useAutosave({ content: text, title, draftId: null, debounceMs: 1500 });
@@ -218,17 +221,42 @@ export default function DraftPage() {
     setNewSection('');
   };
 
-  const scrollToSection = (section) => {
+  const placeCaretAtStart = (element) => {
+    if (!element) return;
+    const range = document.createRange();
+    const selection = window.getSelection();
+    range.selectNodeContents(element);
+    range.collapse(true);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  };
+
+  const scrollToSection = (section, focusEditor = false) => {
     if (!editorRef.current) return;
     const headings = Array.from(editorRef.current.querySelectorAll('h2'));
     const target = headings.find((h) => (h.textContent || '').trim().toLowerCase() === section.toLowerCase());
     if (target) {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (focusEditor) {
+        const editableTarget = target.nextElementSibling || target;
+        editorRef.current.focus();
+        placeCaretAtStart(editableTarget);
+      }
       window.setTimeout(() => {
         target.classList.add('tgm-heading-flash');
         window.setTimeout(() => target.classList.remove('tgm-heading-flash'), 900);
       }, 10);
     }
+  };
+
+  const ensureSectionExists = (section) => {
+    if (!editorRef.current) return;
+    const headings = Array.from(editorRef.current.querySelectorAll('h2'));
+    const exists = headings.some((h) => (h.textContent || '').trim().toLowerCase() === section.toLowerCase());
+    if (exists) return;
+    const nextMap = { ...sectionContentMap };
+    nextMap[section] = nextMap[section] || '<p></p>';
+    updateSectionAndEditor(nextMap);
   };
 
   const updateSectionAndEditor = (nextMap) => {
@@ -351,8 +379,53 @@ export default function DraftPage() {
     window.print();
   };
 
+  const insertImportedText = (filename, importedText) => {
+    const safeText = String(importedText || '').trim();
+    const fallback = `<p>Imported file: ${filename}</p><p>Document uploaded successfully. Text extraction preview is limited for this format, but the file is attached to your workspace.</p>`;
+    const sectionBody = safeText
+      ? `<p>${safeText.replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br/>')}</p>`
+      : fallback;
+    const nextMap = {
+      ...sectionContentMap,
+      [activeSection]: `${sectionContentMap[activeSection] || ''}${sectionBody}`,
+    };
+    updateSectionAndEditor(nextMap);
+    window.setTimeout(() => scrollToSection(activeSection, true), 60);
+  };
+
+  const handleFileSelected = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    event.target.value = '';
+    setUploadStatus('Uploading...');
+    setUploadError('');
+
+    try {
+      const token = getToken();
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadRes = await fetch('/api/documents/upload', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok || !uploadData?.success) {
+        throw new Error(uploadData?.message || 'Upload failed');
+      }
+
+      const isTextLike = /\.(txt|md|csv)$/i.test(file.name) || file.type.startsWith('text/');
+      const extracted = isTextLike ? await file.text() : '';
+      insertImportedText(file.name, extracted);
+      setUploadStatus(`Uploaded: ${file.name}`);
+    } catch (error) {
+      setUploadError(error?.message || 'Upload failed. Please try again.');
+      setUploadStatus('');
+    }
+  };
+
   const handleUploadDraft = () => {
-    window.alert('Upload Draft (PDF, DOCX, Google Drive) is enabled for Starter and will be connected in this workspace flow.');
+    fileInputRef.current?.click();
   };
 
   return (
@@ -398,6 +471,13 @@ export default function DraftPage() {
               >
                 Upload Draft (PDF, DOCX, Google Drive)
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,.doc,.txt,.md,.csv"
+                className="hidden"
+                onChange={handleFileSelected}
+              />
               <button
                 onClick={handleManualSave}
                 disabled={!canSave}
@@ -425,7 +505,8 @@ export default function DraftPage() {
                   key={section}
                   onClick={() => {
                     setActiveSection(section);
-                    scrollToSection(section);
+                    ensureSectionExists(section);
+                    window.setTimeout(() => scrollToSection(section, true), 60);
                   }}
                   className={`w-full rounded-lg px-3 py-2.5 text-left text-sm transition ${
                     activeSection === section
@@ -443,7 +524,7 @@ export default function DraftPage() {
             </div>
 
             <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50/70 p-2.5">
-              <button onClick={() => scrollToSection(activeSection)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
+              <button onClick={() => scrollToSection(activeSection, true)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
                 Edit Section
               </button>
               <button onClick={() => handleAIAction('Regenerate Section', 'generate_section')} disabled={aiLoading} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:opacity-60">
@@ -520,7 +601,7 @@ export default function DraftPage() {
                   .tgm-html-editor h2 {
                     scroll-margin-top: 90px;
                   }
-                  .tgm-html-editor .tgm-heading-flash {
+                  .tgm-html-editor h2.tgm-heading-flash {
                     background: #fff6db;
                     border-radius: 6px;
                     transition: background 0.5s ease;
@@ -621,6 +702,13 @@ export default function DraftPage() {
 
             {aiError && (
               <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{aiError}</p>
+            )}
+
+            {uploadStatus && (
+              <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{uploadStatus}</p>
+            )}
+            {uploadError && (
+              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{uploadError}</p>
             )}
 
             <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs">
