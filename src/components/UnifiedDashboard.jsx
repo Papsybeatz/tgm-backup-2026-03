@@ -191,27 +191,73 @@ function StarterDashboard({ tierConfig }) {
 
   return (
     <div className="min-h-screen bg-[#F7F9FB] text-gray-900">
-      <section className="border-b border-[#E2E8F0] bg-white px-6 py-8">
+      <section className="border-b border-[#E2E8F0] bg-white px-6 py-10">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">TGM Starter</p>
-            <h1 className="text-3xl font-bold text-[#0A0F1A]">Your grant writing workspace</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
-              Starter keeps the dashboard focused on the core product: drafting, improvement, and funder fit.
+            <h1 className="text-4xl font-extrabold tracking-tight text-[#0A0F1A]">TGM Dashboard - Starter Plan</h1>
+            <p className="mt-3 max-w-2xl text-base leading-7 text-gray-600">
+              Full drafting, scoring, and funder fit unlocked.
             </p>
+            <div className="mt-5 flex flex-wrap gap-2.5">
+              {[
+                'Starter - Unlimited Drafts',
+                'Starter - Full Drafting Assistant',
+                'Starter - Grant Fit Score Enabled',
+              ].map((badge) => (
+                <span
+                  key={badge}
+                  className="rounded-full border border-[#003A8C]/20 bg-[#EFF6FF] px-3 py-1.5 text-xs font-semibold text-[#003A8C]"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
+          <div className="rounded-xl border border-[#E2E8F0] bg-gradient-to-b from-[#FFFFFF] to-[#F8FAFC] px-5 py-4 shadow-sm">
             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Plan</p>
-            <p className="text-lg font-bold text-[#003A8C]">{tierConfig.name}</p>
+            <p className="text-xl font-extrabold text-[#003A8C]">{tierConfig.name}</p>
           </div>
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-6 py-10">
-        <section className="mb-10 grid gap-4 md:grid-cols-3">
+      <main className="mx-auto max-w-6xl px-6 py-12">
+        <section className="mb-10 grid gap-5 md:grid-cols-2">
+          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#B8960C]">Starter Primary Action</p>
+            <h2 className="mt-2 text-xl font-bold text-[#003A8C]">Start a New Draft</h2>
+            <p className="mt-2 text-sm leading-6 text-gray-600">
+              Create a full proposal with Steve&apos;s drafting assistant.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/workspace/new-draft')}
+              className="mt-4 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-[#0A0F1A] transition hover:bg-[#E8D28C]"
+            >
+              Create Draft
+            </button>
+          </div>
+
+          <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#B8960C]">Starter Tooling</p>
+            <h2 className="mt-2 text-xl font-bold text-[#003A8C]">Funder Fit Tools</h2>
+            <p className="mt-2 text-sm leading-6 text-gray-600">
+              Analyze alignment with funder priorities using Starter-level fit checks.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/workspace/fit')}
+              className="mt-4 rounded-lg border border-[#003A8C] px-4 py-2 text-sm font-bold text-[#003A8C] transition hover:bg-[#003A8C]/5"
+            >
+              Check Fit
+            </button>
+          </div>
+        </section>
+
+        <section className="mb-10 grid gap-5 md:grid-cols-3">
           {starterFeatures.map((feature) => (
-            <div key={feature.title} className="rounded-lg border border-[#E2E8F0] bg-white p-6 shadow-sm">
-              <h2 className="mb-2 text-lg font-bold text-[#003A8C]">{feature.title}</h2>
+            <div key={feature.title} className="rounded-xl border border-[#E2E8F0] bg-gradient-to-b from-white to-[#FAFCFF] p-6 shadow-sm">
+              <h2 className="mb-2 text-lg font-extrabold tracking-tight text-[#003A8C]">{feature.title}</h2>
               <p className="mb-5 text-sm leading-6 text-gray-600">{feature.detail}</p>
               {feature.to ? (
                 <Link to={feature.to} className="text-sm font-bold text-[#003A8C] no-underline hover:text-[#B8960C]">
@@ -230,7 +276,23 @@ function StarterDashboard({ tierConfig }) {
           ))}
         </section>
 
-        <section className="rounded-lg border border-[#E2E8F0] bg-white p-6 shadow-sm">
+        <section className="mb-8 rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-extrabold tracking-tight text-[#003A8C]">What Starter Unlocks</h2>
+          <ul className="mt-3 grid gap-2 text-sm text-gray-700 md:grid-cols-2">
+            {[
+              'Full AI drafting',
+              'Unlimited drafts',
+              'Grant Fit Score',
+              'Basic funder matching',
+              'Rewrite + improve tools',
+              'Multi-section generation',
+            ].map((item) => (
+              <li key={item} className="rounded-md bg-[#F8FAFC] px-3 py-2.5 font-medium">{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
           <DraftsList />
         </section>
       </main>

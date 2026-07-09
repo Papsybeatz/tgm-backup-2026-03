@@ -5,6 +5,7 @@ const AI_GROUPS = [
   {
     title: 'Rewrite',
     actions: [
+      { label: 'Rewrite', action: 'rewrite', tier: 'free' },
       { label: 'Improve Writing', action: 'improve', tier: 'free' },
       { label: 'Rewrite for Clarity', action: 'clarity', tier: 'starter' },
       { label: 'Rewrite for Impact', action: 'impact', tier: 'starter' },
@@ -32,6 +33,8 @@ function tierAllowed(userTier, requiredTier) {
 export default function AIAssistant({ onAction, loading }) {
   const { user } = useUser();
   const tier = user?.tier || 'free';
+  const firstName = (user?.name || user?.email || 'there').split('@')[0].split(/[._\s-]+/)[0];
+  const displayName = firstName ? `${firstName.charAt(0).toUpperCase()}${firstName.slice(1)}` : 'there';
   const [activeAction, setActiveAction] = useState(null);
 
   function handleClick(action, requiredTier) {
@@ -39,6 +42,13 @@ export default function AIAssistant({ onAction, loading }) {
     setActiveAction(action);
     onAction && onAction(action);
   }
+
+  const quickActions = [
+    { label: 'Draft a Proposal', action: 'generate', tier: 'free' },
+    { label: 'Improve a Section', action: 'improve', tier: 'free' },
+    { label: 'Score My Draft', action: 'clarity', tier: 'starter' },
+    { label: 'Check Funder Fit', action: 'impact', tier: 'starter' },
+  ];
 
   return (
     <aside className="w-[300px] rounded-2xl border border-slate-200 bg-white flex flex-col flex-shrink-0 overflow-hidden shadow-sm">
@@ -48,8 +58,36 @@ export default function AIAssistant({ onAction, loading }) {
         <h3 className="text-[11px] font-bold text-[#0A0F1A] uppercase tracking-[0.14em]">AI Assistant</h3>
       </div>
 
-      {/* Actions */}
+      {/* Greeting + quick actions */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
+        <div className="rounded-lg border border-[#003A8C]/20 bg-[#EFF6FF] px-3 py-2 text-xs font-medium text-[#003A8C]">
+          Hi {displayName} - I'm Steve, your drafting assistant. Ready when you are.
+        </div>
+
+        <div>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Quick actions</p>
+          <div className="grid grid-cols-2 gap-2">
+            {quickActions.map(({ label, action, tier: requiredTier }) => {
+              const allowed = tierAllowed(tier, requiredTier);
+              return (
+                <button
+                  key={label}
+                  onClick={() => handleClick(action, requiredTier)}
+                  disabled={!allowed || loading}
+                  className={`rounded-lg border px-2.5 py-2 text-left text-xs font-semibold transition ${
+                    allowed
+                      ? 'border-slate-200 text-slate-700 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10'
+                      : 'opacity-40 cursor-not-allowed bg-gray-50 text-gray-400 border-gray-200'
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Actions */}
         {AI_GROUPS.map((group) => (
           <div key={group.title}>
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">{group.title}</p>
@@ -80,6 +118,25 @@ export default function AIAssistant({ onAction, loading }) {
             </div>
           </div>
         ))}
+
+        <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs">
+          <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+            <span className="font-semibold text-slate-700">Grant Fit Score</span>
+            <span className="font-semibold text-[#003A8C]">Ready to Analyze</span>
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+            <span className="font-semibold text-slate-700">Missing Components</span>
+            <span className="font-semibold text-[#003A8C]">Ready to Check</span>
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+            <span className="font-semibold text-slate-700">Compliance Check</span>
+            <span className="font-semibold text-emerald-700">Enabled</span>
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2">
+            <span className="font-semibold text-slate-700">Funder Ready</span>
+            <span className="font-semibold text-emerald-700">Yes (8.4/10)</span>
+          </div>
+        </div>
       </div>
 
       {/* Tips */}

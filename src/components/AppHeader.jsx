@@ -362,6 +362,7 @@ export default function AppHeader() {
   const { user } = useUser();
   const [scrolled, setScrolled] = useState(false);
   const isFreeTier = user?.tier === 'free';
+  const isStarterTier = user?.tier === 'starter';
   const tierBadgeLabel = user?.tier === 'free' ? 'Free Tier' : null;
 
   // Scroll shadow
@@ -392,7 +393,7 @@ export default function AppHeader() {
           fontSize: 13, fontWeight: 800, color: '#0A0F1A',
         }}>GM</div>
         <span style={{ fontSize: 17, fontWeight: 800, color: '#fff', letterSpacing: '-.3px' }}>
-          {user ? (isFreeTier ? 'GM Dashboard' : 'GrantsMaster') : 'GrantsMaster'}
+          {user ? (isStarterTier ? 'TGM Dashboard - Starter' : isFreeTier ? 'TGM Dashboard' : 'GrantsMaster') : 'GrantsMaster'}
         </span>
       </Link>
 
@@ -421,7 +422,7 @@ export default function AppHeader() {
 
       {/* Right side — also animated */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-        <LangSwitcher />
+        {!user && <LangSwitcher />}
         {tierBadgeLabel && <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12 }}>|</span>}
         {tierBadgeLabel && (
           <span style={{

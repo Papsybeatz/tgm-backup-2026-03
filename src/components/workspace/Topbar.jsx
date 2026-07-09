@@ -38,6 +38,10 @@ export default function Topbar({ title, setTitle, saved, wordCount, readingTime 
     lifetime: 'bg-[#D4AF37]/15 text-[#B8960C]',
   }[tier] || 'bg-gray-100 text-gray-600';
 
+  const handleUploadDraft = () => {
+    window.alert('Upload Draft (PDF, DOCX, Google Drive) is enabled for Starter and will be connected in this workspace flow.');
+  };
+
   const statusClass = {
     Draft: 'bg-slate-100 text-slate-700 border-slate-200',
     'In Progress': 'bg-amber-50 text-amber-700 border-amber-200',
@@ -66,12 +70,21 @@ export default function Topbar({ title, setTitle, saved, wordCount, readingTime 
           value={title || ''}
           onChange={e => setTitle && setTitle(e.target.value)}
         />
+        <span className="rounded-full border border-[#003A8C]/20 bg-[#EFF6FF] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#003A8C]">
+          TGM Workspace - {tierLabel}
+        </span>
         <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide md:text-xs ${statusClass}`}>{status}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2.5 text-xs md:text-sm">
           <span className={saved ? 'font-semibold text-emerald-600' : 'font-semibold text-amber-600'}>{saved ? 'Saved' : 'Saving...'}</span>
           <span className="text-slate-500 tabular-nums">Last saved: {lastSavedAt ? lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Not yet'}</span>
           <span className="text-slate-500">{readingTime} min read</span>
+          <button
+            onClick={handleUploadDraft}
+            className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
+          >
+            Upload Draft (PDF, DOCX, Google Drive)
+          </button>
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${tierColor}`}>{tierLabel} Tier</span>
         </div>
       </div>

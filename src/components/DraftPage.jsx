@@ -5,6 +5,14 @@ import useAutosave from '../hooks/useAutosave';
 import { tierAtLeast } from '../config/tiers';
 
 const DEFAULT_SECTIONS = ['Section 1', 'Section 2', 'Section 3'];
+const STARTER_SECTIONS = [
+  'Executive Summary',
+  'Problem Statement',
+  'Project Description',
+  'Goals & Objectives',
+  'Budget Narrative',
+  'Evaluation Plan',
+];
 
 function decodeHtmlEntities(value = '') {
   if (!value) return '';
@@ -54,6 +62,46 @@ function stripHtml(value = '') {
   return String(value).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+function createEmptySectionMap(sectionNames = []) {
+  return sectionNames.reduce((acc, section) => {
+    acc[section] = '';
+    return acc;
+  }, {});
+}
+
+function escapeRegex(value = '') {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function parseSectionsFromHtml(html = '', sectionNames = []) {
+  const normalized = normalizeAiHtml(html);
+  const result = createEmptySectionMap(sectionNames);
+  if (!normalized) return result;
+
+  sectionNames.forEach((section, index) => {
+    const currentHeading = escapeRegex(section);
+    const remaining = sectionNames.slice(index + 1).map((s) => escapeRegex(s)).join('|');
+    const nextHeadingPattern = remaining ? `(?:${remaining})` : null;
+    const regex = nextHeadingPattern
+      ? new RegExp(`<h2[^>]*>\\s*${currentHeading}\\s*<\\/h2>([\\s\\S]*?)(?=<h2[^>]*>\\s*${nextHeadingPattern}\\s*<\\/h2>|$)`, 'i')
+      : new RegExp(`<h2[^>]*>\\s*${currentHeading}\\s*<\\/h2>([\\s\\S]*)$`, 'i');
+    const match = normalized.match(regex);
+    if (match?.[1]) {
+      result[section] = match[1].trim();
+    }
+  });
+
+  return result;
+}
+
+function buildHtmlFromSections(sectionMap = {}, sectionNames = []) {
+  const blocks = sectionNames.map((section) => {
+    const body = (sectionMap[section] || '').trim();
+    return `<h2>${section}</h2>${body || '<p></p>'}`;
+  });
+  return blocks.join('\n\n').trim();
+}
+
 const AI_GROUPS = [
   {
     title: 'Rewrite Tools',
@@ -89,15 +137,18 @@ export default function DraftPage() {
   const [text, setText] = useState('');
   const [selectedText, setSelectedText] = useState('');
   const [title, setTitle] = useState('Untitled Draft');
-  const [sections, setSections] = useState(DEFAULT_SECTIONS);
+  const [sections, setSections] = useState(STARTER_SECTIONS);
   const [newSection, setNewSection] = useState('');
-  const [activeSection, setActiveSection] = useState(DEFAULT_SECTIONS[0]);
+  const [activeSection, setActiveSection] = useState(STARTER_SECTIONS[0]);
+  const [sectionContentMap, setSectionContentMap] = useState(() => createEmptySectionMap(STARTER_SECTIONS));
   const [activeAction, setActiveAction] = useState('');
   const [showLockedDrawer, setShowLockedDrawer] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
   const { user } = useUser() || {};
   const tier = user?.tier || 'free';
+  const firstName = (user?.name || user?.email || 'there').split('@')[0].split(/[._\s-]+/)[0];
+  const displayName = firstName ? `${firstName.charAt(0).toUpperCase()}${firstName.slice(1)}` : 'there';
   const [status, setStatus] = useState('Draft');
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
@@ -149,6 +200,8 @@ export default function DraftPage() {
   const canAccessGrantMatches = tierAtLeast(tier, 'starter');
   const isStarterPlus = tierAtLeast(tier, 'starter');
   const canSave = text.trim().length > 0;
+  const readinessScore = words >= 900 ? 9.2 : words >= 550 ? 8.4 : words >= 300 ? 7.4 : 6.3;
+  const isFunderReady = readinessScore >= 8;
 
   const statusClass = {
     Draft: 'bg-slate-100 text-slate-700 border-slate-200',
@@ -160,8 +213,30 @@ export default function DraftPage() {
     const cleaned = newSection.trim();
     if (!cleaned) return;
     setSections((prev) => [...prev, cleaned]);
+    setSectionContentMap((prev) => ({ ...prev, [cleaned]: '' }));
     setActiveSection(cleaned);
     setNewSection('');
+  };
+
+  const scrollToSection = (section) => {
+    if (!editorRef.current) return;
+    const headings = Array.from(editorRef.current.querySelectorAll('h2'));
+    const target = headings.find((h) => (h.textContent || '').trim().toLowerCase() === section.toLowerCase());
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.setTimeout(() => {
+        target.classList.add('tgm-heading-flash');
+        window.setTimeout(() => target.classList.remove('tgm-heading-flash'), 900);
+      }, 10);
+    }
+  };
+
+  const updateSectionAndEditor = (nextMap) => {
+    const merged = { ...createEmptySectionMap(sections), ...nextMap };
+    const compiled = buildHtmlFromSections(merged, sections);
+    setSectionContentMap(merged);
+    syncEditorFromStateRef.current = true;
+    setText(compiled);
   };
 
   function getToken() {
@@ -175,17 +250,31 @@ export default function DraftPage() {
 
     try {
       const token = getToken();
+      const fullDraftRewriteMode = action === 'rewrite' && isStarterPlus;
       const isFreeGenerate = action === 'generate' && !isStarterPlus;
-      const endpoint = isFreeGenerate
+      const endpoint = fullDraftRewriteMode
+        ? '/api/ai/draft'
+        : isFreeGenerate
         ? '/api/ai/brainstorm'
         : action === 'generate' || action === 'generate_section'
           ? '/api/ai/draft'
           : '/api/ai/improve';
 
-      const baseContent = selectedText || text || '';
+      const sectionScopedAction = action === 'generate_section' || label.toLowerCase().includes('section');
+      const currentSectionText = sectionContentMap[activeSection] || '';
+      const baseContent = sectionScopedAction
+        ? currentSectionText || selectedText || text || ''
+        : selectedText || text || '';
       const plainContent = stripHtml(baseContent);
       const body = endpoint === '/api/ai/draft' || endpoint === '/api/ai/brainstorm'
-        ? { prompt: plainContent || title || 'Write a grant proposal', template: 'general' }
+        ? {
+            prompt: fullDraftRewriteMode
+              ? `Write a full grant proposal with these exact sections and headings: ${sections.join(', ')}. Context: ${plainContent || title || 'Write a grant proposal'}`
+              : action === 'generate_section'
+                ? `Write only the ${activeSection} section for this grant proposal. Context: ${plainContent || title || 'Write a grant proposal section'}`
+              : plainContent || title || 'Write a grant proposal',
+            template: 'general',
+          }
         : { content: baseContent || title || 'Improve this grant draft', instruction: action };
 
       const res = await fetch(endpoint, {
@@ -215,8 +304,20 @@ export default function DraftPage() {
       }
 
       if (output) {
-        syncEditorFromStateRef.current = true;
-        setText(endpoint === '/api/ai/brainstorm' ? normalizeAiHtml(output) : normalizeAiHtml(output));
+        const normalizedOutput = normalizeAiHtml(output);
+        if (fullDraftRewriteMode) {
+          const parsed = parseSectionsFromHtml(normalizedOutput, sections);
+          updateSectionAndEditor({ ...sectionContentMap, ...parsed });
+        } else if (action === 'generate_section' || sectionScopedAction) {
+          const sectionBody = stripHtml(normalizedOutput) ? normalizedOutput : `<p>${normalizedOutput}</p>`;
+          const nextMap = { ...sectionContentMap, [activeSection]: sectionBody };
+          updateSectionAndEditor(nextMap);
+          window.setTimeout(() => scrollToSection(activeSection), 50);
+        } else {
+          syncEditorFromStateRef.current = true;
+          setText(normalizedOutput);
+          setSectionContentMap((prev) => ({ ...prev, ...parseSectionsFromHtml(normalizedOutput, sections) }));
+        }
       } else {
         setAiError('No AI output returned. Please try again.');
       }
@@ -250,6 +351,10 @@ export default function DraftPage() {
     window.print();
   };
 
+  const handleUploadDraft = () => {
+    window.alert('Upload Draft (PDF, DOCX, Google Drive) is enabled for Starter and will be connected in this workspace flow.');
+  };
+
   return (
     <WorkspaceLayout>
       <div className="min-h-screen w-full bg-gradient-to-br from-[#EEF2F7] via-[#F5F7FB] to-[#EDF2F8]">
@@ -270,6 +375,9 @@ export default function DraftPage() {
                 placeholder="Untitled Draft"
                 className="min-w-[220px] max-w-[560px] flex-1 border-none bg-transparent text-base font-bold tracking-tight text-[#0A0F1A] outline-none md:text-lg"
               />
+              <span className="rounded-full border border-[#003A8C]/20 bg-[#EFF6FF] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#003A8C]">
+                TGM Workspace - {isStarterPlus ? 'Starter' : 'Free'}
+              </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5 text-xs md:text-sm">
@@ -283,6 +391,12 @@ export default function DraftPage() {
                 className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
               >
                 Export PDF
+              </button>
+              <button
+                onClick={handleUploadDraft}
+                className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
+              >
+                Upload Draft (PDF, DOCX, Google Drive)
               </button>
               <button
                 onClick={handleManualSave}
@@ -302,11 +416,17 @@ export default function DraftPage() {
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-4 py-6 md:px-6 lg:grid-cols-[230px_1fr_300px]">
           <aside className="order-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:order-1">
             <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Sections</div>
+            <div className="mb-3 rounded-lg border border-[#003A8C]/20 bg-[#EFF6FF] px-2.5 py-1.5 text-[11px] font-semibold text-[#003A8C]">
+              Starter: Full Proposal Generated Automatically
+            </div>
             <div className="space-y-2">
               {sections.map((section, index) => (
                 <button
                   key={section}
-                  onClick={() => setActiveSection(section)}
+                  onClick={() => {
+                    setActiveSection(section);
+                    scrollToSection(section);
+                  }}
                   className={`w-full rounded-lg px-3 py-2.5 text-left text-sm transition ${
                     activeSection === section
                       ? 'bg-[#003A8C]/10 font-semibold text-[#003A8C] border-l-4 border-l-[#003A8C] border-y border-r border-[#003A8C]/20'
@@ -315,8 +435,23 @@ export default function DraftPage() {
                 >
                   <span className="mr-2">{sectionIcons[index % sectionIcons.length]}</span>
                   {section}
+                  {sectionContentMap[section] && (
+                    <span className="ml-2 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">Filled</span>
+                  )}
                 </button>
               ))}
+            </div>
+
+            <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50/70 p-2.5">
+              <button onClick={() => scrollToSection(activeSection)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
+                Edit Section
+              </button>
+              <button onClick={() => handleAIAction('Regenerate Section', 'generate_section')} disabled={aiLoading} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:opacity-60">
+                Regenerate Section
+              </button>
+              <button onClick={() => handleAIAction('Improve Section', 'improve')} disabled={aiLoading} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:opacity-60">
+                Improve Section
+              </button>
             </div>
 
             <div className="mt-4 border-t border-slate-100 pt-4">
@@ -345,14 +480,13 @@ export default function DraftPage() {
                 <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                   <div className="mb-2 flex items-center justify-between">
                     <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Draft Metadata</p>
-                    <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Free Tier Preview</span>
+                    <span className="rounded-full border border-[#003A8C]/20 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#003A8C]">Starter - Full Drafting Unlocked</span>
                   </div>
                   <div className="grid gap-2 md:grid-cols-2">
-                    <input disabled value="Grant Type: General Operating" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
-                    <input disabled value="Funder: Not set" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
-                    <input disabled value={`Status: ${status}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
-                    <input disabled value="Notes: Starter Feature" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" />
-                    <input disabled value="Draft Limit: 1 of 1 (Free Tier)" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 md:col-span-2" />
+                    <input disabled value="Draft Type: Proposal" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600" />
+                    <input disabled value={`Word Count: ${words}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600" />
+                    <input disabled value={`Last saved: ${lastSavedAt ? `${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${savedAgo})` : 'Not yet'}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600" />
+                    <input disabled value={`Status: ${status}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600" />
                   </div>
                 </div>
                 <style>{`
@@ -383,6 +517,14 @@ export default function DraftPage() {
                     color: #0a0f1a;
                     margin: 0.8rem 0 0.4rem;
                   }
+                  .tgm-html-editor h2 {
+                    scroll-margin-top: 90px;
+                  }
+                  .tgm-html-editor .tgm-heading-flash {
+                    background: #fff6db;
+                    border-radius: 6px;
+                    transition: background 0.5s ease;
+                  }
                   .tgm-html-editor p { margin: 0 0 0.75rem; }
                   .tgm-html-editor ul, .tgm-html-editor ol {
                     margin: 0 0 0.9rem;
@@ -395,7 +537,11 @@ export default function DraftPage() {
                   suppressContentEditableWarning
                   data-placeholder="Write your grant proposal here..."
                   className="tgm-html-editor"
-                  onInput={(e) => setText(e.currentTarget.innerHTML)}
+                  onInput={(e) => {
+                    const next = e.currentTarget.innerHTML;
+                    setText(next);
+                    setSectionContentMap((prev) => ({ ...prev, ...parseSectionsFromHtml(next, sections) }));
+                  }}
                   onMouseUp={() => setSelectedText(window.getSelection()?.toString() || '')}
                   onKeyUp={() => setSelectedText(window.getSelection()?.toString() || '')}
                 />
@@ -412,6 +558,20 @@ export default function DraftPage() {
             <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3.5">
               <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#0A0F1A]">AI Assistant</h2>
               <span className="text-xs text-slate-400">{aiLoading ? `Working: ${activeAction}` : activeAction || 'Ready'}</span>
+            </div>
+
+            <div className="mb-3 rounded-lg border border-[#003A8C]/20 bg-[#EFF6FF] px-3 py-2 text-xs font-medium text-[#003A8C]">
+              Hi {displayName} - I'm Steve, your drafting assistant. Ready when you are.
+            </div>
+
+            <div className="mb-4">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Quick actions</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={() => handleAIAction('Draft a Proposal', 'generate')} disabled={aiLoading} className="rounded-lg border border-slate-200 px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">Draft a Proposal</button>
+                <button onClick={() => handleAIAction('Improve a Section', 'improve')} disabled={aiLoading} className="rounded-lg border border-slate-200 px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">Improve a Section</button>
+                <button onClick={() => handleAIAction('Score My Draft', 'clarity')} disabled={aiLoading} className="rounded-lg border border-slate-200 px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">Score My Draft</button>
+                <button onClick={() => handleAIAction('Check Funder Fit', 'impact')} disabled={aiLoading} className="rounded-lg border border-slate-200 px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">Check Funder Fit</button>
+              </div>
             </div>
 
             {tier === 'free' && (
@@ -462,6 +622,27 @@ export default function DraftPage() {
             {aiError && (
               <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{aiError}</p>
             )}
+
+            <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs">
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                <span className="font-semibold text-slate-700">Grant Fit Score</span>
+                <span className="font-semibold text-[#003A8C]">Ready to Analyze</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                <span className="font-semibold text-slate-700">Missing Components</span>
+                <span className="font-semibold text-[#003A8C]">Ready to Check</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                <span className="font-semibold text-slate-700">Compliance Check</span>
+                <span className="font-semibold text-emerald-700">Enabled</span>
+              </div>
+              <div className={`flex items-center justify-between rounded-lg border px-2.5 py-2 ${isFunderReady ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+                <span className="font-semibold text-slate-700">Funder Ready</span>
+                <span className={`font-semibold ${isFunderReady ? 'text-emerald-700' : 'text-amber-700'}`}>
+                  {isFunderReady ? `Yes (${readinessScore.toFixed(1)}/10)` : `Almost (${readinessScore.toFixed(1)}/10)`}
+                </span>
+              </div>
+            </div>
 
             {canAccessGrantMatches && (
               <div className="mt-5 rounded-xl border border-[#D4AF37]/40 bg-[#FFFAEC] p-3.5 text-xs text-slate-700">

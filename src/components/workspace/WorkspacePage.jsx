@@ -2,6 +2,70 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import WorkspaceLayout from './WorkspaceLayout';
 import EditorCard from './EditorCard';
+import { useUser } from '../UserContext';
+
+const STARTER_SECTIONS = [
+  'Executive Summary',
+  'Problem Statement',
+  'Project Description',
+  'Goals & Objectives',
+  'Budget Narrative',
+  'Evaluation Plan',
+];
+
+const TIER_ORDER = ['free', 'starter', 'pro', 'agency_starter', 'agency_unlimited', 'lifetime'];
+
+function normalizeAiHtml(raw = '') {
+  if (!raw) return '';
+  let input = String(raw).trim();
+  input = input.replace(/^```(?:html)?\s*/i, '').replace(/\s*```$/i, '').trim();
+  if (/<!doctype|<html|<head|<body/i.test(input) && typeof window !== 'undefined') {
+    const parsed = new window.DOMParser().parseFromString(input, 'text/html');
+    const bodyHtml = parsed?.body?.innerHTML?.trim();
+    if (bodyHtml) input = bodyHtml;
+  }
+  return input
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .trim();
+}
+
+function createEmptySectionMap(sectionNames = []) {
+  return sectionNames.reduce((acc, section) => {
+    acc[section] = '';
+    return acc;
+  }, {});
+}
+
+function escapeRegex(value = '') {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function parseSectionsFromHtml(html = '', sectionNames = []) {
+  const normalized = normalizeAiHtml(html);
+  const result = createEmptySectionMap(sectionNames);
+  if (!normalized) return result;
+
+  sectionNames.forEach((section, index) => {
+    const currentHeading = escapeRegex(section);
+    const remaining = sectionNames.slice(index + 1).map((s) => escapeRegex(s)).join('|');
+    const nextHeadingPattern = remaining ? `(?:${remaining})` : null;
+    const regex = nextHeadingPattern
+      ? new RegExp(`<h2[^>]*>\\s*${currentHeading}\\s*<\\/h2>([\\s\\S]*?)(?=<h2[^>]*>\\s*${nextHeadingPattern}\\s*<\\/h2>|$)`, 'i')
+      : new RegExp(`<h2[^>]*>\\s*${currentHeading}\\s*<\\/h2>([\\s\\S]*)$`, 'i');
+    const match = normalized.match(regex);
+    if (match?.[1]) result[section] = match[1].trim();
+  });
+
+  return result;
+}
+
+function buildHtmlFromSections(sectionMap = {}, sectionNames = []) {
+  return sectionNames
+    .map((section) => `<h2>${section}</h2>${(sectionMap[section] || '').trim() || '<p></p>'}`)
+    .join('\n\n')
+    .trim();
+}
 
 function getToken() {
   return localStorage.getItem('token') || '';
@@ -10,6 +74,7 @@ function getToken() {
 export default function WorkspacePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useUser() || {};
 
   const [draft, setDraft] = useState(null);
   const [title, setTitle] = useState('');
@@ -20,6 +85,8 @@ export default function WorkspacePage() {
   const [aiOutput, setAiOutput] = useState(null);
   const [editorContent, setEditorContent] = useState('');
   const [loadError, setLoadError] = useState('');
+  const tier = user?.tier || 'free';
+  const isStarterPlus = TIER_ORDER.indexOf(tier) >= TIER_ORDER.indexOf('starter');
 
   // Load existing draft by ID
   useEffect(() => {
@@ -91,10 +158,25 @@ export default function WorkspacePage() {
   const handleAIAction = useCallback(async (action) => {
     setAiLoading(true);
     try {
-      const endpoint = action === 'generate' ? '/api/ai/draft' : '/api/ai/improve';
+      const fullDraftRewriteMode = action === 'rewrite' && isStarterPlus;
+      const endpoint = fullDraftRewriteMode
+        ? '/api/ai/draft'
+        : action === 'generate' || action === 'generate_section'
+          ? '/api/ai/draft'
+          : '/api/ai/improve';
+
       const body = action === 'generate'
         ? { prompt: title || 'Write a grant proposal', template: 'general' }
-        : { content: editorContent, instruction: action };
+        : endpoint === '/api/ai/draft'
+          ? {
+              prompt: fullDraftRewriteMode
+                ? `Write a full grant proposal with these exact sections and headings: ${STARTER_SECTIONS.join(', ')}. Context: ${editorContent || title || 'Write a grant proposal'}`
+                : action === 'generate_section'
+                  ? `Write one detailed section for this proposal. Context: ${editorContent || title || 'Write a grant proposal section'}`
+                  : editorContent || title || 'Write a grant proposal',
+              template: 'general',
+            }
+          : { content: editorContent, instruction: action };
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -105,14 +187,31 @@ export default function WorkspacePage() {
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      const output = data.draft || data.output || '';
-      if (output) setAiOutput(output);
+      const output =
+        data?.rewritten ||
+        data?.improved ||
+        data?.clarity ||
+        data?.draft ||
+        data?.output ||
+        data?.text ||
+        data?.result ||
+        data?.content ||
+        '';
+      if (output) {
+        if (fullDraftRewriteMode) {
+          const parsed = parseSectionsFromHtml(output, STARTER_SECTIONS);
+          const compiled = buildHtmlFromSections(parsed, STARTER_SECTIONS);
+          setAiOutput(compiled || normalizeAiHtml(output));
+        } else {
+          setAiOutput(normalizeAiHtml(output));
+        }
+      }
     } catch (e) {
       console.error('AI action failed', e);
     } finally {
       setAiLoading(false);
     }
-  }, [title, editorContent]);
+  }, [title, editorContent, isStarterPlus]);
 
   // Error state
   if (loadError) {

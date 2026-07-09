@@ -4,15 +4,17 @@ import { Navigate } from 'react-router-dom';
 
 
 const s = {
-  page: { maxWidth: 1440, margin: '0 auto', padding: '2rem 2.5rem' },
+  page: { maxWidth: 1360, margin: '0 auto', padding: '2.25rem 2.75rem' },
   grid4: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 },
   grid2: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 32 },
-  card: { background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9' },
+  sectionBlock: { marginTop: 36 },
+  card: { background: '#fff', borderRadius: 14, padding: 24, boxShadow: '0 8px 22px rgba(15,23,42,0.04)', border: '1px solid #eaf0f6' },
   cardHover: { transition: 'all 0.2s ease', cursor: 'default' },
-  h1: { fontSize: 30, fontWeight: 600, letterSpacing: '-0.025em', color: '#0f172a', marginBottom: 32 },
-  sectionTitle: { fontSize: 16, fontWeight: 600, color: '#334155', marginBottom: 16 },
+  h1: { fontSize: 36, fontWeight: 800, letterSpacing: '-0.03em', color: '#0f172a', marginBottom: 30 },
+  heroSubtext: { marginTop: -16, marginBottom: 26, color: '#64748b', fontSize: 15 },
+  sectionTitle: { fontSize: 17, fontWeight: 700, color: '#334155', marginBottom: 16 },
   label: { fontSize: 13, fontWeight: 500, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' },
-  value: { fontSize: 32, fontWeight: 700, color: '#0f172a', marginTop: 8, letterSpacing: '-0.02em' },
+  value: { fontSize: 34, fontWeight: 800, color: '#0f172a', marginTop: 8, letterSpacing: '-0.03em' },
   subtext: { fontSize: 12, color: '#94a3b8', marginTop: 4 },
   tableHeader: { fontSize: 12, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', paddingBottom: 12, borderBottom: '1px solid #f1f5f9' },
   tableCell: { fontSize: 14, color: '#334155', paddingTop: 12, paddingBottom: 12 },
@@ -37,7 +39,8 @@ function LoadingSkeleton() {
 
 function MetricTile({ label, value, sublabel, trend }) {
   return (
-    <div style={{ ...s.card, ...s.cardHover }}>
+    <div style={{ ...s.card, ...s.cardHover, paddingTop: 20 }}>
+      <div style={{ height: 3, width: 34, borderRadius: 4, background: '#D4AF37', marginBottom: 12 }} />
       <div style={s.label}>{label}</div>
       <div style={s.value}>{value?.toLocaleString() || 0}</div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
@@ -231,6 +234,20 @@ function DataTable({ title, columns, data }) {
   );
 }
 
+function displayNameForSignup(u) {
+  if (u?.name && String(u.name).trim()) return u.name;
+  const local = String(u?.email || '').split('@')[0].replace(/[._-]+/g, ' ').trim();
+  if (!local) return 'Member';
+  const parts = local.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) {
+    const [first] = parts;
+    return `${first.charAt(0).toUpperCase()}${first.slice(1)}.`;
+  }
+  const first = parts[0];
+  const last = parts[parts.length - 1];
+  return `${first.charAt(0).toUpperCase()}${first.slice(1)} ${last.charAt(0).toUpperCase()}.`;
+}
+
 export default function MonitoringDashboard() {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
@@ -268,16 +285,17 @@ export default function MonitoringDashboard() {
 
   return (
     <div style={s.page}>
-      <h1 style={s.h1}>Founder Monitoring</h1>
+      <h1 style={s.h1}>TGM Dashboard - Starter Plan</h1>
+      <p style={s.heroSubtext}>Full drafting, scoring, and funder fit unlocked</p>
 
       <div style={s.grid4}>
-        <MetricTile label="Visitors" value={data.visitors?.last24h} sublabel="Last 24 hours" />
+        <MetricTile label="Starter Users" value={(subData.find((d) => d.tier === 'starter') || {}).count || 0} sublabel="Active Starter accounts" />
+        <MetricTile label="Free Users" value={(subData.find((d) => d.tier === 'free') || {}).count || 0} sublabel="Active Free accounts" />
+        <MetricTile label="AI Drafts Today" value={data.system?.aiDraftsToday} sublabel="Generated today" />
         <MetricTile label="New Signups" value={data.system?.newSignups7d} sublabel="Last 7 days" />
-        <MetricTile label="Subscriptions" value={data.system?.activeSubscriptions} sublabel="Active accounts" />
-        <MetricTile label="AI Drafts" value={data.system?.aiDraftsToday} sublabel="Generated today" />
       </div>
 
-      <div style={{ ...s.grid2, marginTop: 32 }}>
+      <div style={{ ...s.grid2, ...s.sectionBlock }}>
         <div style={s.card}>
           <div style={s.sectionTitle}>Visitors Trend</div>
           <LineChart data={data.timeseries || []} dataKey="visitors" />
@@ -292,7 +310,7 @@ export default function MonitoringDashboard() {
         </div>
       </div>
 
-      <div style={{ ...s.grid2, marginTop: 32 }}>
+      <div style={{ ...s.grid2, ...s.sectionBlock }}>
         <LifetimeTierCountdown 
           used={data.system?.lifetimeTierCount || 0} 
           remaining={data.system?.lifetimeTierRemaining || 200}
@@ -304,12 +322,12 @@ export default function MonitoringDashboard() {
         </div>
       </div>
 
-      <div style={{ ...s.grid2, marginTop: 32 }}>
+      <div style={{ ...s.grid2, ...s.sectionBlock }}>
         <DataTable 
           title="Recent Signups" 
           columns={['Name', 'Email', 'Tier', 'Date']} 
           data={(data.recentSignups || []).map(u => ({
-            name: u.name || 'N/A',
+            name: displayNameForSignup(u),
             email: u.email,
             tier: u.tier,
             createdAt: new Date(u.createdAt).toLocaleDateString(),

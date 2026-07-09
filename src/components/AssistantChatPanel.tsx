@@ -40,8 +40,16 @@ async function parseAssistantResponse(res: Response): Promise<AssistantResponse>
 export default function AssistantChatPanel({ open, onClose }: AssistantChatPanelProps) {
   const { user } = useUser() || {};
   const location = useLocation();
+  const firstName = (user?.name || user?.email || 'there').split('@')[0].split(/[._\s-]+/)[0];
+  const displayName = firstName ? `${firstName.charAt(0).toUpperCase()}${firstName.slice(1)}` : 'there';
+  const quickActions = [
+    'Draft a Proposal',
+    'Improve a Section',
+    'Score My Draft',
+    'Check Funder Fit',
+  ];
   const [messages, setMessages] = useState<AssistantMessage[]>([
-    createLocalMessage('assistant', 'Hi, I am TGM Assistant. Ask me to draft a grant, improve a section, prepare a submission, or explain your funding readiness.'),
+    createLocalMessage('assistant', `Hi ${displayName} - I\'m Steve, your drafting assistant. Ready when you are.`),
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -62,9 +70,8 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
     );
   };
 
-  const sendMessage = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const trimmed = input.trim();
+  const submitMessage = async (messageText: string) => {
+    const trimmed = messageText.trim();
     if (!trimmed || loading) return;
 
     const userMessage = createLocalMessage('user', trimmed);
@@ -117,6 +124,15 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
     }
   };
 
+  const sendMessage = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await submitMessage(input);
+  };
+
+  const handleQuickAction = async (prompt: string) => {
+    await submitMessage(prompt);
+  };
+
   return (
     <aside
       aria-label="TGM Assistant chat panel"
@@ -158,6 +174,20 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
       </header>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-[#F7F9FB] px-4 py-4 sm:px-5 sm:py-5">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-[#64748B]">Quick actions</p>
+        <div className="flex flex-wrap gap-2">
+          {quickActions.map((action) => (
+            <button
+              key={action}
+              type="button"
+              onClick={() => handleQuickAction(action)}
+              className="rounded-full border border-[#003A8C]/20 bg-white px-3 py-1.5 text-xs font-bold text-[#003A8C] transition hover:border-[#D4AF37]/60 hover:text-[#92400E]"
+            >
+              {action}
+            </button>
+          ))}
+        </div>
+
         {messages.map((message) => (
           <div
             key={message.id}

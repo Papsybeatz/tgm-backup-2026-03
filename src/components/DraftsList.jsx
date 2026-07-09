@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDrafts } from '../lib/useDrafts';
 
@@ -19,11 +19,62 @@ function wordCount(html = '') {
   return html.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean).length;
 }
 
+function plainText(html = '') {
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function isMalformedDraft(content = '') {
+  if (!content) return false;
+  const hasUnclosedTag = /<[^>]*$/.test(content);
+  const openHtml = /<html/i.test(content);
+  const closeHtml = /<\/html>/i.test(content);
+  const openBody = /<body/i.test(content);
+  const closeBody = /<\/body>/i.test(content);
+  return hasUnclosedTag || (openHtml && !closeHtml) || (openBody && !closeBody);
+}
+
+function isLikelyTestDraft(title = '', content = '') {
+  const value = `${title} ${plainText(content)}`.toLowerCase();
+  return /\b(test|dummy|lorem ipsum|asdf|qwerty)\b/.test(value);
+}
+
+function draftTypeLabel(title = '', content = '') {
+  const value = `${title} ${plainText(content)}`.toLowerCase();
+  if (/\bloi\b|letter\s+of\s+intent/.test(value)) return 'LOI';
+  if (/\bletter\b/.test(value)) return 'Letter';
+  return 'Proposal';
+}
+
 export default function DraftsList() {
   const navigate = useNavigate();
   const { drafts, loading, error, createDraft, deleteDraft } = useDrafts();
   const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [sortBy, setSortBy] = useState('newest');
+
+  const filteredDrafts = useMemo(() => {
+    const visible = drafts.filter((draft) => {
+      const words = wordCount(draft.content || '');
+      if (words < 10) return false;
+      if (isMalformedDraft(draft.content || '')) return false;
+      if (isLikelyTestDraft(draft.title || '', draft.content || '')) return false;
+      return true;
+    });
+
+    visible.sort((a, b) => {
+      if (sortBy === 'oldest') {
+        return new Date(a.updatedAt || a.updated_at || 0).getTime() - new Date(b.updatedAt || b.updated_at || 0).getTime();
+      }
+      if (sortBy === 'az') {
+        return String(a.title || '').localeCompare(String(b.title || ''));
+      }
+      return new Date(b.updatedAt || b.updated_at || 0).getTime() - new Date(a.updatedAt || a.updated_at || 0).getTime();
+    });
+
+    return visible;
+  }, [drafts, sortBy]);
+
+  const hiddenCount = Math.max(0, drafts.length - filteredDrafts.length);
 
   async function handleNewDraft() {
     setCreating(true);
@@ -47,18 +98,39 @@ export default function DraftsList() {
         <div>
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: 'var(--tgm-navy)' }}>Your Drafts</h2>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--tgm-muted)' }}>
-            {loading ? 'Loading…' : `${drafts.length} draft${drafts.length !== 1 ? 's' : ''}`}
+            {loading ? 'Loading…' : `${filteredDrafts.length} draft${filteredDrafts.length !== 1 ? 's' : ''}${hiddenCount ? ` · ${hiddenCount} hidden for quality` : ''}`}
           </p>
         </div>
-        <button
-          onClick={handleNewDraft}
-          disabled={creating}
-          className="btn-primary"
-          style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-        >
-          <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
-          {creating ? 'Creating…' : 'New Draft'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <label style={{ fontSize: 12, color: 'var(--tgm-muted)', fontWeight: 600 }}>
+            Sort by
+          </label>
+          <select
+            value={sortBy}
+            onChange={(event) => setSortBy(event.target.value)}
+            style={{
+              border: '1px solid var(--tgm-border)',
+              borderRadius: 10,
+              fontSize: 12,
+              padding: '6px 10px',
+              color: 'var(--tgm-text)',
+              background: 'var(--tgm-surface)',
+            }}
+          >
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="az">A-Z</option>
+          </select>
+          <button
+            onClick={handleNewDraft}
+            disabled={creating}
+            className="btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
+            {creating ? 'Creating…' : 'New Draft'}
+          </button>
+        </div>
       </div>
 
       {/* Error */}
@@ -67,7 +139,7 @@ export default function DraftsList() {
       )}
 
       {/* Empty state */}
-      {!loading && drafts.length === 0 && (
+      {!loading && filteredDrafts.length === 0 && (
         <div style={{
           textAlign: 'center', padding: '48px 24px',
           background: 'var(--tgm-surface)', borderRadius: 'var(--tgm-radius-xl)',
@@ -85,9 +157,9 @@ export default function DraftsList() {
       )}
 
       {/* Drafts grid */}
-      {!loading && drafts.length > 0 && (
+      {!loading && filteredDrafts.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-          {drafts.map(draft => (
+          {filteredDrafts.map(draft => (
             <div
               key={draft.id}
               onClick={() => navigate(`/workspace/${draft.id}`)}
@@ -139,7 +211,7 @@ export default function DraftsList() {
                 <span style={{
                   fontSize: 11, fontWeight: 600, padding: '2px 8px',
                   borderRadius: 10, background: 'rgba(0,58,140,.08)', color: 'var(--tgm-blue)',
-                }}>Draft</span>
+                }}>{draftTypeLabel(draft.title, draft.content)}</span>
               </div>
 
               {/* Delete button */}
