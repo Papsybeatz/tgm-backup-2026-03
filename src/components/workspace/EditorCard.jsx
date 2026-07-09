@@ -84,7 +84,8 @@ export default function EditorCard({ onContentChange, onWordCount, aiOutput }) {
     const onSectionSelect = (event) => {
       const sectionName = event?.detail?.section;
       if (!sectionName) return;
-      ensureSectionExists(sectionName);
+      // Only scroll to and highlight the section — do not insert content into the editor.
+      // ensureSectionExists is intentionally omitted here; section buttons navigate, not insert.
       window.setTimeout(() => highlightAndFocusSection(sectionName), 50);
     };
 

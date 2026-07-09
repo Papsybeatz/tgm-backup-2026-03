@@ -9,6 +9,11 @@ const DEFAULT_SECTIONS = [
   'Evaluation Plan',
 ];
 
+/** Convert a section display name to a kebab-case DOM id, e.g. "Executive Summary" → "executive-summary" */
+function toSectionId(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
 export default function Sidebar({ activeSection, setActiveSection }) {
   const [sections, setSections] = useState(DEFAULT_SECTIONS);
   const [adding, setAdding] = useState(false);
@@ -21,7 +26,13 @@ export default function Sidebar({ activeSection, setActiveSection }) {
     setAdding(false);
   }
 
-  function handleSectionClick(section) {
+  /**
+   * Scroll to the section identified by sectionId (kebab-case) and highlight it.
+   * Fires the tgm:section-select event so EditorCard can scroll + focus the heading.
+   */
+  function scrollToSection(sectionId) {
+    // Resolve the display name from the id so EditorCard can match by heading text
+    const section = sections.find((s) => toSectionId(s) === sectionId) || sectionId;
     setActiveSection && setActiveSection(section);
     window.dispatchEvent(new CustomEvent('tgm:section-select', { detail: { section } }));
   }
@@ -38,7 +49,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
         {sections.map((s, i) => (
           <button
             key={i}
-            onClick={() => handleSectionClick(s)}
+            onClick={() => scrollToSection(toSectionId(s))}
             className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition mb-1 border ${
               activeSection === s
                 ? 'bg-[#003A8C]/10 text-[#003A8C] font-semibold border-[#003A8C]/20'
