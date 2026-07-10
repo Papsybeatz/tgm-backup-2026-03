@@ -301,6 +301,191 @@ function StarterDashboard({ tierConfig }) {
   );
 }
 
+function AdvancedDashboard({ tier, tierConfig }) {
+  const navigate = useNavigate();
+
+  const planTone = {
+    pro: {
+      eyebrow: 'TGM Pro',
+      title: 'TGM Dashboard - Pro Plan',
+      subtitle: 'Advanced compliance, analytics, and team-ready workflows unlocked.',
+      badges: [
+        'Pro - Advanced Compliance Checks',
+        'Pro - AI Reviewer Simulation',
+        'Pro - Team Workspace Enabled',
+      ],
+      unlocks: [
+        'Advanced compliance validator',
+        'AI reviewer simulation',
+        'Grant calendar + analytics',
+        'Team workspace (3 seats)',
+        'Priority AI actions',
+        'Custom export formatting',
+      ],
+      upgradeLabel: 'Explore Agency Plans',
+    },
+    agency_starter: {
+      eyebrow: 'TGM Agency',
+      title: 'TGM Dashboard - Agency Plan',
+      subtitle: 'Client workflows, expanded team access, and agency-grade controls unlocked.',
+      badges: [
+        'Agency - Multi-Client Workflows',
+        'Agency - Team Seats (10)',
+        'Agency - White Label Ready',
+      ],
+      unlocks: [
+        'Client folders + templates',
+        'Multi-client dashboards',
+        'Role-based team permissions',
+        'Agency analytics + calendar',
+        'Bulk scoring + matching',
+        'White label controls',
+      ],
+      upgradeLabel: 'Upgrade to Agency+',
+    },
+    agency_unlimited: {
+      eyebrow: 'TGM Agency+',
+      title: 'TGM Dashboard - Agency+ Plan',
+      subtitle: 'Unlimited seats, portfolio-level visibility, and enterprise-grade delivery controls.',
+      badges: [
+        'Agency+ - Unlimited Team Seats',
+        'Agency+ - Portfolio Analytics',
+        'Agency+ - Priority Success Support',
+      ],
+      unlocks: [
+        'Unlimited team seats',
+        'Portfolio + admin controls',
+        'Multi-client dashboards',
+        'Quarterly strategy reviews',
+        'Dedicated success support',
+        'Early access features',
+      ],
+      upgradeLabel: 'Manage Full Access',
+    },
+    lifetime: {
+      eyebrow: 'TGM Lifetime',
+      title: 'TGM Dashboard - Lifetime Plan',
+      subtitle: 'Your lifetime access includes advanced drafting, scoring, and intelligence tools.',
+      badges: [
+        'Lifetime - Full Core AI Suite',
+        'Lifetime - Priority Support',
+        'Lifetime - Founder Status',
+      ],
+      unlocks: [
+        'Unlimited drafting + scoring',
+        'Advanced analytics + calendar',
+        'Funder matching intelligence',
+        'AI reviewer simulation',
+        'Founder lifetime benefits',
+        'Priority support included',
+      ],
+      upgradeLabel: 'View Plan Details',
+    },
+  }[tier] || {
+    eyebrow: 'TGM Paid',
+    title: 'TGM Dashboard',
+    subtitle: 'Your paid plan features are active.',
+    badges: ['Paid - AI Features Active'],
+    unlocks: ['Paid plan features unlocked'],
+    upgradeLabel: 'View Plans',
+  };
+
+  const capabilityCards = [
+    {
+      title: 'Draft workspace',
+      detail: 'Start new proposals, rewrite sections, and keep all working drafts in one place.',
+      action: 'Create Draft',
+      onClick: () => navigate('/workspace/new-draft'),
+    },
+    {
+      title: 'Scoring and fit tools',
+      detail: 'Check alignment, readiness, and funder-fit signals before final submission.',
+      action: 'Run Fit Check',
+      onClick: () => navigate('/workspace/fit'),
+    },
+    {
+      title: tierAtLeast(tier, 'agency_starter') ? 'Client operations' : 'Plan controls',
+      detail: tierAtLeast(tier, 'agency_starter')
+        ? 'Coordinate multi-client delivery and team workflows from your agency workspace.'
+        : 'Manage your current plan and compare higher-tier capabilities when needed.',
+      action: tierAtLeast(tier, 'agency_starter') ? 'Open Dashboard' : planTone.upgradeLabel,
+      to: tierAtLeast(tier, 'agency_starter') ? '/dashboard' : '/plans',
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#F7F9FB] text-gray-900">
+      <section className="border-b border-[#E2E8F0] bg-white px-6 py-10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">{planTone.eyebrow}</p>
+            <h1 className="text-4xl font-extrabold tracking-tight text-[#0A0F1A]">{planTone.title}</h1>
+            <p className="mt-3 max-w-2xl text-base leading-7 text-gray-600">{planTone.subtitle}</p>
+            <div className="mt-5 flex flex-wrap gap-2.5">
+              {planTone.badges.map((badge) => (
+                <span
+                  key={badge}
+                  className="rounded-full border border-[#003A8C]/20 bg-[#EFF6FF] px-3 py-1.5 text-xs font-semibold text-[#003A8C]"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-[#E2E8F0] bg-gradient-to-b from-[#FFFFFF] to-[#F8FAFC] px-5 py-4 shadow-sm">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Plan</p>
+            <p className="text-xl font-extrabold text-[#003A8C]">{tierConfig.name}</p>
+          </div>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-6xl px-6 py-12">
+        <section className="mb-10 grid gap-5 md:grid-cols-3">
+          {capabilityCards.map((feature) => (
+            <div key={feature.title} className="rounded-xl border border-[#E2E8F0] bg-gradient-to-b from-white to-[#FAFCFF] p-6 shadow-sm">
+              <h2 className="mb-2 text-lg font-extrabold tracking-tight text-[#003A8C]">{feature.title}</h2>
+              <p className="mb-5 text-sm leading-6 text-gray-600">{feature.detail}</p>
+              {feature.to ? (
+                <Link to={feature.to} className="text-sm font-bold text-[#003A8C] no-underline hover:text-[#B8960C]">
+                  {feature.action}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={feature.onClick}
+                  className="rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-[#0A0F1A] transition hover:bg-[#E8D28C]"
+                >
+                  {feature.action}
+                </button>
+              )}
+            </div>
+          ))}
+        </section>
+
+        <section className="mb-8 rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-extrabold tracking-tight text-[#003A8C]">What {tierConfig.name} Unlocks</h2>
+          <ul className="mt-3 grid gap-2 text-sm text-gray-700 md:grid-cols-2">
+            {planTone.unlocks.map((item) => (
+              <li key={item} className="rounded-md bg-[#F8FAFC] px-3 py-2.5 font-medium">{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mb-8 rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-extrabold tracking-tight text-[#003A8C]">Billing & Subscription</h2>
+            <BillingPortalButton />
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+          <DraftsList />
+        </section>
+      </main>
+    </div>
+  );
+}
+
 export default function UnifiedDashboard() {
   const { user } = useUser() || {};
   const navigate = useNavigate();
@@ -317,6 +502,10 @@ export default function UnifiedDashboard() {
 
   if (tier === 'starter') {
     return <StarterDashboard tierConfig={tierConfig} />;
+  }
+
+  if (['pro', 'agency_starter', 'agency_unlimited', 'lifetime'].includes(tier)) {
+    return <AdvancedDashboard tier={tier} tierConfig={tierConfig} />;
   }
 
   return (
