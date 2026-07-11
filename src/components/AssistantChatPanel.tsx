@@ -59,6 +59,13 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
   const tier = user?.tier || 'free';
   const isSignedIn = Boolean(user?.email || (typeof window !== 'undefined' && window.localStorage.getItem('token')));
   const showNewYorkPrompts = user?.location === 'new_york' || location.pathname.includes('new-york');
+  const showWorkspaceActions = location.pathname.startsWith('/workspace');
+
+  const dispatchWorkspaceAction = (action: string) => {
+    window.dispatchEvent(new CustomEvent('tgm:workspace-ai-action', {
+      detail: { action, label: action },
+    }));
+  };
 
   const isDraftRequest = (message: string) => {
     const text = message.toLowerCase();
@@ -174,6 +181,18 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
       </header>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-[#F7F9FB] px-4 py-4 sm:px-5 sm:py-5">
+        {showWorkspaceActions && (
+          <div className="rounded-2xl border border-[#E2E8F0] bg-white p-3 shadow-sm">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-[#64748B]">Workspace actions</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button type="button" onClick={() => dispatchWorkspaceAction('rewrite')} className="rounded-full border border-[#003A8C]/20 bg-[#003A8C]/5 px-3 py-1.5 text-xs font-bold text-[#003A8C] transition hover:border-[#D4AF37]/60">Rewrite</button>
+              <button type="button" onClick={() => dispatchWorkspaceAction('generate_section')} className="rounded-full border border-[#003A8C]/20 bg-white px-3 py-1.5 text-xs font-bold text-[#003A8C] transition hover:border-[#D4AF37]/60">Regenerate Section</button>
+              <button type="button" onClick={() => dispatchWorkspaceAction('improve')} className="rounded-full border border-[#003A8C]/20 bg-white px-3 py-1.5 text-xs font-bold text-[#003A8C] transition hover:border-[#D4AF37]/60">Improve Section</button>
+              <button type="button" onClick={() => dispatchWorkspaceAction('score')} className="rounded-full border border-[#003A8C]/20 bg-white px-3 py-1.5 text-xs font-bold text-[#003A8C] transition hover:border-[#D4AF37]/60">Score My Draft</button>
+            </div>
+          </div>
+        )}
+
         <p className="text-[11px] font-bold uppercase tracking-widest text-[#64748B]">Quick actions</p>
         <div className="flex flex-wrap gap-2">
           {quickActions.map((action) => (

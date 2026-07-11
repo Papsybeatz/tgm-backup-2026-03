@@ -24,12 +24,12 @@ export default function DraftTile() {
         <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--tgm-navy)' }}>{draftsLimit}</span>
       </div>
       <div style={{ display: 'flex', gap: 10, marginTop: 'auto' }}>
-        <button onClick={() => navigate('/workspace/new-draft')} style={{
+        <button onClick={() => navigate('/workspace/new')} style={{
           flex: 1, padding: '10px', borderRadius: 'var(--tgm-radius-md)',
           background: 'var(--tgm-gold)', border: 'none',
           color: 'var(--tgm-navy)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
         }}>+ New Draft</button>
-        <button onClick={() => navigate('/workspace/new-draft')} style={{
+        <button onClick={() => navigate('/workspace/new')} style={{
           flex: 1, padding: '10px', borderRadius: 'var(--tgm-radius-md)',
           background: 'transparent', border: '1.5px solid var(--tgm-border)',
           color: 'var(--tgm-navy)', fontSize: 13, fontWeight: 600, cursor: 'pointer',

@@ -114,6 +114,7 @@ function buildHtmlFromSections(sectionMap = {}, sectionNames = []) {
 
 export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 'Untitled Draft', initialContent = '' } = {}) {
   const [text, setText] = useState(initialContent || '');
+  const [ideaInput, setIdeaInput] = useState('');
   const [selectedText, setSelectedText] = useState('');
   const [title, setTitle] = useState(initialTitle || 'Untitled Draft');
   const [sections, setSections] = useState(FREE_SECTIONS);
@@ -318,10 +319,10 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
       const body = endpoint === '/api/ai/draft'
         ? {
             prompt: fullDraftRewriteMode
-              ? `Write a full grant proposal with these exact sections and headings: ${sections.join(', ')}. Context: ${plainContent || title || 'Write a grant proposal'}`
+              ? `Write a full grant proposal with these exact sections and headings: ${sections.join(', ')}. Context: ${ideaInput.trim() || plainContent || title || 'Write a grant proposal'}`
               : action === 'generate_section'
-                ? `Write only the ${activeSection} section for this grant proposal. Context: ${plainContent || title || 'Write a grant proposal section'}`
-              : plainContent || title || 'Write a grant proposal',
+                ? `Write only the ${activeSection} section for this grant proposal. Context: ${ideaInput.trim() || plainContent || title || 'Write a grant proposal section'}`
+              : ideaInput.trim() || plainContent || title || 'Write a grant proposal',
             template: 'general',
           }
         : { content: baseContent || title || 'Improve this grant draft', instruction: action };
@@ -406,6 +407,27 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     }
   };
 
+  useEffect(() => {
+    const handleWorkspaceAction = (event) => {
+      const action = event?.detail?.action;
+      if (action === 'rewrite') {
+        handleAIAction('Rewrite', 'rewrite');
+      }
+      if (action === 'generate_section') {
+        handleAIAction('Regenerate Section', 'generate_section');
+      }
+      if (action === 'improve') {
+        handleAIAction('Improve Section', 'improve');
+      }
+      if (action === 'score') {
+        handleScoreDraft();
+      }
+    };
+
+    window.addEventListener('tgm:workspace-ai-action', handleWorkspaceAction);
+    return () => window.removeEventListener('tgm:workspace-ai-action', handleWorkspaceAction);
+  }, [handleAIAction, handleScoreDraft]);
+
   const savedAgo = useMemo(() => {
     if (!lastSavedAt) return 'Not yet';
     const diffMs = Math.max(0, nowTs - lastSavedAt.getTime());
@@ -425,8 +447,49 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     saveNow();
   };
 
-  const handleExportPdf = () => {
-    window.print();
+  const downloadBlob = (blob, filename) => {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const downloadDraftAsset = async (format) => {
+    if (!draftId) return;
+    const token = getToken();
+    const res = await fetch(`/api/drafts/${draftId}/export.${format}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) {
+      throw new Error(`Download failed for ${format.toUpperCase()}`);
+    }
+    const blob = await res.blob();
+    downloadBlob(blob, `${title || 'draft'}.${format}`);
+  };
+
+  const handleDownloadPdf = async () => {
+    try {
+      await downloadDraftAsset('pdf');
+    } catch (error) {
+      setUploadError(error?.message || 'PDF download failed.');
+    }
+  };
+
+  const handleDownloadDocx = async () => {
+    try {
+      await downloadDraftAsset('docx');
+    } catch (error) {
+      setUploadError(error?.message || 'DOCX download failed.');
+    }
+  };
+
+  const handleDownloadTxt = () => {
+    const blob = new Blob([stripHtml(text)], { type: 'text/plain;charset=utf-8' });
+    downloadBlob(blob, `${title || 'draft'}.txt`);
   };
 
   const insertImportedText = (filename, importedText) => {
@@ -510,12 +573,26 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
               </span>
               {isStarterPlus && (
                 <button
-                  onClick={handleExportPdf}
-                  className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
+                  onClick={handleDownloadPdf}
+                  disabled={!draftId}
+                  className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Export PDF
+                  Download PDF
                 </button>
               )}
+              <button
+                onClick={handleDownloadDocx}
+                disabled={!draftId}
+                className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Download DOCX
+              </button>
+              <button
+                onClick={handleDownloadTxt}
+                className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
+              >
+                Download TXT
+              </button>
               <button
                 onClick={handleUploadDraft}
                 title="Google Drive Picker requires OAuth setup and can be enabled on request."
@@ -612,6 +689,20 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 {activeSection}
               </div>
               <div className="p-6">
+                <div className="mb-4 rounded-xl border border-[#003A8C]/15 bg-[#F8FBFF] p-4">
+                  <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#003A8C]">Idea Input</p>
+                  <textarea
+                    value={ideaInput}
+                    onChange={(e) => setIdeaInput(e.target.value)}
+                    placeholder="Describe the grant, funder, or outcome you want Steve to shape into a proposal..."
+                    className="min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#D4AF37]"
+                  />
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button type="button" onClick={() => handleAIAction('Use Idea', 'rewrite')} disabled={aiLoading} className="rounded-full bg-[#003A8C] px-4 py-2 text-xs font-bold text-white transition hover:opacity-90 disabled:opacity-60">Use Idea</button>
+                    <button type="button" onClick={() => setIdeaInput('')} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-[#D4AF37]">Clear</button>
+                  </div>
+                </div>
+
                 <h3 className="mb-3 text-base font-semibold text-[#0A0F1A]">{activeSection}</h3>
                 <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                   <div className="mb-2 flex items-center justify-between">

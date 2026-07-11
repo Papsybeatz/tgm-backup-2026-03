@@ -122,7 +122,7 @@ function deriveProfile(form) {
     agencyMode,
     workspaceMode,
     pricingRecommendation,
-    postOnboardingCta: form.urgency === 'deadline' ? 'start_draft_now' : 'open_dashboard',
+    postOnboardingCta: form.urgency === 'deadline' ? 'start_workspace_now' : 'open_dashboard',
     stevePromptSet: {
       sector: form.sector || 'general',
       funderTypes: form.primaryFunderTypes,
@@ -251,7 +251,7 @@ export default function OnboardingPage() {
   const enterWorkspace = async () => {
     const saved = await saveOnboarding();
     if (!saved) return;
-    navigate(saved.postOnboardingCta === 'start_draft_now' ? '/workspace/new-draft' : '/dashboard');
+    navigate((saved.postOnboardingCta === 'start_workspace_now' || saved.postOnboardingCta === 'start_draft_now') ? '/workspace/new' : '/dashboard');
   };
 
   const unlockLifetime = async () => {

@@ -1,18 +1,9 @@
-import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import AppHeader from './AppHeader';
-import AssistantChatButton from './AssistantChatButton';
-import AssistantChatPanel from './AssistantChatPanel';
-import { useUser } from './UserContext';
 
 export function AppLayout({ children }) {
-  const [assistantOpen, setAssistantOpen] = useState(false);
   const location = useLocation();
-  const { user } = useUser() || {};
-  const tier = user?.tier || 'free';
-  const showAssistant = !user || tier !== 'free';
   const showWorkspaceFooter = Boolean(
-    user &&
     !location.pathname.startsWith('/workspace') &&
     (location.pathname.startsWith('/clients') ||
       location.pathname.startsWith('/scott'))
@@ -35,12 +26,6 @@ export function AppLayout({ children }) {
             </div>
           </div>
         </footer>
-      )}
-      {showAssistant && (
-        <>
-          <AssistantChatPanel open={assistantOpen} onClose={() => setAssistantOpen(false)} />
-          <AssistantChatButton open={assistantOpen} onClick={() => setAssistantOpen((open) => !open)} />
-        </>
       )}
     </div>
   );

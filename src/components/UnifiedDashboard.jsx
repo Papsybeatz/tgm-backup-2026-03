@@ -113,7 +113,7 @@ function FreeDashboard() {
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
             <button
               type="button"
-              onClick={() => navigate('/workspace/new-draft')}
+              onClick={() => navigate('/workspace/new')}
               className="rounded-lg bg-[#D4AF37] px-6 py-3 text-sm font-bold text-[#0A0F1A] transition hover:bg-[#E8D28C]"
             >
               Create Draft
@@ -173,13 +173,13 @@ function StarterDashboard({ tierConfig }) {
       title: 'Draft workspace',
       detail: 'Create and manage your grant drafts from one focused workspace.',
       action: 'Create Draft',
-      onClick: () => navigate('/workspace/new-draft'),
+      onClick: () => navigate('/workspace/new'),
     },
     {
       title: 'AI drafting help',
       detail: 'Use assisted writing and rewrite tools to move from blank page to funder-ready language.',
       action: 'Open Workspace',
-      onClick: () => navigate('/workspace/new-draft'),
+      onClick: () => navigate('/workspace/new'),
     },
     {
       title: 'Score and match',
@@ -231,7 +231,7 @@ function StarterDashboard({ tierConfig }) {
             </p>
             <button
               type="button"
-              onClick={() => navigate('/workspace/new-draft')}
+              onClick={() => navigate('/workspace/new')}
               className="mt-4 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-[#0A0F1A] transition hover:bg-[#E8D28C]"
             >
               Create Draft
@@ -395,7 +395,7 @@ function AdvancedDashboard({ tier, tierConfig }) {
       title: 'Draft workspace',
       detail: 'Start new proposals, rewrite sections, and keep all working drafts in one place.',
       action: 'Create Draft',
-      onClick: () => navigate('/workspace/new-draft'),
+      onClick: () => navigate('/workspace/new'),
     },
     {
       title: 'Scoring and fit tools',

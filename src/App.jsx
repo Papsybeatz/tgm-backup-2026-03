@@ -20,12 +20,14 @@ import ConsultantLandingPage from './components/ConsultantLandingPage';
 import ClientsPage from './components/ClientsPage';
 import ClientWorkspacePage from './components/ClientWorkspacePage';
 import ScottDistributionPage from './components/ScottDistributionPage';
+import SteveAssistantDock from './components/SteveAssistantDock';
 
 // Auth-gated pages
 import OnboardingPage from './components/OnboardingPage';
 import UnifiedDashboard from './components/UnifiedDashboard';
 import WorkspacePage from './components/workspace/WorkspacePage';
 import DraftPage from './components/DraftPage';
+import NewWorkspacePage from './components/workspace/NewWorkspacePage';
 
 
 // Admin
@@ -43,10 +45,12 @@ function App() {
   return (
     <SkinProvider>
       <Router>
+        <SteveAssistantDock />
         <Routes>
           {/* Workspace — full screen editor, no AppHeader */}
           <Route path="/workspace" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/workspace/new-draft" element={<RequireOnboarding><DraftPage /></RequireOnboarding>} />
+          <Route path="/workspace/new" element={<RequireOnboarding><NewWorkspacePage /></RequireOnboarding>} />
+          <Route path="/workspace/new-draft" element={<Navigate to="/workspace/new" replace />} />
           <Route path="/workspace/premium-draft" element={<Navigate to="/dashboard" replace />} />
           <Route path="/workspace/:id" element={<RequireOnboarding><WorkspacePage /></RequireOnboarding>} />
 

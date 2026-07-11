@@ -48,7 +48,7 @@ function DraftsList() {
         }}
           onMouseOver={e => e.currentTarget.style.borderColor = 'var(--tgm-gold)'}
           onMouseOut={e => e.currentTarget.style.borderColor = 'var(--tgm-border)'}
-          onClick={() => navigate('/workspace/new-draft', { state: { draftId: d.id, title: d.title, content: d.content } })}
+          onClick={() => navigate(`/workspace/${d.id}`)}
         >
           <p style={{ margin: '0 0 2px', fontSize: 14, fontWeight: 600, color: 'var(--tgm-navy)' }}>
             {d.title || 'Untitled Draft'}
@@ -88,7 +88,7 @@ export default function WorkspaceDetail() {
         <div className="bg-white p-6 rounded-xl shadow-md border-t-4 border-[#D4AF37]">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <h3 className="text-xl font-bold text-[#003A8C]">Drafts</h3>
-            <button onClick={() => navigate('/workspace/new-draft')} style={{
+            <button onClick={() => navigate('/workspace/new')} style={{
               padding: '5px 12px', borderRadius: 6, fontSize: 12, fontWeight: 700,
               background: 'var(--tgm-gold)', border: 'none', color: 'var(--tgm-navy)', cursor: 'pointer',
             }}>+ New</button>
