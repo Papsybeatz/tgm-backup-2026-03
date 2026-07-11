@@ -11,6 +11,12 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
   const pendingSave = useRef(false);
   const { token } = useAuth();
 
+  const getAuthToken = () => {
+    if (token) return token;
+    if (typeof window !== 'undefined') return localStorage.getItem('token') || '';
+    return '';
+  };
+
   useEffect(() => {
     if (draftId) setCurrentDraftId(draftId);
   }, [draftId]);
@@ -20,8 +26,9 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
     setSaving(true);
     setSaved(false);
     try {
+      const authToken = getAuthToken();
       const headers = { 'Content-Type': 'application/json' };
-      if (token) headers.Authorization = `Bearer ${token}`;
+      if (authToken) headers.Authorization = `Bearer ${authToken}`;
       let res;
       if (currentDraftId) {
         res = await fetch(`/api/drafts/${currentDraftId}`, { method: 'PATCH', headers, body: JSON.stringify({ title: payload.title, content: payload.content }) });
@@ -43,8 +50,9 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
   };
 
   const saveNow = () => {
-    if (!token || !content) return;
-    const payload = { title, content };
+    const authToken = getAuthToken();
+    if (!authToken) return;
+    const payload = { title: title || '', content: content || '' };
 
     // If no changes exist beyond the last successful save, do nothing.
     if (
@@ -63,8 +71,9 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
 
   // Debounced autosave on content/title/email change
   useEffect(() => {
-    if (!token || !content) return;
-    const payload = { title, content };
+    const authToken = getAuthToken();
+    if (!authToken) return;
+    const payload = { title: title || '', content: content || '' };
 
     // Avoid redundant scheduling when this exact payload is already queued/saved.
     if (
