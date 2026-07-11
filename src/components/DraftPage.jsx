@@ -129,7 +129,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const fileInputRef = useRef(null);
   const syncEditorFromStateRef = useRef(false);
 
-  const { saving, saved, draftId, onBlur, saveNow } = useAutosave({ content: text, title, draftId: draftIdProp, debounceMs: 1500 });
+  const { saving, saved, saveError, draftId, onBlur, saveNow } = useAutosave({ content: text, title, draftId: draftIdProp, debounceMs: 1500 });
 
   const words = useMemo(() => {
     const trimmed = text.trim();
@@ -389,9 +389,9 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const saveColor = saving ? 'text-amber-600' : saved ? 'text-emerald-600' : 'text-slate-500';
   const sectionIcons = ['📝', '📄', '📌', '🧭', '📊', '✅', '💡'];
 
-  const handleManualSave = () => {
+  const handleManualSave = async () => {
     if (!canSave) return;
-    saveNow();
+    await saveNow();
   };
 
   const handleScoreDraft = async () => {
@@ -584,6 +584,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 onChange={handleFileSelected}
               />
               <button
+                type="button"
                 onClick={handleManualSave}
                 disabled={!canSave}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
@@ -604,6 +605,9 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 </button>
               )}
             </div>
+            {saveError && (
+              <p className="w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{saveError}</p>
+            )}
           </div>
         </div>
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-4 py-6 md:px-6 lg:grid-cols-[230px_1fr]">

@@ -4,6 +4,7 @@ import useAuth from './useAuth';
 export default function useAutosave({ content, title, draftId, debounceMs = 700 }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [currentDraftId, setCurrentDraftId] = useState(draftId || null);
   const timer = useRef();
   const lastQueuedPayload = useRef(null);
@@ -25,8 +26,13 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
   const saveDraft = async (payload) => {
     setSaving(true);
     setSaved(false);
+    setSaveError('');
     try {
       const authToken = getAuthToken();
+      if (!authToken) {
+        setSaveError('You are signed out. Please log in again to save.');
+        return false;
+      }
       const headers = { 'Content-Type': 'application/json' };
       if (authToken) headers.Authorization = `Bearer ${authToken}`;
       let res;
@@ -41,17 +47,27 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
         if (newId) setCurrentDraftId(newId);
         lastSavedPayload.current = payload;
         setSaved(true);
+        return true;
       } else {
+        setSaveError('Save failed. Please try again.');
         console.warn('[useAutosave] save failed', res && res.status);
+        return false;
       }
-    } catch {}
+    } catch {
+      setSaveError('Network error while saving. Please try again.');
+      return false;
+    }
     pendingSave.current = false;
     setSaving(false);
+    return false;
   };
 
-  const saveNow = () => {
+  const saveNow = async () => {
     const authToken = getAuthToken();
-    if (!authToken) return;
+    if (!authToken) {
+      setSaveError('You are signed out. Please log in again to save.');
+      return false;
+    }
     const payload = { title: title || '', content: content || '' };
 
     // If no changes exist beyond the last successful save, do nothing.
@@ -60,13 +76,13 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
       JSON.stringify(payload) === JSON.stringify(lastSavedPayload.current)
     ) {
       setSaved(true);
-      return;
+      return true;
     }
 
     if (timer.current) clearTimeout(timer.current);
     pendingSave.current = true;
     lastQueuedPayload.current = payload;
-    saveDraft(payload);
+    return saveDraft(payload);
   };
 
   // Debounced autosave on content/title/email change
@@ -95,7 +111,9 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
   }, [content, title, token]);
 
   // Save on blur
-  const onBlur = () => saveNow();
+  const onBlur = () => {
+    void saveNow();
+  };
 
-  return { saving, saved, draftId: currentDraftId, onBlur, saveNow };
+  return { saving, saved, saveError, draftId: currentDraftId, onBlur, saveNow };
 }
