@@ -145,7 +145,24 @@ app.post('/api/match', requireAuth, requireFeature('matching_engine'), (req, res
 
 // Tier-gated scoring endpoint — requires scoring_basic (starter+)
 app.post('/api/score', requireAuth, requireFeature('scoring_basic'), (req, res) => {
-  res.json({ success: true, message: 'Scoring engine processed.' });
+  const content = String(req.body?.content || '');
+  const text = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const words = text ? text.split(/\s+/).length : 0;
+  const headings = (content.match(/<h2[^>]*>/gi) || []).length;
+  const bullets = (content.match(/<li[^>]*>/gi) || []).length;
+  const numbers = (text.match(/\b\d+(?:\.\d+)?%?\b/g) || []).length;
+  const sections = Math.max(headings, 1);
+
+  let score = 58;
+  score += Math.min(14, Math.floor(words / 120));
+  score += Math.min(10, headings * 2);
+  score += Math.min(8, bullets * 2);
+  score += Math.min(8, numbers * 2);
+  score += sections >= 6 ? 8 : sections >= 4 ? 5 : sections >= 2 ? 3 : 0;
+  score = Math.max(1, Math.min(100, score));
+
+  const label = score >= 85 ? 'Strong' : score >= 70 ? 'Ready' : score >= 55 ? 'In Progress' : 'Needs Work';
+  res.json({ success: true, score, label, words, sections, headings, bullets, numbers });
 });
 
 // Tier-gated analytics endpoint — requires analytics_advanced (pro+)

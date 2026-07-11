@@ -5,6 +5,7 @@ import useAutosave from '../hooks/useAutosave';
 import { tierAtLeast } from '../config/tiers';
 
 const DEFAULT_SECTIONS = ['Section 1', 'Section 2', 'Section 3'];
+const FREE_SECTIONS = ['Draft'];
 const STARTER_SECTIONS = [
   'Executive Summary',
   'Problem Statement',
@@ -102,51 +103,31 @@ function buildHtmlFromSections(sectionMap = {}, sectionNames = []) {
   return blocks.join('\n\n').trim();
 }
 
-const AI_GROUPS = [
+  const AI_GROUPS = [
   {
     title: 'Rewrite Tools',
     actions: [
       { label: 'Rewrite', action: 'rewrite' },
-      { label: 'Improve Writing', action: 'improve' },
-      { label: 'Rewrite for Clarity', action: 'clarity' },
-      { label: 'Rewrite for Impact', action: 'impact' },
-    ],
-  },
-  {
-    title: 'Length Tools',
-    actions: [
-      { label: 'Expand', action: 'expand' },
-      { label: 'Shorten', action: 'shorten' },
-    ],
-  },
-  {
-    title: 'Generation Tools',
-    actions: [
-      { label: 'Generate', action: 'generate' },
-      {
-        label: 'Generate Section',
-        action: 'generate_section',
-        requiresStarter: true,
-        lockedHint: 'Upgrade to Starter to generate full sections.',
-      },
     ],
   },
 ];
 
-export default function DraftPage() {
-  const [text, setText] = useState('');
+export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 'Untitled Draft', initialContent = '' } = {}) {
+  const [text, setText] = useState(initialContent || '');
   const [selectedText, setSelectedText] = useState('');
-  const [title, setTitle] = useState('Untitled Draft');
-  const [sections, setSections] = useState(STARTER_SECTIONS);
+  const [title, setTitle] = useState(initialTitle || 'Untitled Draft');
+  const [sections, setSections] = useState(FREE_SECTIONS);
   const [newSection, setNewSection] = useState('');
-  const [activeSection, setActiveSection] = useState(STARTER_SECTIONS[0]);
-  const [sectionContentMap, setSectionContentMap] = useState(() => createEmptySectionMap(STARTER_SECTIONS));
+  const [activeSection, setActiveSection] = useState(() => (initialContent && initialContent.trim() ? STARTER_SECTIONS[0] : FREE_SECTIONS[0]));
+  const [sectionContentMap, setSectionContentMap] = useState(() => createEmptySectionMap(initialContent && initialContent.trim() ? STARTER_SECTIONS : FREE_SECTIONS));
+  const [sectionHistoryMap, setSectionHistoryMap] = useState(() => createEmptySectionMap(initialContent && initialContent.trim() ? STARTER_SECTIONS : FREE_SECTIONS));
   const [activeAction, setActiveAction] = useState('');
   const [showLockedDrawer, setShowLockedDrawer] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
   const { user } = useUser() || {};
   const tier = user?.tier || 'free';
+  const isStarterPlus = tierAtLeast(tier, 'starter');
   const firstName = (user?.name || user?.email || 'there').split('@')[0].split(/[._\s-]+/)[0];
   const displayName = firstName ? `${firstName.charAt(0).toUpperCase()}${firstName.slice(1)}` : 'there';
   const [status, setStatus] = useState('Draft');
@@ -154,11 +135,12 @@ export default function DraftPage() {
   const [nowTs, setNowTs] = useState(Date.now());
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploadError, setUploadError] = useState('');
+  const [scoreState, setScoreState] = useState({ score: null, label: 'Not scored yet' });
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const syncEditorFromStateRef = useRef(false);
 
-  const { saving, saved, draftId, onBlur, saveNow } = useAutosave({ content: text, title, draftId: null, debounceMs: 1500 });
+  const { saving, saved, draftId, onBlur, saveNow } = useAutosave({ content: text, title, draftId: draftIdProp, debounceMs: 1500 });
 
   const words = useMemo(() => {
     const trimmed = text.trim();
@@ -200,8 +182,27 @@ export default function DraftPage() {
     syncEditorFromStateRef.current = false;
   }, [text]);
 
-  const canAccessGrantMatches = tierAtLeast(tier, 'starter');
-  const isStarterPlus = tierAtLeast(tier, 'starter');
+  useEffect(() => {
+    const nextSections = isStarterPlus ? STARTER_SECTIONS : FREE_SECTIONS;
+    setSections(nextSections);
+    setActiveSection((prev) => (nextSections.includes(prev) ? prev : nextSections[0]));
+    setSectionContentMap(createEmptySectionMap(nextSections));
+    setSectionHistoryMap(createEmptySectionMap(nextSections));
+  }, [isStarterPlus]);
+
+  useEffect(() => {
+    if (!initialContent || !initialContent.trim()) return;
+    const sourceSections = isStarterPlus ? STARTER_SECTIONS : FREE_SECTIONS;
+    const parsed = parseSectionsFromHtml(initialContent, sourceSections);
+    const merged = Object.keys(parsed).length ? parsed : createEmptySectionMap(sourceSections);
+    setSections(sourceSections);
+    setActiveSection(sourceSections[0]);
+    setSectionContentMap(merged);
+    syncEditorFromStateRef.current = true;
+    setText(buildHtmlFromSections(merged, sourceSections));
+  }, [initialContent, isStarterPlus]);
+
+  const canAccessGrantMatches = isStarterPlus;
   const canSave = text.trim().length > 0;
   const readinessScore = words >= 900 ? 9.2 : words >= 550 ? 8.4 : words >= 300 ? 7.4 : 6.3;
   const isFunderReady = readinessScore >= 8;
@@ -217,8 +218,41 @@ export default function DraftPage() {
     if (!cleaned) return;
     setSections((prev) => [...prev, cleaned]);
     setSectionContentMap((prev) => ({ ...prev, [cleaned]: '' }));
+    setSectionHistoryMap((prev) => ({ ...prev, [cleaned]: '' }));
     setActiveSection(cleaned);
     setNewSection('');
+  };
+
+  const setSectionBody = (section, html, pushHistory = true) => {
+    setSectionContentMap((prev) => {
+      const previous = prev[section] || '';
+      if (pushHistory && previous !== html) {
+        setSectionHistoryMap((historyPrev) => ({
+          ...historyPrev,
+          [section]: historyPrev[section] ? `${historyPrev[section]}\u0000${previous}` : previous,
+        }));
+      }
+      const nextMap = { ...prev, [section]: html };
+      const compiled = buildHtmlFromSections(nextMap, sections);
+      syncEditorFromStateRef.current = true;
+      setText(compiled);
+      return nextMap;
+    });
+  };
+
+  const undoSection = (section) => {
+    setSectionHistoryMap((prev) => {
+      const stack = String(prev[section] || '').split('\u0000').filter(Boolean);
+      const previous = stack.pop();
+      if (previous === undefined) return prev;
+      setSectionContentMap((contentPrev) => {
+        const nextMap = { ...contentPrev, [section]: previous };
+        syncEditorFromStateRef.current = true;
+        setText(buildHtmlFromSections(nextMap, sections));
+        return nextMap;
+      });
+      return { ...prev, [section]: stack.join('\u0000') };
+    });
   };
 
   const placeCaretAtStart = (element) => {
@@ -249,16 +283,6 @@ export default function DraftPage() {
     }
   };
 
-  const ensureSectionExists = (section) => {
-    if (!editorRef.current) return;
-    const headings = Array.from(editorRef.current.querySelectorAll('h2'));
-    const exists = headings.some((h) => (h.textContent || '').trim().toLowerCase() === section.toLowerCase());
-    if (exists) return;
-    const nextMap = { ...sectionContentMap };
-    nextMap[section] = nextMap[section] || '<p></p>';
-    updateSectionAndEditor(nextMap);
-  };
-
   const updateSectionAndEditor = (nextMap) => {
     const merged = { ...createEmptySectionMap(sections), ...nextMap };
     const compiled = buildHtmlFromSections(merged, sections);
@@ -279,22 +303,19 @@ export default function DraftPage() {
     try {
       const token = getToken();
       const fullDraftRewriteMode = action === 'rewrite' && isStarterPlus;
-      const isFreeGenerate = action === 'generate' && !isStarterPlus;
       const endpoint = fullDraftRewriteMode
         ? '/api/ai/draft'
-        : isFreeGenerate
-        ? '/api/ai/brainstorm'
-        : action === 'generate' || action === 'generate_section'
+        : action === 'generate_section'
           ? '/api/ai/draft'
           : '/api/ai/improve';
 
-      const sectionScopedAction = action === 'generate_section' || label.toLowerCase().includes('section');
+      const sectionScopedAction = action === 'generate_section';
       const currentSectionText = sectionContentMap[activeSection] || '';
       const baseContent = sectionScopedAction
         ? currentSectionText || selectedText || text || ''
         : selectedText || text || '';
       const plainContent = stripHtml(baseContent);
-      const body = endpoint === '/api/ai/draft' || endpoint === '/api/ai/brainstorm'
+      const body = endpoint === '/api/ai/draft'
         ? {
             prompt: fullDraftRewriteMode
               ? `Write a full grant proposal with these exact sections and headings: ${sections.join(', ')}. Context: ${plainContent || title || 'Write a grant proposal'}`
@@ -356,6 +377,35 @@ export default function DraftPage() {
     }
   };
 
+  const handleScoreDraft = async () => {
+    if (!isStarterPlus) return;
+    setAiError('');
+    setAiLoading(true);
+    setActiveAction('Score My Draft');
+    try {
+      const token = getToken();
+      const res = await fetch('/api/score', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ content: text }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || 'Scoring failed');
+      }
+      setScoreState({ score: data.score, label: data.label });
+      setStatus(data.score >= 70 ? 'Ready' : 'In Progress');
+    } catch (error) {
+      setAiError(error?.message || 'Scoring failed. Please try again.');
+    } finally {
+      setAiLoading(false);
+      setActiveAction('');
+    }
+  };
+
   const savedAgo = useMemo(() => {
     if (!lastSavedAt) return 'Not yet';
     const diffMs = Math.max(0, nowTs - lastSavedAt.getTime());
@@ -414,8 +464,7 @@ export default function DraftPage() {
         throw new Error(uploadData?.message || 'Upload failed');
       }
 
-      const isTextLike = /\.(txt|md|csv)$/i.test(file.name) || file.type.startsWith('text/');
-      const extracted = isTextLike ? await file.text() : '';
+      const extracted = String(uploadData?.extractedText || '').trim() || (file.type.startsWith('text/') ? await file.text() : '');
       insertImportedText(file.name, extracted);
       setUploadStatus(`Uploaded: ${file.name}`);
     } catch (error) {
@@ -459,22 +508,25 @@ export default function DraftPage() {
               <span className="text-slate-500 tabular-nums">
                 Last saved: {lastSavedAt ? `${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${savedAgo}` : 'Not yet'}
               </span>
-              <button
-                onClick={handleExportPdf}
-                className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
-              >
-                Export PDF
-              </button>
+              {isStarterPlus && (
+                <button
+                  onClick={handleExportPdf}
+                  className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
+                >
+                  Export PDF
+                </button>
+              )}
               <button
                 onClick={handleUploadDraft}
+                title="Google Drive Picker requires OAuth setup and can be enabled on request."
                 className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
               >
-                Upload Draft (PDF, DOCX, Google Drive)
+                Upload Draft (PDF, DOCX, DOC, TXT)
               </button>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.docx,.doc,.txt,.md,.csv"
+                accept=".pdf,.docx,.doc,.txt"
                 className="hidden"
                 onChange={handleFileSelected}
               />
@@ -492,64 +544,67 @@ export default function DraftPage() {
             </div>
           </div>
         </div>
-
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-4 py-6 md:px-6 lg:grid-cols-[230px_1fr_300px]">
-          <aside className="order-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:order-1">
-            <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Sections</div>
-            <div className="mb-3 rounded-lg border border-[#003A8C]/20 bg-[#EFF6FF] px-2.5 py-1.5 text-[11px] font-semibold text-[#003A8C]">
-              Starter: Full Proposal Generated Automatically
-            </div>
-            <div className="space-y-2">
-              {sections.map((section, index) => (
-                <button
-                  key={section}
-                  onClick={() => {
-                    setActiveSection(section);
-                    ensureSectionExists(section);
-                    window.setTimeout(() => scrollToSection(section, true), 60);
-                  }}
-                  className={`w-full rounded-lg px-3 py-2.5 text-left text-sm transition ${
-                    activeSection === section
-                      ? 'bg-[#003A8C]/10 font-semibold text-[#003A8C] border-l-4 border-l-[#003A8C] border-y border-r border-[#003A8C]/20'
-                      : 'text-slate-500 hover:bg-slate-50 border border-transparent'
-                  }`}
-                >
-                  <span className="mr-2">{sectionIcons[index % sectionIcons.length]}</span>
-                  {section}
-                  {sectionContentMap[section] && (
-                    <span className="ml-2 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">Filled</span>
-                  )}
+          {isStarterPlus && (
+            <aside className="order-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:order-1">
+              <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Sections</div>
+              <div className="mb-3 rounded-lg border border-[#003A8C]/20 bg-[#EFF6FF] px-2.5 py-1.5 text-[11px] font-semibold text-[#003A8C]">
+                Starter: Full Proposal Generated Automatically
+              </div>
+              <div className="space-y-2">
+                {sections.map((section, index) => (
+                  <button
+                    key={section}
+                    onClick={() => {
+                      setActiveSection(section);
+                      window.setTimeout(() => scrollToSection(section, true), 60);
+                    }}
+                    className={`w-full rounded-lg px-3 py-2.5 text-left text-sm transition ${
+                      activeSection === section
+                        ? 'bg-[#003A8C]/10 font-semibold text-[#003A8C] border-l-4 border-l-[#003A8C] border-y border-r border-[#003A8C]/20'
+                        : 'text-slate-500 hover:bg-slate-50 border border-transparent'
+                    }`}
+                  >
+                    <span className="mr-2">{sectionIcons[index % sectionIcons.length]}</span>
+                    {section}
+                    {sectionContentMap[section] && (
+                      <span className="ml-2 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">Filled</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50/70 p-2.5">
+                <button onClick={() => scrollToSection(activeSection, true)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
+                  Edit Section
                 </button>
-              ))}
-            </div>
+                <button onClick={() => handleAIAction('Regenerate Section', 'generate_section')} disabled={aiLoading} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:opacity-60">
+                  Regenerate Section
+                </button>
+                <button onClick={() => handleAIAction('Improve Section', 'improve')} disabled={aiLoading} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:opacity-60">
+                  Improve Section
+                </button>
+                <button onClick={() => undoSection(activeSection)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
+                  UNDO
+                </button>
+              </div>
 
-            <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50/70 p-2.5">
-              <button onClick={() => scrollToSection(activeSection, true)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
-                Edit Section
-              </button>
-              <button onClick={() => handleAIAction('Regenerate Section', 'generate_section')} disabled={aiLoading} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:opacity-60">
-                Regenerate Section
-              </button>
-              <button onClick={() => handleAIAction('Improve Section', 'improve')} disabled={aiLoading} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:opacity-60">
-                Improve Section
-              </button>
-            </div>
-
-            <div className="mt-4 border-t border-slate-100 pt-4">
-              <input
-                value={newSection}
-                onChange={(e) => setNewSection(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') addSection();
-                }}
-                placeholder="Add Section"
-                className="mb-2.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]"
-              />
-              <button onClick={addSection} className="btn btn-secondary w-full !px-3 !py-2.5 !text-sm !font-semibold">
-                Add Section
-              </button>
-            </div>
-          </aside>
+              <div className="mt-4 border-t border-slate-100 pt-4">
+                <input
+                  value={newSection}
+                  onChange={(e) => setNewSection(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') addSection();
+                  }}
+                  placeholder="Add Section"
+                  className="mb-2.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]"
+                />
+                <button onClick={addSection} className="btn btn-secondary w-full !px-3 !py-2.5 !text-sm !font-semibold">
+                  Add Section
+                </button>
+              </div>
+            </aside>
+          )}
 
           <section className="order-1 lg:order-2">
             <div className="overflow-hidden rounded-2xl border border-[#D4AF37]/50 bg-white shadow-[0_20px_45px_rgba(15,23,42,0.08)]">
@@ -621,7 +676,19 @@ export default function DraftPage() {
                   onInput={(e) => {
                     const next = e.currentTarget.innerHTML;
                     setText(next);
-                    setSectionContentMap((prev) => ({ ...prev, ...parseSectionsFromHtml(next, sections) }));
+                    const parsed = parseSectionsFromHtml(next, sections);
+                    const nextActiveBody = parsed[activeSection] || '';
+                    setSectionHistoryMap((prev) => {
+                      const currentBody = sectionContentMap[activeSection] || '';
+                      if (currentBody && currentBody !== nextActiveBody) {
+                        return {
+                          ...prev,
+                          [activeSection]: prev[activeSection] ? `${prev[activeSection]}\u0000${currentBody}` : currentBody,
+                        };
+                      }
+                      return prev;
+                    });
+                    setSectionContentMap((prev) => ({ ...prev, ...parsed }));
                   }}
                   onMouseUp={() => setSelectedText(window.getSelection()?.toString() || '')}
                   onKeyUp={() => setSelectedText(window.getSelection()?.toString() || '')}
@@ -648,10 +715,10 @@ export default function DraftPage() {
             <div className="mb-4">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Quick actions</p>
               <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => handleAIAction('Draft a Proposal', 'generate')} disabled={aiLoading} className="rounded-lg border border-slate-200 px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">Draft a Proposal</button>
-                <button onClick={() => handleAIAction('Improve a Section', 'improve')} disabled={aiLoading} className="rounded-lg border border-slate-200 px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">Improve a Section</button>
-                <button onClick={() => handleAIAction('Score My Draft', 'clarity')} disabled={aiLoading} className="rounded-lg border border-slate-200 px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">Score My Draft</button>
-                <button onClick={() => handleAIAction('Check Funder Fit', 'impact')} disabled={aiLoading} className="rounded-lg border border-slate-200 px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">Check Funder Fit</button>
+                <button onClick={() => handleAIAction('Rewrite', 'rewrite')} disabled={aiLoading} className="rounded-lg border border-slate-200 px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">Rewrite</button>
+                {isStarterPlus && (
+                  <button onClick={handleScoreDraft} disabled={aiLoading} className="rounded-lg border border-slate-200 px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">Score My Draft</button>
+                )}
               </div>
             </div>
 
@@ -672,33 +739,35 @@ export default function DraftPage() {
               </div>
             )}
 
-            <div className="space-y-5">
-              {AI_GROUPS.map((group) => (
-                <div key={group.title}>
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">{group.title}</p>
-                  <div className="space-y-2">
-                    {group.actions.map((item) => {
-                      const locked = item.requiresStarter && !isStarterPlus;
-                      return (
-                      <button
-                        key={item.label}
-                        onClick={() => !locked && handleAIAction(item.label, item.action)}
-                        title={locked ? item.lockedHint : undefined}
-                        disabled={locked || aiLoading}
-                        className={`w-full rounded-lg border px-3.5 py-2.5 text-left text-sm font-medium transition ${
-                          locked
-                            ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
-                            : 'border-slate-200 text-slate-700 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10'
-                        }`}
-                      >
-                        {aiLoading && activeAction === item.label ? 'Working...' : item.label}{locked ? ' (Starter)' : ''}
-                      </button>
-                      );
-                    })}
+            {isStarterPlus && (
+              <div className="space-y-5">
+                {AI_GROUPS.map((group) => (
+                  <div key={group.title}>
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">{group.title}</p>
+                    <div className="space-y-2">
+                      {group.actions.map((item) => {
+                        const locked = item.requiresStarter && !isStarterPlus;
+                        return (
+                        <button
+                          key={item.label}
+                          onClick={() => !locked && handleAIAction(item.label, item.action)}
+                          title={locked ? item.lockedHint : undefined}
+                          disabled={locked || aiLoading}
+                          className={`w-full rounded-lg border px-3.5 py-2.5 text-left text-sm font-medium transition ${
+                            locked
+                              ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
+                              : 'border-slate-200 text-slate-700 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10'
+                          }`}
+                        >
+                          {aiLoading && activeAction === item.label ? 'Working...' : item.label}{locked ? ' (Starter)' : ''}
+                        </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {aiError && (
               <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{aiError}</p>
@@ -711,7 +780,8 @@ export default function DraftPage() {
               <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{uploadError}</p>
             )}
 
-            <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs">
+            {isStarterPlus && (
+              <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs">
               <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
                 <span className="font-semibold text-slate-700">Grant Fit Score</span>
                 <span className="font-semibold text-[#003A8C]">Ready to Analyze</span>
@@ -730,7 +800,14 @@ export default function DraftPage() {
                   {isFunderReady ? `Yes (${readinessScore.toFixed(1)}/10)` : `Almost (${readinessScore.toFixed(1)}/10)`}
                 </span>
               </div>
-            </div>
+              {isStarterPlus && scoreState.score !== null && (
+                <div className="flex items-center justify-between rounded-lg border border-[#003A8C]/20 bg-white px-2.5 py-2">
+                  <span className="font-semibold text-slate-700">Latest Score</span>
+                  <span className="font-semibold text-[#003A8C]">{scoreState.label} ({scoreState.score}/100)</span>
+                </div>
+              )}
+              </div>
+            )}
 
             {canAccessGrantMatches && (
               <div className="mt-5 rounded-xl border border-[#D4AF37]/40 bg-[#FFFAEC] p-3.5 text-xs text-slate-700">

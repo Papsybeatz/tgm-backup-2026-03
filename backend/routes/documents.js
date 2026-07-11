@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const router = express.Router();
 const requireAuth = require('../middleware/auth');
+const { extractDocumentText } = require('../utils/extractDocumentText');
 
 const UPLOAD_DIR = path.join(__dirname, '../uploads');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -28,18 +29,36 @@ const upload = multer({
 });
 
 // POST /api/documents/upload
-router.post('/upload', requireAuth, upload.single('file'), (req, res) => {
+router.post('/upload', requireAuth, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
-  res.json({
-    success: true,
-    file: {
-      name: req.file.originalname,
-      filename: req.file.filename,
-      size: req.file.size,
-      mimetype: req.file.mimetype,
-      uploadedAt: new Date().toISOString(),
-    },
-  });
+
+  try {
+    const extractedText = await extractDocumentText(req.file.path);
+    res.json({
+      success: true,
+      file: {
+        name: req.file.originalname,
+        filename: req.file.filename,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
+        uploadedAt: new Date().toISOString(),
+      },
+      extractedText,
+    });
+  } catch (error) {
+    res.json({
+      success: true,
+      file: {
+        name: req.file.originalname,
+        filename: req.file.filename,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
+        uploadedAt: new Date().toISOString(),
+      },
+      extractedText: '',
+      message: 'Upload stored, but text extraction was limited for this file type.',
+    });
+  }
 });
 
 // GET /api/documents — list uploaded files for user session (in-memory for now)

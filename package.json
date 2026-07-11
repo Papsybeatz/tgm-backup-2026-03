@@ -32,8 +32,10 @@
     "framer-motion": "^12.38.0",
     "i18next": "^26.0.5",
     "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.12.0",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.5",
+    "pdf-parse": "^2.4.5",
     "pdfkit": "^0.19.1",
     "prisma": "^5.22.0",
     "react": "^19.2.5",
@@ -42,7 +44,8 @@
     "react-router-dom": "^7.14.1",
     "stripe": "^17.7.0",
     "uuid": "^13.0.0",
-    "validator": "^13.15.35"
+    "validator": "^13.15.35",
+    "word-extractor": "^1.0.4"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
