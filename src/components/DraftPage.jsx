@@ -124,6 +124,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [nowTs, setNowTs] = useState(Date.now());
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploadError, setUploadError] = useState('');
+  const [scoreState, setScoreState] = useState({ score: null, label: 'Not scored yet' });
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const syncEditorFromStateRef = useRef(false);
@@ -201,6 +202,8 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   }, [initialContent, isStarterPlus]);
 
   const canSave = text.trim().length > 0;
+  const readinessScore = words >= 900 ? 9.2 : words >= 550 ? 8.4 : words >= 300 ? 7.4 : 6.3;
+  const isFunderReady = readinessScore >= 8;
 
   const statusClass = {
     Draft: 'bg-slate-100 text-slate-700 border-slate-200',
@@ -391,6 +394,35 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     saveNow();
   };
 
+  const handleScoreDraft = async () => {
+    if (!isStarterPlus || !canSave) return;
+    setAiError('');
+    setAiLoading(true);
+    setActiveAction('Score My Draft');
+    try {
+      const token = getToken();
+      const res = await fetch('/api/score', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ content: text }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || 'Scoring failed');
+      }
+      setScoreState({ score: data.score, label: data.label });
+      setStatus(data.score >= 70 ? 'Ready' : 'In Progress');
+    } catch (error) {
+      setAiError(error?.message || 'Scoring failed. Please try again.');
+    } finally {
+      setAiLoading(false);
+      setActiveAction('');
+    }
+  };
+
   const downloadBlob = (blob, filename) => {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -562,6 +594,15 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
               >
                 Save Draft
               </button>
+              {isStarterPlus && (
+                <button
+                  onClick={handleScoreDraft}
+                  disabled={!canSave || aiLoading}
+                  className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {aiLoading && activeAction === 'Score My Draft' ? 'Scoring...' : 'Score My Draft'}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -737,6 +778,28 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
             )}
             {uploadError && (
               <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{uploadError}</p>
+            )}
+            {isStarterPlus && (
+              <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs">
+                <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                  <span className="font-semibold text-slate-700">Grant Fit Score</span>
+                  <span className="font-semibold text-[#003A8C]">{scoreState.score !== null ? `${scoreState.label} (${scoreState.score}/100)` : 'Ready to Analyze'}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                  <span className="font-semibold text-slate-700">Missing Components</span>
+                  <span className="font-semibold text-[#003A8C]">{words < 200 ? 'Too short' : 'Ready to Check'}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                  <span className="font-semibold text-slate-700">Compliance Check</span>
+                  <span className="font-semibold text-emerald-700">Enabled</span>
+                </div>
+                <div className={`flex items-center justify-between rounded-lg border px-2.5 py-2 ${isFunderReady ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+                  <span className="font-semibold text-slate-700">Funder Ready</span>
+                  <span className={`font-semibold ${isFunderReady ? 'text-emerald-700' : 'text-amber-700'}`}>
+                    {isFunderReady ? `Yes (${readinessScore.toFixed(1)}/10)` : `Almost (${readinessScore.toFixed(1)}/10)`}
+                  </span>
+                </div>
+              </div>
             )}
           </section>
         </div>
