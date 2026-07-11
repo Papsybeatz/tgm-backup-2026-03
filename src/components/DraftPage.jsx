@@ -103,15 +103,6 @@ function buildHtmlFromSections(sectionMap = {}, sectionNames = []) {
   return blocks.join('\n\n').trim();
 }
 
-  const AI_GROUPS = [
-  {
-    title: 'Rewrite Tools',
-    actions: [
-      { label: 'Rewrite', action: 'rewrite' },
-    ],
-  },
-];
-
 export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 'Untitled Draft', initialContent = '' } = {}) {
   const [text, setText] = useState(initialContent || '');
   const [ideaInput, setIdeaInput] = useState('');
@@ -123,20 +114,16 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [sectionContentMap, setSectionContentMap] = useState(() => createEmptySectionMap(initialContent && initialContent.trim() ? STARTER_SECTIONS : FREE_SECTIONS));
   const [sectionHistoryMap, setSectionHistoryMap] = useState(() => createEmptySectionMap(initialContent && initialContent.trim() ? STARTER_SECTIONS : FREE_SECTIONS));
   const [activeAction, setActiveAction] = useState('');
-  const [showLockedDrawer, setShowLockedDrawer] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
   const { user } = useUser() || {};
   const tier = user?.tier || 'free';
   const isStarterPlus = tierAtLeast(tier, 'starter');
-  const firstName = (user?.name || user?.email || 'there').split('@')[0].split(/[._\s-]+/)[0];
-  const displayName = firstName ? `${firstName.charAt(0).toUpperCase()}${firstName.slice(1)}` : 'there';
   const [status, setStatus] = useState('Draft');
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploadError, setUploadError] = useState('');
-  const [scoreState, setScoreState] = useState({ score: null, label: 'Not scored yet' });
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const syncEditorFromStateRef = useRef(false);
@@ -203,10 +190,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     setText(buildHtmlFromSections(merged, sourceSections));
   }, [initialContent, isStarterPlus]);
 
-  const canAccessGrantMatches = isStarterPlus;
   const canSave = text.trim().length > 0;
-  const readinessScore = words >= 900 ? 9.2 : words >= 550 ? 8.4 : words >= 300 ? 7.4 : 6.3;
-  const isFunderReady = readinessScore >= 8;
 
   const statusClass = {
     Draft: 'bg-slate-100 text-slate-700 border-slate-200',
@@ -377,56 +361,6 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
       setAiLoading(false);
     }
   };
-
-  const handleScoreDraft = async () => {
-    if (!isStarterPlus) return;
-    setAiError('');
-    setAiLoading(true);
-    setActiveAction('Score My Draft');
-    try {
-      const token = getToken();
-      const res = await fetch('/api/score', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ content: text }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data?.success) {
-        throw new Error(data?.message || 'Scoring failed');
-      }
-      setScoreState({ score: data.score, label: data.label });
-      setStatus(data.score >= 70 ? 'Ready' : 'In Progress');
-    } catch (error) {
-      setAiError(error?.message || 'Scoring failed. Please try again.');
-    } finally {
-      setAiLoading(false);
-      setActiveAction('');
-    }
-  };
-
-  useEffect(() => {
-    const handleWorkspaceAction = (event) => {
-      const action = event?.detail?.action;
-      if (action === 'rewrite') {
-        handleAIAction('Rewrite', 'rewrite');
-      }
-      if (action === 'generate_section') {
-        handleAIAction('Regenerate Section', 'generate_section');
-      }
-      if (action === 'improve') {
-        handleAIAction('Improve Section', 'improve');
-      }
-      if (action === 'score') {
-        handleScoreDraft();
-      }
-    };
-
-    window.addEventListener('tgm:workspace-ai-action', handleWorkspaceAction);
-    return () => window.removeEventListener('tgm:workspace-ai-action', handleWorkspaceAction);
-  }, [handleAIAction, handleScoreDraft]);
 
   const savedAgo = useMemo(() => {
     if (!lastSavedAt) return 'Not yet';
@@ -621,7 +555,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
             </div>
           </div>
         </div>
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-4 py-6 md:px-6 lg:grid-cols-[230px_1fr_300px]">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-4 py-6 md:px-6 lg:grid-cols-[230px_1fr]">
           {isStarterPlus && (
             <aside className="order-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:order-1">
               <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Sections</div>
@@ -654,12 +588,6 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
               <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50/70 p-2.5">
                 <button onClick={() => scrollToSection(activeSection, true)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
                   Edit Section
-                </button>
-                <button onClick={() => handleAIAction('Regenerate Section', 'generate_section')} disabled={aiLoading} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:opacity-60">
-                  Regenerate Section
-                </button>
-                <button onClick={() => handleAIAction('Improve Section', 'improve')} disabled={aiLoading} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:opacity-60">
-                  Improve Section
                 </button>
                 <button onClick={() => undoSection(activeSection)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
                   UNDO
@@ -791,165 +719,18 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 <span>{characters} characters</span>
               </div>
             </div>
-          </section>
-
-          <aside className="order-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3.5">
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#0A0F1A]">AI Assistant</h2>
-              <span className="text-xs text-slate-400">{aiLoading ? `Working: ${activeAction}` : activeAction || 'Ready'}</span>
-            </div>
-
-            <div className="mb-3 rounded-lg border border-[#003A8C]/20 bg-[#EFF6FF] px-3 py-2 text-xs font-medium text-[#003A8C]">
-              Hi {displayName} - I'm Steve, your drafting assistant. Ready when you are.
-            </div>
-
-            <div className="mb-4">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Quick actions</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => handleAIAction('Rewrite', 'rewrite')} disabled={aiLoading} className="rounded-lg border border-slate-200 px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">Rewrite</button>
-                {isStarterPlus && (
-                  <button onClick={handleScoreDraft} disabled={aiLoading} className="rounded-lg border border-slate-200 px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">Score My Draft</button>
-                )}
-              </div>
-            </div>
-
-            {tier === 'free' && (
-              <div className="mb-3 rounded-lg border border-[#003A8C]/20 bg-[#003A8C]/5 px-2.5 py-1.5 text-[11px] font-semibold text-[#003A8C]">
-                Basic AI Tools (Free Tier)
-              </div>
-            )}
-
-            {tier === 'free' && (
-              <div className="mb-4 flex justify-end">
-                <a
-                  href="/upgrade"
-                  className="rounded-[8px] bg-[#D4AF37] px-3.5 py-2 text-xs font-semibold text-[#003A8C] shadow-sm border-0 transition hover:brightness-95"
-                >
-                  Upgrade to Starter
-                </a>
-              </div>
-            )}
-
-            {isStarterPlus && (
-              <div className="space-y-5">
-                {AI_GROUPS.map((group) => (
-                  <div key={group.title}>
-                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">{group.title}</p>
-                    <div className="space-y-2">
-                      {group.actions.map((item) => {
-                        const locked = item.requiresStarter && !isStarterPlus;
-                        return (
-                        <button
-                          key={item.label}
-                          onClick={() => !locked && handleAIAction(item.label, item.action)}
-                          title={locked ? item.lockedHint : undefined}
-                          disabled={locked || aiLoading}
-                          className={`w-full rounded-lg border px-3.5 py-2.5 text-left text-sm font-medium transition ${
-                            locked
-                              ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
-                              : 'border-slate-200 text-slate-700 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10'
-                          }`}
-                        >
-                          {aiLoading && activeAction === item.label ? 'Working...' : item.label}{locked ? ' (Starter)' : ''}
-                        </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
             {aiError && (
               <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{aiError}</p>
             )}
-
             {uploadStatus && (
               <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{uploadStatus}</p>
             )}
             {uploadError && (
               <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{uploadError}</p>
             )}
-
-            {isStarterPlus && (
-              <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs">
-              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
-                <span className="font-semibold text-slate-700">Grant Fit Score</span>
-                <span className="font-semibold text-[#003A8C]">Ready to Analyze</span>
-              </div>
-              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
-                <span className="font-semibold text-slate-700">Missing Components</span>
-                <span className="font-semibold text-[#003A8C]">Ready to Check</span>
-              </div>
-              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
-                <span className="font-semibold text-slate-700">Compliance Check</span>
-                <span className="font-semibold text-emerald-700">Enabled</span>
-              </div>
-              <div className={`flex items-center justify-between rounded-lg border px-2.5 py-2 ${isFunderReady ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
-                <span className="font-semibold text-slate-700">Funder Ready</span>
-                <span className={`font-semibold ${isFunderReady ? 'text-emerald-700' : 'text-amber-700'}`}>
-                  {isFunderReady ? `Yes (${readinessScore.toFixed(1)}/10)` : `Almost (${readinessScore.toFixed(1)}/10)`}
-                </span>
-              </div>
-              {isStarterPlus && scoreState.score !== null && (
-                <div className="flex items-center justify-between rounded-lg border border-[#003A8C]/20 bg-white px-2.5 py-2">
-                  <span className="font-semibold text-slate-700">Latest Score</span>
-                  <span className="font-semibold text-[#003A8C]">{scoreState.label} ({scoreState.score}/100)</span>
-                </div>
-              )}
-              </div>
-            )}
-
-            {canAccessGrantMatches && (
-              <div className="mt-5 rounded-xl border border-[#D4AF37]/40 bg-[#FFFAEC] p-3.5 text-xs text-slate-700">
-                <p className="font-semibold text-[#0A0F1A]">Grant Matches</p>
-                <p className="mt-1">Available on your plan. Run matching from your premium tools.</p>
-              </div>
-            )}
-
-            <button onClick={() => setShowLockedDrawer(true)} className="btn btn-secondary mt-5 w-full !px-3 !py-2.5 !text-sm !font-medium !text-slate-600 hover:!text-[#0A0F1A]">
-              Upgrade for Advanced Tools
-            </button>
-
-            {draftId && (
-              <p className="mt-3 text-[11px] text-slate-400">Draft ID: {draftId}</p>
-            )}
-          </aside>
+          </section>
         </div>
       </div>
-
-      {showLockedDrawer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <h3 className="text-base font-semibold text-[#0A0F1A]">Upgrade to unlock</h3>
-              <button
-                onClick={() => setShowLockedDrawer(false)}
-                className="rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:border-slate-300"
-              >
-                Close
-              </button>
-            </div>
-
-            <ul className="space-y-2.5 text-sm text-slate-700">
-              <li>Scoring</li>
-              <li>Funder Matching</li>
-              <li>Full AI Drafting</li>
-              <li>Templates Library</li>
-              <li>Multi-Section Generation</li>
-              <li>Reviewer Engine</li>
-              <li>Team Workspace</li>
-            </ul>
-
-            <a
-              href="/upgrade"
-              className="mt-4 block rounded-lg bg-[#0A0F1A] px-4 py-2 text-center text-sm font-semibold text-[#D4AF37]"
-            >
-              See Upgrade Options
-            </a>
-          </div>
-        </div>
-      )}
     </WorkspaceLayout>
   );
 }
