@@ -182,12 +182,22 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     if (!initialContent || !initialContent.trim()) return;
     const sourceSections = isStarterPlus ? STARTER_SECTIONS : FREE_SECTIONS;
     const parsed = parseSectionsFromHtml(initialContent, sourceSections);
-    const merged = Object.keys(parsed).length ? parsed : createEmptySectionMap(sourceSections);
+    const normalizedInitial = normalizeAiHtml(initialContent);
+    const hasParsedSectionContent = sourceSections.some((section) => {
+      const value = parsed[section] || '';
+      return stripHtml(value).length > 0;
+    });
+    const merged = hasParsedSectionContent
+      ? parsed
+      : {
+          ...createEmptySectionMap(sourceSections),
+          [sourceSections[0]]: normalizedInitial,
+        };
     setSections(sourceSections);
     setActiveSection(sourceSections[0]);
     setSectionContentMap(merged);
     syncEditorFromStateRef.current = true;
-    setText(buildHtmlFromSections(merged, sourceSections));
+    setText(hasParsedSectionContent ? buildHtmlFromSections(merged, sourceSections) : normalizedInitial);
   }, [initialContent, isStarterPlus]);
 
   const canSave = text.trim().length > 0;
