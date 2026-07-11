@@ -6,8 +6,14 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
   const [saved, setSaved] = useState(false);
   const [currentDraftId, setCurrentDraftId] = useState(draftId || null);
   const timer = useRef();
-  const lastPayload = useRef({});
+  const lastQueuedPayload = useRef(null);
+  const lastSavedPayload = useRef(null);
+  const pendingSave = useRef(false);
   const { token } = useAuth();
+
+  useEffect(() => {
+    if (draftId) setCurrentDraftId(draftId);
+  }, [draftId]);
 
   // Save draft function
   const saveDraft = async (payload) => {
@@ -26,24 +32,32 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
         const data = await res.json();
         const newId = data?.draft?.id || null;
         if (newId) setCurrentDraftId(newId);
+        lastSavedPayload.current = payload;
         setSaved(true);
       } else {
         console.warn('[useAutosave] save failed', res && res.status);
       }
     } catch {}
+    pendingSave.current = false;
     setSaving(false);
   };
 
   const saveNow = () => {
     if (!token || !content) return;
     const payload = { title, content };
-    if (JSON.stringify(payload) === JSON.stringify(lastPayload.current)) {
-      // No-op when payload hasn't changed since last queued save.
+
+    // If no changes exist beyond the last successful save, do nothing.
+    if (
+      !pendingSave.current &&
+      JSON.stringify(payload) === JSON.stringify(lastSavedPayload.current)
+    ) {
       setSaved(true);
       return;
     }
-    lastPayload.current = payload;
+
     if (timer.current) clearTimeout(timer.current);
+    pendingSave.current = true;
+    lastQueuedPayload.current = payload;
     saveDraft(payload);
   };
 
@@ -51,12 +65,23 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
   useEffect(() => {
     if (!token || !content) return;
     const payload = { title, content };
-    if (JSON.stringify(payload) === JSON.stringify(lastPayload.current)) return;
-    lastPayload.current = payload;
+
+    // Avoid redundant scheduling when this exact payload is already queued/saved.
+    if (
+      JSON.stringify(payload) === JSON.stringify(lastQueuedPayload.current) ||
+      JSON.stringify(payload) === JSON.stringify(lastSavedPayload.current)
+    ) {
+      return;
+    }
+
+    lastQueuedPayload.current = payload;
+    pendingSave.current = true;
     setSaved(false);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => saveDraft(payload), debounceMs);
-    return () => clearTimeout(timer.current);
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
     // eslint-disable-next-line
   }, [content, title, token]);
 
