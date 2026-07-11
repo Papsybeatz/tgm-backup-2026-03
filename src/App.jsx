@@ -37,7 +37,7 @@ import BlueprintHTML from './pages/lead-magnet/grant-workflow-blueprint/Blueprin
 
 // Layout + guards
 import AppLayout from './components/AppLayout';
-import { RequireAuth, RequireOnboarding, AdminGuard } from './components/ProtectedRoute';
+import { RequireAuth, RequireOnboarding, AdminGuard, FounderGuard } from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -77,8 +77,8 @@ function App() {
                 <Route path="/dashboard"  element={<RequireOnboarding><UnifiedDashboard /></RequireOnboarding>} />
                 <Route path="/clients" element={<RequireOnboarding><ClientsPage /></RequireOnboarding>} />
                 <Route path="/clients/:id" element={<RequireOnboarding><ClientWorkspacePage /></RequireOnboarding>} />
-                <Route path="/scott" element={<RequireOnboarding><ScottDistributionPage /></RequireOnboarding>} />
-                <Route path="/admin/monitoring" element={<AdminGuard><MonitoringDashboard /></AdminGuard>} />
+                <Route path="/scott" element={<RequireOnboarding><FounderGuard><ScottDistributionPage /></FounderGuard></RequireOnboarding>} />
+                <Route path="/admin/monitoring" element={<RequireOnboarding><FounderGuard><MonitoringDashboard /></FounderGuard></RequireOnboarding>} />
                 <Route path="/admin/billing" element={<AdminGuard><AdminBillingPage /></AdminGuard>} />
                 <Route path="/lead-magnet/grant-workflow-blueprint" element={<GrantWorkflowBlueprintPage />} />
                 <Route path="/lead-magnet/grant-workflow-blueprint/success" element={<GrantWorkflowBlueprintSuccess />} />

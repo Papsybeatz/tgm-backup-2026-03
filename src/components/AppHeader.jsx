@@ -345,14 +345,6 @@ function DashboardNav({ isFreeTier }) {
         onMouseOver={e => e.currentTarget.style.color = '#fff'}
         onMouseOut={e => e.currentTarget.style.color = isActive('/clients') ? '#D4AF37' : 'rgba(255,255,255,0.75)'}
       >Clients</Link>
-      <Link to="/scott" style={{
-        color: isActive('/scott') ? '#D4AF37' : 'rgba(255,255,255,0.75)',
-        fontWeight: isActive('/scott') ? 700 : 400,
-        textDecoration: 'none', transition: 'color .15s',
-      }}
-        onMouseOver={e => e.currentTarget.style.color = '#fff'}
-        onMouseOut={e => e.currentTarget.style.color = isActive('/scott') ? '#D4AF37' : 'rgba(255,255,255,0.75)'}
-      >Scott</Link>
       <DraftsDropdown />
     </nav>
   );

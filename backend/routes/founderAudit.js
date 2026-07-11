@@ -1,10 +1,11 @@
 // backend/routes/founderAudit.js
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const requireAuth = require('../middleware/auth');
 const prisma = new PrismaClient();
 const router = express.Router();
 
-const FOUNDER_EMAIL = process.env.FOUNDER_EMAIL || 'founder@grantsmaster.app';
+const FOUNDER_EMAIL = (process.env.FOUNDER_EMAIL || 'clotteythomas41@gmail.com').toLowerCase();
 
 // Dummy helpers for logs/events (replace with real DB queries if available)
 async function getErrorsLast24h() {
@@ -36,11 +37,26 @@ async function getDraftsLast24h() {
 // Access control middleware
 function founderOrAdmin(req, res, next) {
   const user = req.user;
-  if (!user || (user.role !== 'admin' && user.email !== FOUNDER_EMAIL)) {
+  if (!user || (user.role !== 'admin' && String(user.email || '').toLowerCase() !== FOUNDER_EMAIL)) {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
   next();
 }
+
+function founderOnly(req, res, next) {
+  const email = String(req.user?.email || '').toLowerCase();
+  if (email !== FOUNDER_EMAIL) {
+    return res.status(403).json({ success: false, message: 'Founder only' });
+  }
+  next();
+}
+
+router.use(requireAuth);
+
+// GET /api/founder/scott-access
+router.get('/scott-access', founderOnly, (req, res) => {
+  res.json({ success: true, allowed: true, email: req.user.email });
+});
 
 // GET /api/founder/audit
 router.get('/audit', founderOrAdmin, async (req, res) => {

@@ -122,7 +122,7 @@ function buildReply({ intent, message, session }) {
     case 'new_york_help':
       return `For New York grant work, start with fit, deadline, and proof. Current NY-focused examples in TGM include:\n\n- ${NY_OPPORTUNITIES.join('\n- ')}\n\nIf you are drafting, tell me your organization type, borough or service area, target population, program goal, budget range, and deadline.`;
     case 'scott_distribution':
-      return `Scott runs TGM distribution through three funnels: ${SCOTT_FUNNELS.join(', ')}.\n\nDaily operating system:\n- ${SCOTT_DAILY.join('\n- ')}\n\nWeekly operating system:\n- ${SCOTT_WEEKLY.join('\n- ')}\n\nThe strongest conversion CTA is Lifetime Access: limited spots, Pro forever, with NY and consultant-specific urgency. Open /scott for the full operating dashboard.`;
+      return `Scott runs TGM distribution through three funnels: ${SCOTT_FUNNELS.join(', ')}.\n\nDaily operating system:\n- ${SCOTT_DAILY.join('\n- ')}\n\nWeekly operating system:\n- ${SCOTT_WEEKLY.join('\n- ')}\n\nThe strongest conversion CTA is Lifetime Access: limited spots, Pro forever, with NY and consultant-specific urgency.`;
     default:
       return 'I can help with grant drafting, editing, funding readiness, funder positioning, submission prep, or upgrade questions. What are you trying to get done right now?';
   }

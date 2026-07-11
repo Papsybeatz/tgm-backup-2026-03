@@ -73,6 +73,7 @@ export function TierRoute({ allowedTiers, children }) {
  * Shows nothing while loading to prevent false redirects.
  */
 const ADMIN_EMAIL = 'clotteythomas41@gmail.com';
+const FOUNDER_EMAIL = 'clotteythomas41@gmail.com';
 
 export function AdminGuard({ children }) {
   const [status, setStatus] = useState('loading'); // 'loading' | 'allowed' | 'denied'
@@ -100,6 +101,59 @@ export function AdminGuard({ children }) {
 
   if (status === 'loading') return null;
   if (status === 'denied') return <Navigate to="/login" replace />;
+  return children;
+}
+
+/**
+ * FounderGuard — strict founder-only access backed by server session validation.
+ * Redirects non-founder users to /dashboard.
+ */
+export function FounderGuard({ children }) {
+  const [status, setStatus] = useState('loading'); // 'loading' | 'allowed' | 'denied'
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const verifyFounderAccess = async () => {
+      const token = localStorage.getItem('token');
+      const userRaw = localStorage.getItem('user');
+
+      if (!token || !userRaw) {
+        if (isMounted) setStatus('denied');
+        return;
+      }
+
+      try {
+        const user = JSON.parse(userRaw);
+        const localEmail = String(user?.email || '').toLowerCase();
+        if (localEmail !== FOUNDER_EMAIL.toLowerCase()) {
+          if (isMounted) setStatus('denied');
+          return;
+        }
+
+        const res = await fetch('/api/founder/scott-access', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!isMounted) return;
+        if (res.ok) {
+          setStatus('allowed');
+        } else {
+          setStatus('denied');
+        }
+      } catch {
+        if (isMounted) setStatus('denied');
+      }
+    };
+
+    verifyFounderAccess();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (status === 'loading') return null;
+  if (status === 'denied') return <Navigate to="/dashboard" replace />;
   return children;
 }
 
