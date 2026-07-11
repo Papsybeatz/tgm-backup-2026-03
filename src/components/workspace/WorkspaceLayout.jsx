@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Topbar from './Topbar';
 import Sidebar from './Sidebar';
-import AIAssistant from './AIAssistant';
 
 export default function WorkspaceLayout({
   children,
@@ -10,8 +9,6 @@ export default function WorkspaceLayout({
   saved,
   wordCount = 0,
   readingTime = 0,
-  onAIAction,
-  aiLoading,
   onUploadImported,
 }) {
   const [activeSection, setActiveSection] = useState('Executive Summary');
@@ -41,8 +38,6 @@ export default function WorkspaceLayout({
           {children}
         </main>
 
-        {/* Right sidebar — AI assistant */}
-        <AIAssistant onAction={onAIAction} loading={aiLoading} />
       </div>
 
       {/* Status bar */}
