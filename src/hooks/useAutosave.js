@@ -27,11 +27,13 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
     setSaving(true);
     setSaved(false);
     setSaveError('');
+    let success = false;
     try {
       const authToken = getAuthToken();
       if (!authToken) {
         setSaveError('You are signed out. Please log in again to save.');
-        return false;
+        success = false;
+        return success;
       }
       const headers = { 'Content-Type': 'application/json' };
       if (authToken) headers.Authorization = `Bearer ${authToken}`;
@@ -47,19 +49,22 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
         if (newId) setCurrentDraftId(newId);
         lastSavedPayload.current = payload;
         setSaved(true);
-        return true;
+        success = true;
+        return success;
       } else {
         setSaveError('Save failed. Please try again.');
         console.warn('[useAutosave] save failed', res && res.status);
-        return false;
+        success = false;
+        return success;
       }
     } catch {
       setSaveError('Network error while saving. Please try again.');
-      return false;
+      success = false;
+      return success;
+    } finally {
+      pendingSave.current = false;
+      setSaving(false);
     }
-    pendingSave.current = false;
-    setSaving(false);
-    return false;
   };
 
   const saveNow = async () => {
