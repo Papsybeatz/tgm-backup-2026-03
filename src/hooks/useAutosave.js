@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import useAuth from './useAuth';
 import { apiUrl } from '../lib/apiUrl';
 
-export default function useAutosave({ content, title, draftId, debounceMs = 700 }) {
+export default function useAutosave({ content, title, draftId, debounceMs = 700, enabled = true }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -22,6 +22,12 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
   useEffect(() => {
     if (draftId) setCurrentDraftId(draftId);
   }, [draftId]);
+
+  useEffect(() => {
+    if (enabled) return;
+    if (timer.current) clearTimeout(timer.current);
+    pendingSave.current = false;
+  }, [enabled]);
 
   // Save draft function
   const saveDraft = async (payload) => {
@@ -90,6 +96,10 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
   };
 
   const saveNow = async (options = {}) => {
+    if (!enabled && !options.force) {
+      setSaveError('Draft is still loading. Please try again in a moment.');
+      return false;
+    }
     const authToken = getAuthToken();
     if (!authToken) {
       setSaveError('You are signed out. Please log in again to save.');
@@ -119,6 +129,7 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
 
   // Debounced autosave on content/title/email change
   useEffect(() => {
+    if (!enabled) return;
     const authToken = getAuthToken();
     if (!authToken) return;
     const payload = { title: title || '', content: content || '' };
@@ -140,7 +151,7 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
       if (timer.current) clearTimeout(timer.current);
     };
     // eslint-disable-next-line
-  }, [content, title, token]);
+  }, [content, title, token, enabled]);
 
   // Save on blur
   const onBlur = () => {

@@ -127,11 +127,13 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploadError, setUploadError] = useState('');
   const [scoreState, setScoreState] = useState({ score: null, label: 'Not scored yet' });
+  const [isHydrated, setIsHydrated] = useState(false);
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const syncEditorFromStateRef = useRef(false);
+  const hydrationPendingRef = useRef(false);
 
-  const { saving, saved, saveError, draftId, onBlur, saveNow } = useAutosave({ content: text, title, draftId: draftIdProp, debounceMs: 1500 });
+  const { saving, saved, saveError, draftId, onBlur, saveNow } = useAutosave({ content: text, title, draftId: draftIdProp, debounceMs: 1500, enabled: isHydrated });
 
   const words = useMemo(() => {
     const trimmed = text.trim();
@@ -171,6 +173,10 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
       editorRef.current.innerHTML = text;
     }
     syncEditorFromStateRef.current = false;
+    if (hydrationPendingRef.current) {
+      hydrationPendingRef.current = false;
+      setIsHydrated(true);
+    }
   }, [text]);
 
   useEffect(() => {
@@ -182,25 +188,46 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   }, [isStarterPlus]);
 
   useEffect(() => {
-    if (!initialContent || !initialContent.trim()) return;
-    const sourceSections = isStarterPlus ? STARTER_SECTIONS : FREE_SECTIONS;
-    const parsed = parseSectionsFromHtml(initialContent, sourceSections);
-    const normalizedInitial = normalizeAiHtml(initialContent);
-    const hasParsedSectionContent = sourceSections.some((section) => {
+    const nextSections = isStarterPlus ? STARTER_SECTIONS : FREE_SECTIONS;
+    const emptyMap = createEmptySectionMap(nextSections);
+    const hasInitialContent = Boolean(initialContent && initialContent.trim());
+    const normalizedInitial = hasInitialContent ? normalizeAiHtml(initialContent) : '';
+    const parsed = hasInitialContent ? parseSectionsFromHtml(initialContent, nextSections) : emptyMap;
+    const hasParsedSectionContent = hasInitialContent && nextSections.some((section) => {
       const value = parsed[section] || '';
       return stripHtml(value).length > 0;
     });
-    const merged = hasParsedSectionContent
-      ? parsed
-      : {
-          ...createEmptySectionMap(sourceSections),
-          [sourceSections[0]]: normalizedInitial,
-        };
-    setSections(sourceSections);
-    setActiveSection(sourceSections[0]);
+    const merged = hasInitialContent
+      ? (
+          hasParsedSectionContent
+            ? parsed
+            : { ...emptyMap, [nextSections[0]]: normalizedInitial }
+        )
+      : emptyMap;
+    const nextText = hasInitialContent
+      ? (hasParsedSectionContent ? buildHtmlFromSections(merged, nextSections) : normalizedInitial)
+      : '';
+
+    setIsHydrated(false);
+    hydrationPendingRef.current = true;
+    setSections(nextSections);
+    setActiveSection(nextSections[0]);
     setSectionContentMap(merged);
+    setSectionHistoryMap(emptyMap);
     syncEditorFromStateRef.current = true;
-    setText(hasParsedSectionContent ? buildHtmlFromSections(merged, sourceSections) : normalizedInitial);
+    setText(nextText);
+
+    const hydrateTimer = window.setTimeout(() => {
+      if (!hydrationPendingRef.current) return;
+      if (editorRef.current && editorRef.current.innerHTML !== nextText) {
+        editorRef.current.innerHTML = nextText;
+      }
+      syncEditorFromStateRef.current = false;
+      hydrationPendingRef.current = false;
+      setIsHydrated(true);
+    }, 0);
+
+    return () => window.clearTimeout(hydrateTimer);
   }, [initialContent, isStarterPlus]);
 
   const canSave = text.trim().length > 0;
@@ -403,6 +430,11 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const sectionIcons = ['📝', '📄', '📌', '🧭', '📊', '✅', '💡'];
 
   const handleManualSave = async () => {
+    if (!isHydrated) {
+      setManualSaveNote('Draft is still loading...');
+      window.setTimeout(() => setManualSaveNote(''), 1500);
+      return;
+    }
     setManualSaveNote('Saving...');
     const liveHtml = editorRef.current?.innerHTML ?? text;
     setText(liveHtml);
