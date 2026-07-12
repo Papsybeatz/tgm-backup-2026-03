@@ -283,6 +283,17 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     }
   };
 
+  useEffect(() => {
+    if (!isStarterPlus || !activeSection) return;
+    if (!sections.includes(activeSection)) return;
+    const timer = window.setTimeout(() => scrollToSection(activeSection, true), 60);
+    return () => window.clearTimeout(timer);
+  }, [activeSection, isStarterPlus, sections]);
+
+  const handleSectionClick = (section) => {
+    setActiveSection(section);
+  };
+
   const updateSectionAndEditor = (nextMap) => {
     const merged = { ...createEmptySectionMap(sections), ...nextMap };
     const compiled = buildHtmlFromSections(merged, sections);
@@ -630,10 +641,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 {sections.map((section, index) => (
                   <button
                     key={section}
-                    onClick={() => {
-                      setActiveSection(section);
-                      window.setTimeout(() => scrollToSection(section, true), 60);
-                    }}
+                    onClick={() => handleSectionClick(section)}
                     className={`w-full rounded-lg px-3 py-2.5 text-left text-sm transition ${
                       activeSection === section
                         ? 'bg-[#003A8C]/10 font-semibold text-[#003A8C] border-l-4 border-l-[#003A8C] border-y border-r border-[#003A8C]/20'
