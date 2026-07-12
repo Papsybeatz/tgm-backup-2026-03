@@ -80,6 +80,29 @@ function parseSectionsFromHtml(html = '', sectionNames = []) {
   const result = createEmptySectionMap(sectionNames);
   if (!normalized) return result;
 
+  const doc = new window.DOMParser().parseFromString(normalized, 'text/html');
+  const headings = Array.from(doc.body.querySelectorAll('h2'));
+  if (headings.length) {
+    sectionNames.forEach((section, index) => {
+      const startHeading = headings[index];
+      if (!startHeading) return;
+      const endHeading = headings[index + 1] || null;
+      let cursor = startHeading.nextSibling;
+      let chunk = '';
+      while (cursor && cursor !== endHeading) {
+        if (cursor.nodeType === Node.ELEMENT_NODE) {
+          chunk += cursor.outerHTML;
+        } else if (cursor.nodeType === Node.TEXT_NODE) {
+          const text = (cursor.textContent || '').trim();
+          if (text) chunk += `<p>${text}</p>`;
+        }
+        cursor = cursor.nextSibling;
+      }
+      result[section] = chunk.trim();
+    });
+    return result;
+  }
+
   sectionNames.forEach((section, index) => {
     const currentHeading = escapeRegex(section);
     const remaining = sectionNames.slice(index + 1).map((s) => escapeRegex(s)).join('|');
@@ -295,7 +318,10 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const scrollToSection = (section, focusEditor = false) => {
     if (!editorRef.current) return;
     const headings = Array.from(editorRef.current.querySelectorAll('h2'));
-    const target = headings.find((h) => (h.textContent || '').trim().toLowerCase() === section.toLowerCase());
+    const sectionIndex = sections.indexOf(section);
+    const targetByIndex = sectionIndex >= 0 ? headings[sectionIndex] : null;
+    const targetByText = headings.find((h) => (h.textContent || '').trim().toLowerCase() === section.toLowerCase());
+    const target = targetByIndex || targetByText;
     if (target) {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       if (focusEditor) {
@@ -811,7 +837,16 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                       }
                       return prev;
                     });
-                    setSectionContentMap((prev) => ({ ...prev, ...parsed }));
+                    setSectionContentMap((prev) => {
+                      const merged = { ...prev };
+                      sections.forEach((section) => {
+                        const nextBody = parsed[section];
+                        if (nextBody !== undefined) {
+                          merged[section] = nextBody;
+                        }
+                      });
+                      return merged;
+                    });
                   }}
                   onMouseUp={() => setSelectedText(window.getSelection()?.toString() || '')}
                   onKeyUp={() => setSelectedText(window.getSelection()?.toString() || '')}
