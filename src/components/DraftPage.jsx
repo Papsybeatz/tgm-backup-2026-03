@@ -573,6 +573,11 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     dispatchWorkspace({ type: 'SET_ACTIVE_SECTION', payload: { section } });
   };
 
+  const undoSection = (section) => {
+    syncEditorFromStateRef.current = true;
+    dispatchWorkspace({ type: 'UNDO_SECTION', payload: { section } });
+  };
+
   const handleToggleDoc = (docId) => {
     setSupportingDocs((prev) => toggleDocReducer(prev, docId));
   };
@@ -889,19 +894,23 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   Download PDF
                 </button>
               )}
-              <button
-                onClick={handleDownloadDocx}
-                disabled={!draftId}
-                className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Download DOCX
-              </button>
-              <button
-                onClick={handleDownloadTxt}
-                className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
-              >
-                Download TXT
-              </button>
+              {isStarterPlus && (
+                <button
+                  onClick={handleDownloadDocx}
+                  disabled={!draftId}
+                  className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Download DOCX
+                </button>
+              )}
+              {isStarterPlus && (
+                <button
+                  onClick={handleDownloadTxt}
+                  className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
+                >
+                  Download TXT
+                </button>
+              )}
               <button
                 onClick={handleUploadDraft}
                 title="Google Drive Picker requires OAuth setup and can be enabled on request."
@@ -995,6 +1004,9 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 <button onClick={() => scrollToSection(activeSection, true)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
                   Edit Section
                 </button>
+                <button onClick={() => undoSection(activeSection)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
+                  UNDO
+                </button>
               </div>
 
               <div className="mt-4 border-t border-slate-100 pt-4">
@@ -1057,6 +1069,24 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 </div>
 
                 <h3 className="mb-3 text-base font-semibold text-[#0A0F1A]">{activeSection}</h3>
+                <div className="mb-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleAIAction('Regenerate Section', 'generate_section')}
+                    disabled={aiLoading}
+                    className="rounded-full border border-[#003A8C]/30 bg-white px-3 py-1.5 text-[11px] font-semibold text-[#003A8C] transition hover:bg-[#003A8C]/5 disabled:opacity-60"
+                  >
+                    {aiLoading && activeAction === 'Regenerate Section' ? 'Regenerating...' : 'Regenerate Section'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAIAction('Improve Section', 'rewrite')}
+                    disabled={aiLoading}
+                    className="rounded-full border border-[#003A8C]/30 bg-white px-3 py-1.5 text-[11px] font-semibold text-[#003A8C] transition hover:bg-[#003A8C]/5 disabled:opacity-60"
+                  >
+                    {aiLoading && activeAction === 'Improve Section' ? 'Improving...' : 'Improve Section'}
+                  </button>
+                </div>
                 <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                   <div className="mb-2 flex items-center justify-between">
                     <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Draft Metadata</p>
