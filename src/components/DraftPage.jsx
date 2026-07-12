@@ -295,11 +295,16 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploadError, setUploadError] = useState('');
   const [scoreState, setScoreState] = useState({ score: null, label: 'Not scored yet' });
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const [isHydrated, setIsHydrated] = useState(false);
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const syncEditorFromStateRef = useRef(false);
   const hydrationPendingRef = useRef(false);
+  const historyRef = useRef([]);
+  const historyIndexRef = useRef(-1);
+  const suppressHistoryPushRef = useRef(false);
 
   const { saving, saved, saveError, draftId, onBlur, saveNow } = useAutosave({ content: text, title, draftId: draftIdProp, debounceMs: 1500, enabled: isHydrated });
 
@@ -335,6 +340,63 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   }, []);
 
   useEffect(() => {
+    historyRef.current = history;
+  }, [history]);
+
+  useEffect(() => {
+    historyIndexRef.current = historyIndex;
+  }, [historyIndex]);
+
+  const resetHistory = (html) => {
+    const seed = [html || ''];
+    historyRef.current = seed;
+    historyIndexRef.current = 0;
+    setHistory(seed);
+    setHistoryIndex(0);
+  };
+
+  const pushHistorySnapshot = (html) => {
+    if (suppressHistoryPushRef.current) return;
+    const current = historyRef.current;
+    const index = historyIndexRef.current;
+    const truncated = current.slice(0, index + 1);
+    if (truncated[truncated.length - 1] === html) return;
+    const next = [...truncated, html];
+    historyRef.current = next;
+    historyIndexRef.current = next.length - 1;
+    setHistory(next);
+    setHistoryIndex(next.length - 1);
+  };
+
+  const applyHistorySnapshot = (html, nextIndex) => {
+    suppressHistoryPushRef.current = true;
+    historyIndexRef.current = nextIndex;
+    setHistoryIndex(nextIndex);
+    syncEditorFromStateRef.current = true;
+    dispatchWorkspace({ type: 'APPLY_EXTERNAL_HTML', payload: { html } });
+    window.setTimeout(() => {
+      suppressHistoryPushRef.current = false;
+    }, 0);
+  };
+
+  const goBack = () => {
+    const index = historyIndexRef.current;
+    if (index <= 0) return;
+    const nextIndex = index - 1;
+    const html = historyRef.current[nextIndex] || '';
+    applyHistorySnapshot(html, nextIndex);
+  };
+
+  const goForward = () => {
+    const index = historyIndexRef.current;
+    const stack = historyRef.current;
+    if (index >= stack.length - 1) return;
+    const nextIndex = index + 1;
+    const html = stack[nextIndex] || '';
+    applyHistorySnapshot(html, nextIndex);
+  };
+
+  useEffect(() => {
     if (!editorRef.current) return;
     if (!syncEditorFromStateRef.current) return;
     if (editorRef.current.innerHTML !== text) {
@@ -355,6 +417,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     hydrationPendingRef.current = true;
     dispatchWorkspace({ type: 'HYDRATE_INITIAL', payload: { isStarterPlus, content: initialContent } });
     syncEditorFromStateRef.current = true;
+    resetHistory(nextText);
 
     const hydrateTimer = window.setTimeout(() => {
       if (!hydrationPendingRef.current) return;
@@ -753,6 +816,24 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
               >
                 Save Draft
               </button>
+              <button
+                type="button"
+                onClick={goBack}
+                disabled={historyIndex <= 0}
+                title="Go back"
+                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                ← Back
+              </button>
+              <button
+                type="button"
+                onClick={goForward}
+                disabled={historyIndex >= history.length - 1}
+                title="Go forward"
+                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Forward →
+              </button>
               {isStarterPlus && (
                 <button
                   onClick={handleScoreDraft}
@@ -912,6 +993,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                       // If structure drifts (missing section headings), force a reducer-driven resync.
                       syncEditorFromStateRef.current = true;
                     }
+                    pushHistorySnapshot(next);
                     dispatchWorkspace({ type: 'UPDATE_FROM_EDITOR', payload: { html: next, pushHistory: true } });
                   }}
                   onMouseUp={() => setSelectedText(window.getSelection()?.toString() || '')}
