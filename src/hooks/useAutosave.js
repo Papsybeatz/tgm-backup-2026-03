@@ -29,6 +29,7 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
     setSaved(false);
     setSaveError('');
     let success = false;
+    let requestUrl = '';
     try {
       const authToken = getAuthToken();
       if (!authToken) {
@@ -40,9 +41,11 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
       if (authToken) headers.Authorization = `Bearer ${authToken}`;
       let res;
       if (currentDraftId) {
-        res = await fetch(apiUrl(`/api/drafts/${currentDraftId}`), { method: 'PATCH', headers, body: JSON.stringify({ title: payload.title, content: payload.content }) });
+        requestUrl = apiUrl(`/api/drafts/${currentDraftId}`);
+        res = await fetch(requestUrl, { method: 'PATCH', headers, body: JSON.stringify({ title: payload.title, content: payload.content }) });
       } else {
-        res = await fetch(apiUrl('/api/drafts'), { method: 'POST', headers, body: JSON.stringify({ title: payload.title, content: payload.content }) });
+        requestUrl = apiUrl('/api/drafts');
+        res = await fetch(requestUrl, { method: 'POST', headers, body: JSON.stringify({ title: payload.title, content: payload.content }) });
       }
       if (res && res.ok) {
         const data = await res.json();
@@ -53,13 +56,31 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
         success = true;
         return success;
       } else {
-        setSaveError('Save failed. Please try again.');
-        console.warn('[useAutosave] save failed', res && res.status);
+        let backendMessage = '';
+        try {
+          const text = await res.text();
+          if (text) {
+            try {
+              const parsed = JSON.parse(text);
+              backendMessage = parsed?.message || parsed?.error || text;
+            } catch {
+              backendMessage = text;
+            }
+          }
+        } catch {
+          backendMessage = '';
+        }
+        const suffix = backendMessage ? ` - ${backendMessage}` : '';
+        setSaveError(`Save failed (${res.status}) at ${requestUrl}${suffix}`);
+        console.warn('[useAutosave] save failed', { status: res && res.status, requestUrl, backendMessage });
         success = false;
         return success;
       }
-    } catch {
-      setSaveError('Network error while saving. Please try again.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      const pathHint = requestUrl || apiUrl('/api/drafts');
+      setSaveError(`Network error while saving to ${pathHint}: ${message}`);
+      console.warn('[useAutosave] network save error', { requestUrl: pathHint, message });
       success = false;
       return success;
     } finally {
