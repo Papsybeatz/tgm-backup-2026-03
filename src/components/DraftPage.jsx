@@ -393,7 +393,9 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
 
   const handleManualSave = async () => {
     setManualSaveNote('Saving...');
-    const ok = await saveNow();
+    const liveHtml = editorRef.current?.innerHTML ?? text;
+    setText(liveHtml);
+    const ok = await saveNow({ title, content: liveHtml, force: true });
     setManualSaveNote(ok ? 'Saved just now' : 'Save failed');
     window.setTimeout(() => setManualSaveNote(''), 2500);
   };

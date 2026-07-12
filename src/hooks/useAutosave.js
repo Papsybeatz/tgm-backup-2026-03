@@ -89,16 +89,21 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
     }
   };
 
-  const saveNow = async () => {
+  const saveNow = async (options = {}) => {
     const authToken = getAuthToken();
     if (!authToken) {
       setSaveError('You are signed out. Please log in again to save.');
       return false;
     }
-    const payload = { title: title || '', content: content || '' };
+    const payload = {
+      title: options.title ?? title ?? '',
+      content: options.content ?? content ?? '',
+    };
+    const force = Boolean(options.force);
 
     // If no changes exist beyond the last successful save, do nothing.
     if (
+      !force &&
       !pendingSave.current &&
       JSON.stringify(payload) === JSON.stringify(lastSavedPayload.current)
     ) {
