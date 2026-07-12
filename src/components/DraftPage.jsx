@@ -382,7 +382,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const { saving, saved, saveError, draftId, onBlur, saveNow } = useAutosave({ content: text, title, draftId: draftIdProp, debounceMs: 1500, enabled: isHydrated });
 
   const words = useMemo(() => {
-    const trimmed = text.trim();
+    const trimmed = stripHtml(text).trim();
     return trimmed ? trimmed.split(/\s+/).length : 0;
   }, [text]);
 
@@ -506,8 +506,9 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   }, [initialContent, isStarterPlus]);
 
   const canSave = text.trim().length > 0;
-  const readinessScore = words >= 900 ? 9.2 : words >= 550 ? 8.4 : words >= 300 ? 7.4 : 6.3;
-  const isFunderReady = readinessScore >= 8;
+  const hasScorableContent = words > 0;
+  const readinessScore = !hasScorableContent ? 0 : words >= 900 ? 9.2 : words >= 550 ? 8.4 : words >= 300 ? 7.4 : 6.3;
+  const isFunderReady = hasScorableContent && readinessScore >= 8;
   const docsSummary = useMemo(() => scoreSupportingDocs(supportingDocs), [supportingDocs]);
 
   const statusClass = {
@@ -1162,7 +1163,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 <div className={`flex items-center justify-between rounded-lg border px-2.5 py-2 ${isFunderReady ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
                   <span className="font-semibold text-slate-700">Funder Ready</span>
                   <span className={`font-semibold ${isFunderReady ? 'text-emerald-700' : 'text-amber-700'}`}>
-                    {isFunderReady ? `Yes (${readinessScore.toFixed(1)}/10)` : `Almost (${readinessScore.toFixed(1)}/10)`}
+                    {!hasScorableContent ? 'Not Ready (0.0/10)' : isFunderReady ? `Yes (${readinessScore.toFixed(1)}/10)` : `Almost (${readinessScore.toFixed(1)}/10)`}
                   </span>
                 </div>
               </div>
