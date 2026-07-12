@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { WorkspaceLayout } from './WorkspaceLayout';
 import { useUser } from './UserContext';
 import useAutosave from '../hooks/useAutosave';
@@ -127,22 +127,164 @@ function buildHtmlFromSections(sectionMap = {}, sectionNames = []) {
   return blocks.join('\n\n').trim();
 }
 
+function createWorkspaceState(isStarterPlus, rawContent = '') {
+  const sections = isStarterPlus ? STARTER_SECTIONS : FREE_SECTIONS;
+  const emptyMap = createEmptySectionMap(sections);
+  const historyMap = createEmptySectionMap(sections);
+  const hasContent = Boolean(rawContent && rawContent.trim());
+
+  if (!hasContent) {
+    return {
+      sections,
+      activeSection: sections[0],
+      sectionContentMap: emptyMap,
+      sectionHistoryMap: historyMap,
+      contentHtml: '',
+    };
+  }
+
+  const normalized = normalizeAiHtml(rawContent);
+  const parsed = parseSectionsFromHtml(rawContent, sections);
+  const hasParsedSectionContent = sections.some((section) => stripHtml(parsed[section] || '').length > 0);
+  const sectionContentMap = hasParsedSectionContent
+    ? parsed
+    : { ...emptyMap, [sections[0]]: normalized };
+
+  return {
+    sections,
+    activeSection: sections[0],
+    sectionContentMap,
+    sectionHistoryMap: historyMap,
+    contentHtml: hasParsedSectionContent ? buildHtmlFromSections(sectionContentMap, sections) : normalized,
+  };
+}
+
+function mergeKnownSections(currentMap, nextMap, sections) {
+  const merged = { ...currentMap };
+  sections.forEach((section) => {
+    if (nextMap[section] !== undefined) merged[section] = nextMap[section];
+  });
+  return merged;
+}
+
+function workspaceReducer(state, action) {
+  switch (action.type) {
+    case 'HYDRATE_INITIAL': {
+      return createWorkspaceState(action.payload.isStarterPlus, action.payload.content);
+    }
+    case 'SET_ACTIVE_SECTION': {
+      if (!state.sections.includes(action.payload.section)) return state;
+      return { ...state, activeSection: action.payload.section };
+    }
+    case 'ADD_SECTION': {
+      const section = action.payload.section;
+      if (!section || state.sections.includes(section)) return state;
+      const sections = [...state.sections, section];
+      const sectionContentMap = { ...state.sectionContentMap, [section]: '' };
+      const sectionHistoryMap = { ...state.sectionHistoryMap, [section]: '' };
+      return {
+        ...state,
+        sections,
+        activeSection: section,
+        sectionContentMap,
+        sectionHistoryMap,
+        contentHtml: buildHtmlFromSections(sectionContentMap, sections),
+      };
+    }
+    case 'SET_SECTION_BODY': {
+      const { section, html, pushHistory = true } = action.payload;
+      if (!state.sections.includes(section)) return state;
+      const previous = state.sectionContentMap[section] || '';
+      const sectionContentMap = { ...state.sectionContentMap, [section]: html };
+      let sectionHistoryMap = state.sectionHistoryMap;
+      if (pushHistory && previous !== html) {
+        sectionHistoryMap = {
+          ...state.sectionHistoryMap,
+          [section]: state.sectionHistoryMap[section] ? `${state.sectionHistoryMap[section]}\u0000${previous}` : previous,
+        };
+      }
+      return {
+        ...state,
+        sectionContentMap,
+        sectionHistoryMap,
+        contentHtml: buildHtmlFromSections(sectionContentMap, state.sections),
+      };
+    }
+    case 'UNDO_SECTION': {
+      const section = action.payload.section;
+      if (!state.sections.includes(section)) return state;
+      const stack = String(state.sectionHistoryMap[section] || '').split('\u0000').filter(Boolean);
+      const previous = stack.pop();
+      if (previous === undefined) return state;
+      const sectionContentMap = { ...state.sectionContentMap, [section]: previous };
+      return {
+        ...state,
+        sectionContentMap,
+        sectionHistoryMap: { ...state.sectionHistoryMap, [section]: stack.join('\u0000') },
+        contentHtml: buildHtmlFromSections(sectionContentMap, state.sections),
+      };
+    }
+    case 'REPLACE_SECTION_MAP': {
+      const sectionContentMap = { ...createEmptySectionMap(state.sections), ...action.payload.map };
+      return {
+        ...state,
+        sectionContentMap,
+        contentHtml: buildHtmlFromSections(sectionContentMap, state.sections),
+      };
+    }
+    case 'APPLY_EXTERNAL_HTML': {
+      const contentHtml = action.payload.html;
+      const parsed = parseSectionsFromHtml(contentHtml, state.sections);
+      const sectionContentMap = mergeKnownSections(state.sectionContentMap, parsed, state.sections);
+      return { ...state, contentHtml, sectionContentMap };
+    }
+    case 'UPDATE_FROM_EDITOR': {
+      const { html, pushHistory = true } = action.payload;
+      const parsed = parseSectionsFromHtml(html, state.sections);
+      const nextActiveBody = parsed[state.activeSection] || '';
+      const currentBody = state.sectionContentMap[state.activeSection] || '';
+      let sectionHistoryMap = state.sectionHistoryMap;
+      if (pushHistory && currentBody && currentBody !== nextActiveBody) {
+        sectionHistoryMap = {
+          ...state.sectionHistoryMap,
+          [state.activeSection]: state.sectionHistoryMap[state.activeSection]
+            ? `${state.sectionHistoryMap[state.activeSection]}\u0000${currentBody}`
+            : currentBody,
+        };
+      }
+      const sectionContentMap = mergeKnownSections(state.sectionContentMap, parsed, state.sections);
+      return {
+        ...state,
+        sectionContentMap,
+        sectionHistoryMap,
+        contentHtml: html,
+      };
+    }
+    default:
+      return state;
+  }
+}
+
 export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 'Untitled Draft', initialContent = '' } = {}) {
-  const [text, setText] = useState(initialContent || '');
   const [ideaInput, setIdeaInput] = useState('');
   const [selectedText, setSelectedText] = useState('');
   const [title, setTitle] = useState(initialTitle || 'Untitled Draft');
-  const [sections, setSections] = useState(FREE_SECTIONS);
   const [newSection, setNewSection] = useState('');
-  const [activeSection, setActiveSection] = useState(() => (initialContent && initialContent.trim() ? STARTER_SECTIONS[0] : FREE_SECTIONS[0]));
-  const [sectionContentMap, setSectionContentMap] = useState(() => createEmptySectionMap(initialContent && initialContent.trim() ? STARTER_SECTIONS : FREE_SECTIONS));
-  const [sectionHistoryMap, setSectionHistoryMap] = useState(() => createEmptySectionMap(initialContent && initialContent.trim() ? STARTER_SECTIONS : FREE_SECTIONS));
-  const [activeAction, setActiveAction] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState('');
   const { user } = useUser() || {};
   const tier = user?.tier || 'free';
   const isStarterPlus = tierAtLeast(tier, 'starter');
+  const [workspace, dispatchWorkspace] = useReducer(
+    workspaceReducer,
+    { isStarterPlus, content: initialContent },
+    (seed) => createWorkspaceState(seed.isStarterPlus, seed.content)
+  );
+  const [activeAction, setActiveAction] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const text = workspace.contentHtml;
+  const sections = workspace.sections;
+  const activeSection = workspace.activeSection;
+  const sectionContentMap = workspace.sectionContentMap;
   const [status, setStatus] = useState('Draft');
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
@@ -203,42 +345,13 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   }, [text]);
 
   useEffect(() => {
-    const nextSections = isStarterPlus ? STARTER_SECTIONS : FREE_SECTIONS;
-    setSections(nextSections);
-    setActiveSection((prev) => (nextSections.includes(prev) ? prev : nextSections[0]));
-    setSectionContentMap(createEmptySectionMap(nextSections));
-    setSectionHistoryMap(createEmptySectionMap(nextSections));
-  }, [isStarterPlus]);
-
-  useEffect(() => {
-    const nextSections = isStarterPlus ? STARTER_SECTIONS : FREE_SECTIONS;
-    const emptyMap = createEmptySectionMap(nextSections);
-    const hasInitialContent = Boolean(initialContent && initialContent.trim());
-    const normalizedInitial = hasInitialContent ? normalizeAiHtml(initialContent) : '';
-    const parsed = hasInitialContent ? parseSectionsFromHtml(initialContent, nextSections) : emptyMap;
-    const hasParsedSectionContent = hasInitialContent && nextSections.some((section) => {
-      const value = parsed[section] || '';
-      return stripHtml(value).length > 0;
-    });
-    const merged = hasInitialContent
-      ? (
-          hasParsedSectionContent
-            ? parsed
-            : { ...emptyMap, [nextSections[0]]: normalizedInitial }
-        )
-      : emptyMap;
-    const nextText = hasInitialContent
-      ? (hasParsedSectionContent ? buildHtmlFromSections(merged, nextSections) : normalizedInitial)
-      : '';
+    const nextWorkspace = createWorkspaceState(isStarterPlus, initialContent);
+    const nextText = nextWorkspace.contentHtml;
 
     setIsHydrated(false);
     hydrationPendingRef.current = true;
-    setSections(nextSections);
-    setActiveSection(nextSections[0]);
-    setSectionContentMap(merged);
-    setSectionHistoryMap(emptyMap);
+    dispatchWorkspace({ type: 'HYDRATE_INITIAL', payload: { isStarterPlus, content: initialContent } });
     syncEditorFromStateRef.current = true;
-    setText(nextText);
 
     const hydrateTimer = window.setTimeout(() => {
       if (!hydrationPendingRef.current) return;
@@ -266,43 +379,14 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const addSection = () => {
     const cleaned = newSection.trim();
     if (!cleaned) return;
-    setSections((prev) => [...prev, cleaned]);
-    setSectionContentMap((prev) => ({ ...prev, [cleaned]: '' }));
-    setSectionHistoryMap((prev) => ({ ...prev, [cleaned]: '' }));
-    setActiveSection(cleaned);
+    syncEditorFromStateRef.current = true;
+    dispatchWorkspace({ type: 'ADD_SECTION', payload: { section: cleaned } });
     setNewSection('');
   };
 
-  const setSectionBody = (section, html, pushHistory = true) => {
-    setSectionContentMap((prev) => {
-      const previous = prev[section] || '';
-      if (pushHistory && previous !== html) {
-        setSectionHistoryMap((historyPrev) => ({
-          ...historyPrev,
-          [section]: historyPrev[section] ? `${historyPrev[section]}\u0000${previous}` : previous,
-        }));
-      }
-      const nextMap = { ...prev, [section]: html };
-      const compiled = buildHtmlFromSections(nextMap, sections);
-      syncEditorFromStateRef.current = true;
-      setText(compiled);
-      return nextMap;
-    });
-  };
-
   const undoSection = (section) => {
-    setSectionHistoryMap((prev) => {
-      const stack = String(prev[section] || '').split('\u0000').filter(Boolean);
-      const previous = stack.pop();
-      if (previous === undefined) return prev;
-      setSectionContentMap((contentPrev) => {
-        const nextMap = { ...contentPrev, [section]: previous };
-        syncEditorFromStateRef.current = true;
-        setText(buildHtmlFromSections(nextMap, sections));
-        return nextMap;
-      });
-      return { ...prev, [section]: stack.join('\u0000') };
-    });
+    syncEditorFromStateRef.current = true;
+    dispatchWorkspace({ type: 'UNDO_SECTION', payload: { section } });
   };
 
   const placeCaretAtStart = (element) => {
@@ -344,15 +428,12 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   }, [activeSection, isStarterPlus, sections]);
 
   const handleSectionClick = (section) => {
-    setActiveSection(section);
+    dispatchWorkspace({ type: 'SET_ACTIVE_SECTION', payload: { section } });
   };
 
   const updateSectionAndEditor = (nextMap) => {
-    const merged = { ...createEmptySectionMap(sections), ...nextMap };
-    const compiled = buildHtmlFromSections(merged, sections);
-    setSectionContentMap(merged);
     syncEditorFromStateRef.current = true;
-    setText(compiled);
+    dispatchWorkspace({ type: 'REPLACE_SECTION_MAP', payload: { map: nextMap } });
   };
 
   function getToken() {
@@ -428,8 +509,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
           window.setTimeout(() => scrollToSection(activeSection), 50);
         } else {
           syncEditorFromStateRef.current = true;
-          setText(normalizedOutput);
-          setSectionContentMap((prev) => ({ ...prev, ...parseSectionsFromHtml(normalizedOutput, sections) }));
+          dispatchWorkspace({ type: 'APPLY_EXTERNAL_HTML', payload: { html: normalizedOutput } });
         }
       } else {
         setAiError('No AI output returned. Please try again.');
@@ -463,7 +543,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     }
     setManualSaveNote('Saving...');
     const liveHtml = editorRef.current?.innerHTML ?? text;
-    setText(liveHtml);
+    dispatchWorkspace({ type: 'UPDATE_FROM_EDITOR', payload: { html: liveHtml, pushHistory: false } });
     const ok = await saveNow({ title, content: liveHtml, force: true });
     setManualSaveNote(ok ? 'Saved just now' : 'Save failed');
     window.setTimeout(() => setManualSaveNote(''), 2500);
@@ -824,29 +904,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   className="tgm-html-editor"
                   onInput={(e) => {
                     const next = e.currentTarget.innerHTML;
-                    setText(next);
-                    const parsed = parseSectionsFromHtml(next, sections);
-                    const nextActiveBody = parsed[activeSection] || '';
-                    setSectionHistoryMap((prev) => {
-                      const currentBody = sectionContentMap[activeSection] || '';
-                      if (currentBody && currentBody !== nextActiveBody) {
-                        return {
-                          ...prev,
-                          [activeSection]: prev[activeSection] ? `${prev[activeSection]}\u0000${currentBody}` : currentBody,
-                        };
-                      }
-                      return prev;
-                    });
-                    setSectionContentMap((prev) => {
-                      const merged = { ...prev };
-                      sections.forEach((section) => {
-                        const nextBody = parsed[section];
-                        if (nextBody !== undefined) {
-                          merged[section] = nextBody;
-                        }
-                      });
-                      return merged;
-                    });
+                    dispatchWorkspace({ type: 'UPDATE_FROM_EDITOR', payload: { html: next, pushHistory: true } });
                   }}
                   onMouseUp={() => setSelectedText(window.getSelection()?.toString() || '')}
                   onKeyUp={() => setSelectedText(window.getSelection()?.toString() || '')}
