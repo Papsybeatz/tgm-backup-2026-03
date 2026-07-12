@@ -123,6 +123,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [status, setStatus] = useState('Draft');
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
+  const [manualSaveNote, setManualSaveNote] = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploadError, setUploadError] = useState('');
   const [scoreState, setScoreState] = useState({ score: null, label: 'Not scored yet' });
@@ -391,8 +392,10 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const sectionIcons = ['📝', '📄', '📌', '🧭', '📊', '✅', '💡'];
 
   const handleManualSave = async () => {
-    if (!canSave) return;
-    await saveNow();
+    setManualSaveNote('Saving...');
+    const ok = await saveNow();
+    setManualSaveNote(ok ? 'Saved just now' : 'Save failed');
+    window.setTimeout(() => setManualSaveNote(''), 2500);
   };
 
   const handleScoreDraft = async () => {
@@ -587,9 +590,9 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
               <button
                 type="button"
                 onClick={handleManualSave}
-                disabled={!canSave}
+                disabled={saving}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  canSave
+                  !saving
                     ? 'bg-[#0A0F1A] text-[#D4AF37] hover:opacity-90'
                     : 'bg-slate-200 text-slate-500 cursor-not-allowed'
                 }`}
@@ -608,6 +611,9 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
             </div>
             {saveError && (
               <p className="w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{saveError}</p>
+            )}
+            {manualSaveNote && !saveError && (
+              <p className="w-full rounded-lg border border-[#003A8C]/20 bg-[#EFF6FF] px-3 py-2 text-xs text-[#003A8C]">{manualSaveNote}</p>
             )}
           </div>
         </div>
