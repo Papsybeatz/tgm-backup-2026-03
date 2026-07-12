@@ -17,6 +17,39 @@ const STARTER_SECTIONS = [
 ];
 const WORKSPACE_BUILD_MARKER = 'workspace-build-2026-07-11-41b0589';
 
+const SUPPORTING_DOCS = {
+  required: [
+    { id: 'irs_letter', label: 'IRS Determination Letter (501c3)' },
+    { id: 'board_list', label: 'Board of Directors List' },
+    { id: 'org_budget', label: 'Organizational Budget' },
+    { id: 'project_budget', label: 'Project/Program Budget' },
+    { id: 'financials', label: 'Financial Statements' },
+    { id: 'uei', label: 'UEI Number / SAM.gov Registration' },
+    { id: 'signed_forms', label: 'Signed Application Forms' },
+    { id: 'narrative', label: 'Grant Narrative / Proposal' },
+  ],
+  conditional: [
+    { id: 'logic_model', label: 'Logic Model' },
+    { id: 'evaluation_plan_doc', label: 'Evaluation Plan (Attachment)' },
+    { id: 'letters_support', label: 'Letters of Support' },
+    { id: 'mou', label: 'MOUs / Partnership Agreements' },
+    { id: 'past_performance', label: 'Past Performance' },
+    { id: 'org_chart', label: 'Organizational Chart' },
+    { id: 'audit', label: 'Audit (if applicable)' },
+    { id: 'insurance', label: 'Insurance Certificates' },
+    { id: 'staff_resumes', label: 'Key Staff Resumes' },
+    { id: 'environmental', label: 'Environmental Impact Documents' },
+  ],
+  optional: [
+    { id: 'needs_assessment', label: 'Community Needs Assessment' },
+    { id: 'data_sheets', label: 'Data Sheets / Research Citations' },
+    { id: 'annual_report', label: 'Annual Report' },
+    { id: 'strategic_plan', label: 'Strategic Plan' },
+    { id: 'media', label: 'Media Coverage / Press' },
+    { id: 'testimonials', label: 'Testimonials' },
+  ],
+};
+
 function decodeHtmlEntities(value = '') {
   if (!value) return '';
   const textarea = document.createElement('textarea');
@@ -70,6 +103,20 @@ function createEmptySectionMap(sectionNames = []) {
     acc[section] = '';
     return acc;
   }, {});
+}
+
+function toggleDocReducer(prev, docId) {
+  return {
+    ...prev,
+    [docId]: !prev[docId],
+  };
+}
+
+function scoreSupportingDocs(supportingDocs) {
+  const requiredMissing = SUPPORTING_DOCS.required.filter((doc) => !supportingDocs[doc.id]);
+  const conditionalMissing = SUPPORTING_DOCS.conditional.filter((doc) => !supportingDocs[doc.id]);
+  const optionalCount = SUPPORTING_DOCS.optional.filter((doc) => supportingDocs[doc.id]).length;
+  return { requiredMissing, conditionalMissing, optionalCount };
 }
 
 function toSectionAnchorId(value = '') {
@@ -318,6 +365,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploadError, setUploadError] = useState('');
   const [scoreState, setScoreState] = useState({ score: null, label: 'Not scored yet' });
+  const [supportingDocs, setSupportingDocs] = useState({});
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -458,6 +506,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const canSave = text.trim().length > 0;
   const readinessScore = words >= 900 ? 9.2 : words >= 550 ? 8.4 : words >= 300 ? 7.4 : 6.3;
   const isFunderReady = readinessScore >= 8;
+  const docsSummary = useMemo(() => scoreSupportingDocs(supportingDocs), [supportingDocs]);
 
   const statusClass = {
     Draft: 'bg-slate-100 text-slate-700 border-slate-200',
@@ -475,11 +524,6 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     pushHistorySnapshot(nextWorkspace.contentHtml);
     dispatchWorkspace({ type: 'ADD_SECTION', payload: { section: nextTitle } });
     setNewSection('');
-  };
-
-  const undoSection = (section) => {
-    syncEditorFromStateRef.current = true;
-    dispatchWorkspace({ type: 'UNDO_SECTION', payload: { section } });
   };
 
   const placeCaretAtStart = (element) => {
@@ -524,6 +568,10 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
 
   const handleSectionClick = (section) => {
     dispatchWorkspace({ type: 'SET_ACTIVE_SECTION', payload: { section } });
+  };
+
+  const handleToggleDoc = (docId) => {
+    setSupportingDocs((prev) => toggleDocReducer(prev, docId));
   };
 
   const updateSectionAndEditor = (nextMap) => {
@@ -766,6 +814,30 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     fileInputRef.current?.click();
   };
 
+  useEffect(() => {
+    const key = `tgm-supporting-docs:${draftId || draftIdProp || 'new'}`;
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) {
+        setSupportingDocs({});
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      setSupportingDocs(parsed && typeof parsed === 'object' ? parsed : {});
+    } catch {
+      setSupportingDocs({});
+    }
+  }, [draftId, draftIdProp]);
+
+  useEffect(() => {
+    const key = `tgm-supporting-docs:${draftId || draftIdProp || 'new'}`;
+    try {
+      localStorage.setItem(key, JSON.stringify(supportingDocs));
+    } catch {
+      // Ignore storage errors; drafts still save normally.
+    }
+  }, [supportingDocs, draftId, draftIdProp]);
+
   return (
     <WorkspaceLayout>
       <div className="min-h-screen w-full bg-gradient-to-br from-[#EEF2F7] via-[#F5F7FB] to-[#EDF2F8]">
@@ -918,9 +990,6 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 <button onClick={() => scrollToSection(activeSection, true)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
                   Edit Section
                 </button>
-                <button onClick={() => undoSection(activeSection)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
-                  UNDO
-                </button>
               </div>
 
               <div className="mt-4 border-t border-slate-100 pt-4">
@@ -1058,17 +1127,39 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
                   <span className="font-semibold text-slate-700">Missing Components</span>
-                  <span className="font-semibold text-[#003A8C]">{words < 200 ? 'Too short' : 'Ready to Check'}</span>
+                  <span className="font-semibold text-[#003A8C]">{docsSummary.requiredMissing.length > 0 ? `${docsSummary.requiredMissing.length} required docs` : (words < 200 ? 'Too short' : 'Ready to Check')}</span>
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
                   <span className="font-semibold text-slate-700">Compliance Check</span>
-                  <span className="font-semibold text-emerald-700">Enabled</span>
+                  <span className={`font-semibold ${docsSummary.requiredMissing.length > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>{docsSummary.requiredMissing.length > 0 ? 'Needs Required Docs' : 'Enabled'}</span>
                 </div>
                 <div className={`flex items-center justify-between rounded-lg border px-2.5 py-2 ${isFunderReady ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
                   <span className="font-semibold text-slate-700">Funder Ready</span>
                   <span className={`font-semibold ${isFunderReady ? 'text-emerald-700' : 'text-amber-700'}`}>
                     {isFunderReady ? `Yes (${readinessScore.toFixed(1)}/10)` : `Almost (${readinessScore.toFixed(1)}/10)`}
                   </span>
+                </div>
+
+                <div className="mt-2 rounded-lg border border-slate-200 bg-white p-2.5">
+                  <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Supporting Documents</p>
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-semibold text-slate-600">Required</p>
+                    {SUPPORTING_DOCS.required.map((doc) => (
+                      <label key={doc.id} className="flex items-center gap-2 text-[11px] text-slate-700">
+                        <input type="checkbox" checked={Boolean(supportingDocs[doc.id])} onChange={() => handleToggleDoc(doc.id)} />
+                        <span>{doc.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    <p className="text-[11px] font-semibold text-slate-600">Conditional</p>
+                    {SUPPORTING_DOCS.conditional.slice(0, 5).map((doc) => (
+                      <label key={doc.id} className="flex items-center gap-2 text-[11px] text-slate-700">
+                        <input type="checkbox" checked={Boolean(supportingDocs[doc.id])} onChange={() => handleToggleDoc(doc.id)} />
+                        <span>{doc.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
