@@ -71,6 +71,28 @@ function createEmptySectionMap(sectionNames = []) {
   }, {});
 }
 
+function toSectionAnchorId(value = '') {
+  const normalized = String(value)
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '');
+  return normalized || 'section';
+}
+
+function resolveUniqueSectionTitle(existingSections = [], rawTitle = '') {
+  const cleaned = String(rawTitle).trim();
+  if (!cleaned) return '';
+  const existingIds = new Set(existingSections.map((section) => toSectionAnchorId(section)));
+  let nextTitle = cleaned;
+  let suffix = 2;
+  while (existingIds.has(toSectionAnchorId(nextTitle))) {
+    nextTitle = `${cleaned} ${suffix}`;
+    suffix += 1;
+  }
+  return nextTitle;
+}
+
 function escapeRegex(value = '') {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -122,7 +144,7 @@ function parseSectionsFromHtml(html = '', sectionNames = []) {
 function buildHtmlFromSections(sectionMap = {}, sectionNames = []) {
   const blocks = sectionNames.map((section) => {
     const body = (sectionMap[section] || '').trim();
-    return `<h2>${section}</h2>${body || '<p></p>'}`;
+    return `<h2 id="${toSectionAnchorId(section)}">${section}</h2>${body || '<p></p>'}`;
   });
   return blocks.join('\n\n').trim();
 }
@@ -177,7 +199,7 @@ function workspaceReducer(state, action) {
       return { ...state, activeSection: action.payload.section };
     }
     case 'ADD_SECTION': {
-      const section = action.payload.section;
+      const section = resolveUniqueSectionTitle(state.sections, action.payload.section);
       if (!section || state.sections.includes(section)) return state;
       const sections = [...state.sections, section];
       const sectionContentMap = { ...state.sectionContentMap, [section]: '' };
@@ -445,8 +467,12 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const addSection = () => {
     const cleaned = newSection.trim();
     if (!cleaned) return;
+    const nextTitle = resolveUniqueSectionTitle(sections, cleaned);
+    if (!nextTitle) return;
     syncEditorFromStateRef.current = true;
-    dispatchWorkspace({ type: 'ADD_SECTION', payload: { section: cleaned } });
+    const nextWorkspace = workspaceReducer(workspace, { type: 'ADD_SECTION', payload: { section: nextTitle } });
+    pushHistorySnapshot(nextWorkspace.contentHtml);
+    dispatchWorkspace({ type: 'ADD_SECTION', payload: { section: nextTitle } });
     setNewSection('');
   };
 
@@ -469,9 +495,11 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     if (!editorRef.current) return;
     const headings = Array.from(editorRef.current.querySelectorAll('h2'));
     const sectionIndex = sections.indexOf(section);
+    const anchorId = toSectionAnchorId(section);
+    const targetById = anchorId ? editorRef.current.querySelector(`#${CSS.escape(anchorId)}`) : null;
     const targetByIndex = sectionIndex >= 0 ? headings[sectionIndex] : null;
     const targetByText = headings.find((h) => (h.textContent || '').trim().toLowerCase() === section.toLowerCase());
-    const target = targetByIndex || targetByText;
+    const target = targetById || targetByIndex || targetByText;
     if (target) {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       if (focusEditor) {
