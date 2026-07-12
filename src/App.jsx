@@ -41,10 +41,33 @@ import BlueprintHTML from './pages/lead-magnet/grant-workflow-blueprint/Blueprin
 import AppLayout from './components/AppLayout';
 import { RequireAuth, RequireOnboarding, AdminGuard, FounderGuard } from './components/ProtectedRoute';
 
+const GLOBAL_BUILD_MARKER = 'build-2026-07-12-60fa483';
+
 function App() {
   return (
     <SkinProvider>
       <Router>
+        <div
+          style={{
+            position: 'fixed',
+            top: 8,
+            right: 8,
+            zIndex: 2147483647,
+            pointerEvents: 'none',
+            border: '1px solid #cbd5e1',
+            borderRadius: 9999,
+            padding: '3px 8px',
+            background: 'rgba(255,255,255,0.92)',
+            color: '#475569',
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}
+          aria-label="Global build marker"
+        >
+          {GLOBAL_BUILD_MARKER}
+        </div>
         <SteveAssistantDock />
         <Routes>
           {/* Workspace — full screen editor, no AppHeader */}
