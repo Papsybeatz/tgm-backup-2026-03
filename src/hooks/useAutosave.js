@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import useAuth from './useAuth';
+import { apiUrl } from '../lib/apiUrl';
 
 export default function useAutosave({ content, title, draftId, debounceMs = 700 }) {
   const [saving, setSaving] = useState(false);
@@ -39,9 +40,9 @@ export default function useAutosave({ content, title, draftId, debounceMs = 700 
       if (authToken) headers.Authorization = `Bearer ${authToken}`;
       let res;
       if (currentDraftId) {
-        res = await fetch(`/api/drafts/${currentDraftId}`, { method: 'PATCH', headers, body: JSON.stringify({ title: payload.title, content: payload.content }) });
+        res = await fetch(apiUrl(`/api/drafts/${currentDraftId}`), { method: 'PATCH', headers, body: JSON.stringify({ title: payload.title, content: payload.content }) });
       } else {
-        res = await fetch('/api/drafts', { method: 'POST', headers, body: JSON.stringify({ title: payload.title, content: payload.content }) });
+        res = await fetch(apiUrl('/api/drafts'), { method: 'POST', headers, body: JSON.stringify({ title: payload.title, content: payload.content }) });
       }
       if (res && res.ok) {
         const data = await res.json();

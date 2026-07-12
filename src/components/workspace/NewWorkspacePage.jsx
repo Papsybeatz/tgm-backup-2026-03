@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiUrl } from '../../lib/apiUrl';
 
 export default function NewWorkspacePage() {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ export default function NewWorkspacePage() {
     async function startDraft() {
       try {
         const token = localStorage.getItem('token') || '';
-        const res = await fetch('/api/drafts', {
+        const res = await fetch(apiUrl('/api/drafts'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

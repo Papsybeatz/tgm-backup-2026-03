@@ -3,6 +3,7 @@ import { WorkspaceLayout } from './WorkspaceLayout';
 import { useUser } from './UserContext';
 import useAutosave from '../hooks/useAutosave';
 import { tierAtLeast } from '../config/tiers';
+import { apiUrl } from '../lib/apiUrl';
 
 const DEFAULT_SECTIONS = ['Section 1', 'Section 2', 'Section 3'];
 const FREE_SECTIONS = ['Draft'];
@@ -324,7 +325,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
           }
         : { content: baseContent || title || 'Improve this grant draft', instruction: action };
 
-      const res = await fetch(endpoint, {
+      const res = await fetch(apiUrl(endpoint), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -401,7 +402,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     setActiveAction('Score My Draft');
     try {
       const token = getToken();
-      const res = await fetch('/api/score', {
+      const res = await fetch(apiUrl('/api/score'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -437,7 +438,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const downloadDraftAsset = async (format) => {
     if (!draftId) return;
     const token = getToken();
-    const res = await fetch(`/api/drafts/${draftId}/export.${format}`, {
+    const res = await fetch(apiUrl(`/api/drafts/${draftId}/export.${format}`), {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     if (!res.ok) {
@@ -493,7 +494,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
       const token = getToken();
       const formData = new FormData();
       formData.append('file', file);
-      const uploadRes = await fetch('/api/documents/upload', {
+      const uploadRes = await fetch(apiUrl('/api/documents/upload'), {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DraftPage from '../DraftPage';
+import { apiUrl } from '../../lib/apiUrl';
 
 function getToken() {
   return localStorage.getItem('token') || '';
@@ -17,7 +18,7 @@ export default function WorkspacePage() {
     if (!id) return;
     setLoading(true);
     setLoadError('');
-    fetch(`/api/drafts/${id}`, {
+    fetch(apiUrl(`/api/drafts/${id}`), {
       headers: { Authorization: `Bearer ${getToken()}` },
     })
       .then((res) => res.json())
