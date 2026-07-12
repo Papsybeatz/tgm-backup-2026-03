@@ -243,6 +243,7 @@ function workspaceReducer(state, action) {
       const parsed = parseSectionsFromHtml(html, state.sections);
       const nextActiveBody = parsed[state.activeSection] || '';
       const currentBody = state.sectionContentMap[state.activeSection] || '';
+      const headingCount = (String(html).match(/<h2[^>]*>/gi) || []).length;
       let sectionHistoryMap = state.sectionHistoryMap;
       if (pushHistory && currentBody && currentBody !== nextActiveBody) {
         sectionHistoryMap = {
@@ -253,11 +254,13 @@ function workspaceReducer(state, action) {
         };
       }
       const sectionContentMap = mergeKnownSections(state.sectionContentMap, parsed, state.sections);
+      const shouldCanonicalize = headingCount < state.sections.length;
+      const nextHtml = shouldCanonicalize ? buildHtmlFromSections(sectionContentMap, state.sections) : html;
       return {
         ...state,
         sectionContentMap,
         sectionHistoryMap,
-        contentHtml: html,
+        contentHtml: nextHtml,
       };
     }
     default:
@@ -423,7 +426,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   useEffect(() => {
     if (!isStarterPlus || !activeSection) return;
     if (!sections.includes(activeSection)) return;
-    const timer = window.setTimeout(() => scrollToSection(activeSection, true), 60);
+    const timer = window.setTimeout(() => scrollToSection(activeSection, false), 60);
     return () => window.clearTimeout(timer);
   }, [activeSection, isStarterPlus, sections]);
 
@@ -904,6 +907,11 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   className="tgm-html-editor"
                   onInput={(e) => {
                     const next = e.currentTarget.innerHTML;
+                    const headingCount = (String(next).match(/<h2[^>]*>/gi) || []).length;
+                    if (headingCount < sections.length) {
+                      // If structure drifts (missing section headings), force a reducer-driven resync.
+                      syncEditorFromStateRef.current = true;
+                    }
                     dispatchWorkspace({ type: 'UPDATE_FROM_EDITOR', payload: { html: next, pushHistory: true } });
                   }}
                   onMouseUp={() => setSelectedText(window.getSelection()?.toString() || '')}
