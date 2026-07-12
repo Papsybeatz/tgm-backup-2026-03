@@ -40,34 +40,41 @@ import BlueprintHTML from './pages/lead-magnet/grant-workflow-blueprint/Blueprin
 // Layout + guards
 import AppLayout from './components/AppLayout';
 import { RequireAuth, RequireOnboarding, AdminGuard, FounderGuard } from './components/ProtectedRoute';
+import { useUser } from './components/UserContext';
 
 const GLOBAL_BUILD_MARKER = 'build-2026-07-12-60fa483';
+const FOUNDER_EMAIL = 'clotteythomas41@gmail.com';
 
 function App() {
+  const { user } = useUser() || {};
+  const isFounder = String(user?.email || '').toLowerCase() === FOUNDER_EMAIL;
+
   return (
     <SkinProvider>
       <Router>
-        <div
-          style={{
-            position: 'fixed',
-            top: 8,
-            right: 8,
-            zIndex: 2147483647,
-            pointerEvents: 'none',
-            border: '1px solid #cbd5e1',
-            borderRadius: 9999,
-            padding: '3px 8px',
-            background: 'rgba(255,255,255,0.92)',
-            color: '#475569',
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-          }}
-          aria-label="Global build marker"
-        >
-          {GLOBAL_BUILD_MARKER}
-        </div>
+        {isFounder && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 8,
+              right: 8,
+              zIndex: 2147483647,
+              pointerEvents: 'none',
+              border: '1px solid #cbd5e1',
+              borderRadius: 9999,
+              padding: '3px 8px',
+              background: 'rgba(255,255,255,0.92)',
+              color: '#475569',
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+            aria-label="Global build marker"
+          >
+            {GLOBAL_BUILD_MARKER}
+          </div>
+        )}
         <SteveAssistantDock />
         <Routes>
           {/* Workspace — full screen editor, no AppHeader */}

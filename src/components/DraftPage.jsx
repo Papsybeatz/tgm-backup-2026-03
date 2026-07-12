@@ -16,6 +16,7 @@ const STARTER_SECTIONS = [
   'Evaluation Plan',
 ];
 const WORKSPACE_BUILD_MARKER = 'workspace-build-2026-07-11-41b0589';
+const FOUNDER_EMAIL = 'clotteythomas41@gmail.com';
 
 const SUPPORTING_DOCS = {
   required: [
@@ -344,6 +345,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [title, setTitle] = useState(initialTitle || 'Untitled Draft');
   const [newSection, setNewSection] = useState('');
   const { user } = useUser() || {};
+  const isFounder = String(user?.email || '').toLowerCase() === FOUNDER_EMAIL;
   const tier = user?.tier || 'free';
   const isStarterPlus = tierAtLeast(tier, 'starter');
   const [workspace, dispatchWorkspace] = useReducer(
@@ -865,12 +867,14 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
 
             <div className="flex flex-wrap items-center gap-2.5 text-xs md:text-sm">
               <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide md:text-xs ${statusClass}`}>{status}</span>
-              <span
-                className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
-                title="Workspace frontend build marker"
-              >
-                {WORKSPACE_BUILD_MARKER}
-              </span>
+              {isFounder && (
+                <span
+                  className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+                  title="Workspace frontend build marker"
+                >
+                  {WORKSPACE_BUILD_MARKER}
+                </span>
+              )}
               <span className={`font-semibold ${saveColor}`}>{saveLabel}</span>
               <span className="text-slate-500 tabular-nums">
                 Last saved: {lastSavedAt ? `${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${savedAgo}` : 'Not yet'}
