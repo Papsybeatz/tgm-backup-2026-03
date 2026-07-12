@@ -1006,6 +1006,28 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   Add Section
                 </button>
               </div>
+
+              <div className="mt-4 rounded-lg border border-slate-200 bg-white p-2.5">
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Supporting Documents</p>
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold text-slate-600">Required</p>
+                  {SUPPORTING_DOCS.required.map((doc) => (
+                    <label key={doc.id} className="flex items-center gap-2 text-[11px] text-slate-700">
+                      <input type="checkbox" checked={Boolean(supportingDocs[doc.id])} onChange={() => handleToggleDoc(doc.id)} />
+                      <span>{doc.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="mt-3 space-y-2">
+                  <p className="text-[11px] font-semibold text-slate-600">Conditional</p>
+                  {SUPPORTING_DOCS.conditional.slice(0, 5).map((doc) => (
+                    <label key={doc.id} className="flex items-center gap-2 text-[11px] text-slate-700">
+                      <input type="checkbox" checked={Boolean(supportingDocs[doc.id])} onChange={() => handleToggleDoc(doc.id)} />
+                      <span>{doc.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
             </aside>
           )}
 
@@ -1138,28 +1160,6 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   <span className={`font-semibold ${isFunderReady ? 'text-emerald-700' : 'text-amber-700'}`}>
                     {isFunderReady ? `Yes (${readinessScore.toFixed(1)}/10)` : `Almost (${readinessScore.toFixed(1)}/10)`}
                   </span>
-                </div>
-
-                <div className="mt-2 rounded-lg border border-slate-200 bg-white p-2.5">
-                  <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Supporting Documents</p>
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold text-slate-600">Required</p>
-                    {SUPPORTING_DOCS.required.map((doc) => (
-                      <label key={doc.id} className="flex items-center gap-2 text-[11px] text-slate-700">
-                        <input type="checkbox" checked={Boolean(supportingDocs[doc.id])} onChange={() => handleToggleDoc(doc.id)} />
-                        <span>{doc.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    <p className="text-[11px] font-semibold text-slate-600">Conditional</p>
-                    {SUPPORTING_DOCS.conditional.slice(0, 5).map((doc) => (
-                      <label key={doc.id} className="flex items-center gap-2 text-[11px] text-slate-700">
-                        <input type="checkbox" checked={Boolean(supportingDocs[doc.id])} onChange={() => handleToggleDoc(doc.id)} />
-                        <span>{doc.label}</span>
-                      </label>
-                    ))}
-                  </div>
                 </div>
               </div>
             )}
