@@ -17,10 +17,10 @@ type AssistantResponse = {
   upgradeLink?: string;
 };
 
-const SIGNED_OUT_DRAFT_REPLY = 'Great — I can help you write a new grant. To start drafting, you’ll need to create your free TGM workspace. Once you’re inside, I’ll guide you step‑by‑step, collect your project details, and generate your first draft. Click “Get Started Free” to open your workspace and we’ll begin.';
-const GUIDE_DRAFT_REPLY = 'Let’s open your workspace first. Click “New Draft” on your dashboard and I’ll help you write step-by-step.';
-const GUIDE_HELP_REPLY = 'I can show you how to use TGM. Click “New Draft” to begin, or upload a draft and I’ll help you improve it.';
-const DRAFTING_HELP_REPLY = 'Paste your story or section here and I’ll help turn it into a stronger grant draft.';
+const SIGNED_OUT_DRAFT_REPLY = 'Great — I can help you write a new grant. To start drafting, you’ll need to create your free TGM workspace. Once you’re inside, I’ll guide you step-by-step, collect your project details, and generate your first draft. Click “Get Started Free” to open your workspace and we’ll begin.';
+const GUIDE_DRAFT_REPLY = 'Let’s open your workspace first. Click “New Draft” on your dashboard, and I’ll walk you through the rest.';
+const GUIDE_HELP_REPLY = 'Welcome — I can help you get started. Open “New Draft” to begin, upload a draft to improve it, or ask me how scoring works.';
+const DRAFTING_HELP_REPLY = 'Great — paste the story or section here, and I’ll help turn it into a stronger grant draft.';
 
 function createLocalMessage(role: AssistantMessage['role'], content: string): AssistantMessage {
   return {
@@ -48,8 +48,8 @@ export default function AssistantChatPanel({ open, onClose, mode }: AssistantCha
   const displayName = firstName ? `${firstName.charAt(0).toUpperCase()}${firstName.slice(1)}` : 'there';
   const isDraftingMode = mode === 'drafting';
   const introMessage = isDraftingMode
-    ? `Hi ${displayName} - I\'m Steve, your drafting assistant. Paste a section or tell me the grant story and I\'ll help shape it.`
-    : `Hi ${displayName} - I\'m Steve, your product guide. I can help you start a draft, upload a file, or understand the tools.`;
+    ? `Hi ${displayName} — I\'m Steve, your drafting assistant. Paste a section or tell me the story, and I\'ll help shape it.`
+    : `Hi ${displayName} — I\'m Steve, your product guide. I can help you start a draft, upload a file, or understand the tools.`;
   const [messages, setMessages] = useState<AssistantMessage[]>([
     createLocalMessage('assistant', introMessage),
   ]);
@@ -170,7 +170,9 @@ export default function AssistantChatPanel({ open, onClose, mode }: AssistantCha
     >
       <header className="relative flex shrink-0 items-center justify-between border-b border-[#E2E8F0] bg-[#0A0F1A] px-5 py-4 pr-16 text-white">
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#E8D28C]">Concierge mode</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#E8D28C]">
+            {isDraftingMode ? 'Drafting mode' : 'Guide mode'}
+          </p>
           <h2 className="text-lg font-bold">TGM Assistant</h2>
         </div>
         <button

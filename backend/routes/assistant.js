@@ -111,7 +111,7 @@ function handleDraftGrant(session, message) {
 function buildReply({ intent, message, session }) {
   switch (intent) {
     case 'guide_help':
-      return 'I can help you get started. Click New Draft on your dashboard to open your workspace, or upload a draft and I\'ll help improve it.';
+      return 'Welcome — I can help you get started. Click New Draft on your dashboard to open your workspace, upload a draft to improve it, or ask me how scoring works.';
     case 'draft_grant':
       return handleDraftGrant(session, message);
     case 'edit_grant':
@@ -160,8 +160,8 @@ router.post('/', (req, res) => {
 
   if (!isWorkspaceRoute && (intent === 'draft_grant' || intent === 'edit_grant' || intent === 'advanced_review')) {
     const reply = isGuideMode
-      ? 'Let’s open your workspace first. Click New Draft on your dashboard and I\'ll guide you step-by-step.'
-      : 'Open your workspace first so I can help you draft. Click New Draft on your dashboard.';
+      ? 'Let’s open your workspace first. Click New Draft on your dashboard, and I\'ll walk you through the rest.'
+      : 'Great story — open your workspace first so I can help you turn it into a draft. Click New Draft on your dashboard, and I\'ll take it from there.';
     addMessage(userId, createMessage('assistant', reply));
     return res.json({
       reply,
