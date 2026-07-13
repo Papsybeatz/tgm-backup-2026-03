@@ -9,6 +9,12 @@ export default function SteveAssistantDock() {
   const location = useLocation();
   const { user } = useUser() || {};
 
+  const assistantMode = useMemo(() => {
+    if (location.pathname.startsWith('/workspace')) return 'drafting';
+    if (location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/clients')) return 'guide';
+    return 'guide';
+  }, [location.pathname]);
+
   const isProductRoute = useMemo(
     () => ['/dashboard', '/workspace', '/clients'].some((base) => location.pathname.startsWith(base)),
     [location.pathname]
@@ -24,7 +30,7 @@ export default function SteveAssistantDock() {
 
   return (
     <>
-      <AssistantChatPanel open={open} onClose={() => setOpen(false)} />
+      <AssistantChatPanel open={open} onClose={() => setOpen(false)} mode={assistantMode} />
       <AssistantChatButton open={open} onClick={() => setOpen((current) => !current)} />
     </>
   );

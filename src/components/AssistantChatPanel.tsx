@@ -7,6 +7,7 @@ import { NY_ASSISTANT_PROMPTS } from '../data/newYorkGrants';
 type AssistantChatPanelProps = {
   open: boolean;
   onClose: () => void;
+  mode: 'guide' | 'drafting';
 };
 
 type AssistantResponse = {
@@ -17,6 +18,9 @@ type AssistantResponse = {
 };
 
 const SIGNED_OUT_DRAFT_REPLY = 'Great — I can help you write a new grant. To start drafting, you’ll need to create your free TGM workspace. Once you’re inside, I’ll guide you step‑by‑step, collect your project details, and generate your first draft. Click “Get Started Free” to open your workspace and we’ll begin.';
+const GUIDE_DRAFT_REPLY = 'Let’s open your workspace first. Click “New Draft” on your dashboard and I’ll help you write step-by-step.';
+const GUIDE_HELP_REPLY = 'I can show you how to use TGM. Click “New Draft” to begin, or upload a draft and I’ll help you improve it.';
+const DRAFTING_HELP_REPLY = 'Paste your story or section here and I’ll help turn it into a stronger grant draft.';
 
 function createLocalMessage(role: AssistantMessage['role'], content: string): AssistantMessage {
   return {
@@ -37,13 +41,17 @@ async function parseAssistantResponse(res: Response): Promise<AssistantResponse>
   }
 }
 
-export default function AssistantChatPanel({ open, onClose }: AssistantChatPanelProps) {
+export default function AssistantChatPanel({ open, onClose, mode }: AssistantChatPanelProps) {
   const { user } = useUser() || {};
   const location = useLocation();
   const firstName = (user?.name || user?.email || 'there').split('@')[0].split(/[._\s-]+/)[0];
   const displayName = firstName ? `${firstName.charAt(0).toUpperCase()}${firstName.slice(1)}` : 'there';
+  const isDraftingMode = mode === 'drafting';
+  const introMessage = isDraftingMode
+    ? `Hi ${displayName} - I\'m Steve, your drafting assistant. Paste a section or tell me the grant story and I\'ll help shape it.`
+    : `Hi ${displayName} - I\'m Steve, your product guide. I can help you start a draft, upload a file, or understand the tools.`;
   const [messages, setMessages] = useState<AssistantMessage[]>([
-    createLocalMessage('assistant', `Hi ${displayName} - I\'m Steve, your drafting assistant. Ready when you are.`),
+    createLocalMessage('assistant', introMessage),
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -61,6 +69,18 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
       (text.includes('draft') && text.includes('grant')) ||
       text.includes('new grant') ||
       text.includes('first draft')
+    );
+  };
+
+  const isGuideRequest = (message: string) => {
+    const text = message.toLowerCase();
+    return (
+      text.includes('how do i use') ||
+      text.includes('where do i start') ||
+      text.includes('what should i click') ||
+      text.includes('guide me') ||
+      text.includes('help me use') ||
+      text.includes('help me start')
     );
   };
 
@@ -82,6 +102,22 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
         return;
       }
 
+      if (!isDraftingMode && (isDraftRequest(trimmed) || isGuideRequest(trimmed))) {
+        setMessages((current) => [
+          ...current,
+          createLocalMessage('assistant', isDraftRequest(trimmed) ? GUIDE_DRAFT_REPLY : GUIDE_HELP_REPLY),
+        ]);
+        return;
+      }
+
+      if (isDraftingMode && isGuideRequest(trimmed)) {
+        setMessages((current) => [
+          ...current,
+          createLocalMessage('assistant', DRAFTING_HELP_REPLY),
+        ]);
+        return;
+      }
+
       const response = await fetch('/api/assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,6 +129,7 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
             currentPage: location.pathname,
             currentGrantId: location.pathname.startsWith('/workspace/') ? location.pathname.split('/').pop() : null,
             isSignedIn,
+            mode,
           },
         }),
       });
@@ -192,7 +229,7 @@ export default function AssistantChatPanel({ open, onClose }: AssistantChatPanel
       </div>
 
       <form onSubmit={sendMessage} className="shrink-0 border-t border-[#E2E8F0] bg-white px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4">
-        {showNewYorkPrompts && (
+        {showNewYorkPrompts && isDraftingMode && (
           <div className="mb-3 flex flex-wrap gap-2">
             {NY_ASSISTANT_PROMPTS.map((prompt) => (
               <button

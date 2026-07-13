@@ -35,6 +35,9 @@ function normalizeTier(tier) {
 
 function detectIntent(message, session) {
   const text = String(message || '').toLowerCase();
+  if (text.includes('how do i use') || text.includes('where do i start') || text.includes('what should i click') || text.includes('guide me') || text.includes('help me use') || text.includes('help me start')) {
+    return 'guide_help';
+  }
   if (text.includes('write') && text.includes('grant')) return 'draft_grant';
   if (text.includes('scott') || text.includes('distribution plan') || text.includes('growth engine')) return 'scott_distribution';
   if (text.includes('ny grant') || text.includes('new york grant') || text.includes('ny nonprofit') || text.includes('ny arts')) return 'new_york_help';
@@ -107,6 +110,8 @@ function handleDraftGrant(session, message) {
 
 function buildReply({ intent, message, session }) {
   switch (intent) {
+    case 'guide_help':
+      return 'I can help you get started. Click New Draft on your dashboard to open your workspace, or upload a draft and I\'ll help improve it.';
     case 'draft_grant':
       return handleDraftGrant(session, message);
     case 'edit_grant':
@@ -139,11 +144,27 @@ router.post('/', (req, res) => {
 
   const intent = detectIntent(message, session);
   updateIntent(userId, intent);
+  const currentPage = String(context.currentPage || '').toLowerCase();
+  const mode = String(context.mode || '').toLowerCase();
+  const isWorkspaceRoute = currentPage.startsWith('/workspace');
+  const isGuideMode = mode === 'guide' || currentPage.startsWith('/dashboard') || currentPage.startsWith('/clients');
 
   if (isSignedOutDraftRequest({ intent, userId, context })) {
     addMessage(userId, createMessage('assistant', SIGNED_OUT_DRAFT_REPLY));
     return res.json({
       reply: SIGNED_OUT_DRAFT_REPLY,
+      intent,
+      requiresUpgrade: false,
+    });
+  }
+
+  if (!isWorkspaceRoute && (intent === 'draft_grant' || intent === 'edit_grant' || intent === 'advanced_review')) {
+    const reply = isGuideMode
+      ? 'Let’s open your workspace first. Click New Draft on your dashboard and I\'ll guide you step-by-step.'
+      : 'Open your workspace first so I can help you draft. Click New Draft on your dashboard.';
+    addMessage(userId, createMessage('assistant', reply));
+    return res.json({
+      reply,
       intent,
       requiresUpgrade: false,
     });
