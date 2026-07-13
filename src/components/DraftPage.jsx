@@ -367,6 +367,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploadError, setUploadError] = useState('');
   const [scoreState, setScoreState] = useState({ score: null, label: 'Not scored yet' });
+  const [fitState, setFitState] = useState({ loading: false, error: '', insights: null });
   const [supportingDocs, setSupportingDocs] = useState({});
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -729,6 +730,36 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     }
   };
 
+  const handleCheckFit = async () => {
+    if (!isStarterPlus || !canSave) return;
+    setFitState({ loading: true, error: '', insights: null });
+    try {
+      const token = getToken();
+      const res = await fetch(apiUrl('/api/score'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ content: text }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || 'Fit check failed');
+      }
+      const score = Number(data.score || 0);
+      const insights = {
+        alignment: score >= 85 ? 'High alignment' : score >= 70 ? 'Good alignment' : score >= 55 ? 'Partial alignment' : 'Low alignment',
+        structure: `${data.sections || 0} sections detected`,
+        evidence: `${data.numbers || 0} quantitative signals found`,
+        readability: `${data.words || 0} words analyzed`,
+      };
+      setFitState({ loading: false, error: '', insights });
+    } catch (error) {
+      setFitState({ loading: false, error: error?.message || 'Fit check failed', insights: null });
+    }
+  };
+
   const downloadBlob = (blob, filename) => {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -964,6 +995,15 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   {aiLoading && activeAction === 'Score My Draft' ? 'Scoring...' : 'Score My Draft'}
                 </button>
               )}
+              {isStarterPlus && (
+                <button
+                  onClick={handleCheckFit}
+                  disabled={!canSave || fitState.loading}
+                  className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {fitState.loading ? 'Checking Fit...' : 'Check Fit'}
+                </button>
+              )}
             </div>
             {saveError && (
               <p className="w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{saveError}</p>
@@ -1175,6 +1215,20 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
             )}
             {uploadError && (
               <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{uploadError}</p>
+            )}
+            {isStarterPlus && fitState.error && (
+              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{fitState.error}</p>
+            )}
+            {isStarterPlus && fitState.insights && (
+              <div className="mt-3 rounded-xl border border-[#003A8C]/20 bg-[#EFF6FF] p-3 text-xs text-[#0A0F1A]">
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#003A8C]">Funder Fit Insights</p>
+                <div className="grid gap-2 md:grid-cols-2">
+                  <div className="rounded-lg border border-[#003A8C]/15 bg-white px-2.5 py-2"><span className="font-semibold">Alignment:</span> {fitState.insights.alignment}</div>
+                  <div className="rounded-lg border border-[#003A8C]/15 bg-white px-2.5 py-2"><span className="font-semibold">Structure:</span> {fitState.insights.structure}</div>
+                  <div className="rounded-lg border border-[#003A8C]/15 bg-white px-2.5 py-2"><span className="font-semibold">Evidence:</span> {fitState.insights.evidence}</div>
+                  <div className="rounded-lg border border-[#003A8C]/15 bg-white px-2.5 py-2"><span className="font-semibold">Readability:</span> {fitState.insights.readability}</div>
+                </div>
+              </div>
             )}
             {isStarterPlus && (
               <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs">

@@ -242,14 +242,14 @@ function StarterDashboard({ tierConfig }) {
             <p className="text-xs font-bold uppercase tracking-widest text-[#B8960C]">Starter Tooling</p>
             <h2 className="mt-2 text-xl font-bold text-[#003A8C]">Funder Fit Tools</h2>
             <p className="mt-2 text-sm leading-6 text-gray-600">
-              Analyze alignment with funder priorities using Starter-level fit checks.
+              Run funder fit checks inside each workspace draft so results are tied to the current document.
             </p>
             <button
               type="button"
-              onClick={() => navigate('/workspace/fit')}
+              onClick={() => navigate('/workspace/new')}
               className="mt-4 rounded-lg border border-[#003A8C] px-4 py-2 text-sm font-bold text-[#003A8C] transition hover:bg-[#003A8C]/5"
             >
-              Check Fit
+              Open Workspace
             </button>
           </div>
         </section>
@@ -400,8 +400,8 @@ function AdvancedDashboard({ tier, tierConfig }) {
     {
       title: 'Scoring and fit tools',
       detail: 'Check alignment, readiness, and funder-fit signals before final submission.',
-      action: 'Run Fit Check',
-      onClick: () => navigate('/workspace/fit'),
+      action: 'Open Workspace',
+      onClick: () => navigate('/workspace/new'),
     },
     {
       title: tierAtLeast(tier, 'agency_starter') ? 'Client operations' : 'Plan controls',
