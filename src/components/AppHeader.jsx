@@ -375,15 +375,16 @@ export default function AppHeader() {
       boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.35)' : 'none',
     }}>
       {/* Logo */}
-      <Link to={user ? '/dashboard' : '/'} style={{
+      <Link to="/" style={{
         display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0,
       }}>
         <div style={{
-          width: 36, height: 36, borderRadius: 10,
+          minWidth: 48, height: 36, borderRadius: 10, padding: '0 8px',
           background: 'linear-gradient(135deg,#D4AF37,#E8D28C)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 13, fontWeight: 800, color: '#0A0F1A',
-        }}>GM</div>
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          overflow: 'visible', whiteSpace: 'nowrap',
+          fontSize: 12, fontWeight: 900, letterSpacing: '.04em', color: '#0A0F1A',
+        }}>TGM</div>
         <span style={{ fontSize: 17, fontWeight: 800, color: '#fff', letterSpacing: '-.3px' }}>
           {user ? (isStarterTier ? 'TGM Dashboard - Starter' : isFreeTier ? 'TGM Dashboard' : 'GrantsMaster') : 'GrantsMaster'}
         </span>
