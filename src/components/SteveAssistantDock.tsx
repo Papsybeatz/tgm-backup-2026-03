@@ -1,9 +1,26 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useUser } from './UserContext';
 import AssistantChatButton from './AssistantChatButton';
 import AssistantChatPanel from './AssistantChatPanel';
 
 export default function SteveAssistantDock() {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const { user } = useUser() || {};
+
+  const isProductRoute = useMemo(
+    () => ['/dashboard', '/workspace', '/clients'].some((base) => location.pathname.startsWith(base)),
+    [location.pathname]
+  );
+  const isAuthenticated = Boolean(user?.email);
+  const shouldRender = isAuthenticated && isProductRoute;
+
+  useEffect(() => {
+    if (!shouldRender && open) setOpen(false);
+  }, [shouldRender, open]);
+
+  if (!shouldRender) return null;
 
   return (
     <>
