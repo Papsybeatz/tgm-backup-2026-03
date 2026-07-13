@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
+const BUILD_MARKER = 'build-2026-07-12-60fa483';
 
 
 const s = {
@@ -285,6 +286,25 @@ export default function MonitoringDashboard() {
 
   return (
     <div style={s.page}>
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          border: '1px solid #cbd5e1',
+          borderRadius: 9999,
+          padding: '3px 8px',
+          background: 'rgba(255,255,255,0.92)',
+          color: '#475569',
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          marginBottom: 12,
+        }}
+        aria-label="Monitoring build marker"
+      >
+        {BUILD_MARKER}
+      </div>
       <h1 style={s.h1}>TGM Dashboard - Starter Plan</h1>
       <p style={s.heroSubtext}>Full drafting, scoring, and funder fit unlocked</p>
 
