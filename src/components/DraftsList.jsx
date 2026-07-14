@@ -53,13 +53,7 @@ export default function DraftsList() {
   const [sortBy, setSortBy] = useState('newest');
 
   const filteredDrafts = useMemo(() => {
-    const visible = drafts.filter((draft) => {
-      const words = wordCount(draft.content || '');
-      if (words < 10) return false;
-      if (isMalformedDraft(draft.content || '')) return false;
-      if (isLikelyTestDraft(draft.title || '', draft.content || '')) return false;
-      return true;
-    });
+    const visible = [...drafts];
 
     visible.sort((a, b) => {
       if (sortBy === 'oldest') {

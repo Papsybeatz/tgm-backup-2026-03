@@ -38,6 +38,12 @@ export function useDrafts() {
         body: JSON.stringify({ title, content: '' }),
       });
       const data = await res.json();
+      if (!res.ok) {
+         if (res.status === 403 && data.reason === 'draft_limit_reached') {
+             alert(data.message || 'Free tier limit reached. Upgrade to save more drafts.');
+         }
+         return null;
+      }
       const newDraft = data.draft || data;
       if (newDraft?.id) {
         setDrafts(prev => [newDraft, ...prev]);

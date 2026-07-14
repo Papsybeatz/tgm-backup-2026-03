@@ -25,8 +25,19 @@ export default function NewWorkspacePage() {
         const data = await res.json();
         const draft = data?.draft || data;
 
-        if (!cancelled && draft?.id) {
-          navigate(`/workspace/${draft.id}`, { replace: true });
+        if (!cancelled) {
+          if (!res.ok) {
+            if (res.status === 403 && data.reason === 'draft_limit_reached') {
+               alert(data.message || 'Free tier limit reached. Upgrade to save more drafts.');
+            }
+            navigate('/dashboard', { replace: true });
+            return;
+          }
+          if (draft?.id) {
+            navigate(`/workspace/${draft.id}`, { replace: true });
+          } else {
+             navigate('/dashboard', { replace: true });
+          }
         }
       } catch (error) {
         if (!cancelled) {
