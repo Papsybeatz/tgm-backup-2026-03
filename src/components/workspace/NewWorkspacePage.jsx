@@ -8,6 +8,21 @@ export default function NewWorkspacePage() {
   useEffect(() => {
     let cancelled = false;
 
+    async function openExistingDraft(token) {
+      const listRes = await fetch(apiUrl('/api/drafts'), {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const listData = await listRes.json();
+      const drafts = Array.isArray(listData?.drafts)
+        ? listData.drafts
+        : Array.isArray(listData)
+          ? listData
+          : [];
+      return drafts[0] || null;
+    }
+
     async function startDraft() {
       try {
         const token = localStorage.getItem('token') || '';
@@ -28,7 +43,12 @@ export default function NewWorkspacePage() {
         if (!cancelled) {
           if (!res.ok) {
             if (res.status === 403 && data.reason === 'draft_limit_reached') {
-               alert(data.message || 'Free tier limit reached. Upgrade to save more drafts.');
+              const existingDraft = await openExistingDraft(token);
+              if (existingDraft?.id) {
+                navigate(`/workspace/${existingDraft.id}`, { replace: true });
+                return;
+              }
+              alert(data.message || 'Free tier limit reached. Upgrade to save more drafts.');
             }
             navigate('/dashboard', { replace: true });
             return;
@@ -36,7 +56,7 @@ export default function NewWorkspacePage() {
           if (draft?.id) {
             navigate(`/workspace/${draft.id}`, { replace: true });
           } else {
-             navigate('/dashboard', { replace: true });
+            navigate('/dashboard', { replace: true });
           }
         }
       } catch (error) {

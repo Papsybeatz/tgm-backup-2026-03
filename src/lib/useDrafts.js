@@ -27,6 +27,23 @@ export function useDrafts() {
 
   useEffect(() => { fetchDrafts(); }, [fetchDrafts]);
 
+  const getExistingDraft = useCallback(async () => {
+    const listRes = await fetch('/api/drafts', {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    });
+    const listData = await listRes.json();
+    const existingDrafts = Array.isArray(listData?.drafts)
+      ? listData.drafts
+      : Array.isArray(listData)
+        ? listData
+        : [];
+    if (existingDrafts.length > 0) {
+      setDrafts(existingDrafts);
+      return existingDrafts[0];
+    }
+    return null;
+  }, []);
+
   const createDraft = useCallback(async (title = 'Untitled Draft') => {
     try {
       const res = await fetch('/api/drafts', {
@@ -39,10 +56,12 @@ export function useDrafts() {
       });
       const data = await res.json();
       if (!res.ok) {
-         if (res.status === 403 && data.reason === 'draft_limit_reached') {
-             alert(data.message || 'Free tier limit reached. Upgrade to save more drafts.');
-         }
-         return null;
+        if (res.status === 403 && data.reason === 'draft_limit_reached') {
+          const existingDraft = await getExistingDraft();
+          if (existingDraft?.id) return existingDraft;
+          alert(data.message || 'Free tier limit reached. Upgrade to save more drafts.');
+        }
+        return null;
       }
       const newDraft = data.draft || data;
       if (newDraft?.id) {
@@ -53,7 +72,7 @@ export function useDrafts() {
       console.error('Create draft failed', e);
     }
     return null;
-  }, []);
+  }, [getExistingDraft]);
 
   const deleteDraft = useCallback(async (id) => {
     try {
