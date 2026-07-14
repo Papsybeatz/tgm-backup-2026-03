@@ -1,0 +1,2 @@
+-- AddColumn
+ALTER TABLE "Draft" ADD COLUMN "aiActionCount" INTEGER NOT NULL DEFAULT 0;
