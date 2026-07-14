@@ -377,7 +377,13 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const historyIndexRef = useRef(-1);
   const suppressHistoryPushRef = useRef(false);
 
-  const { saving, saved, saveError, draftId, onBlur, saveNow } = useAutosave({ content: text, title, draftId: draftIdProp, debounceMs: 1500, enabled: isHydrated });
+  const { saving, saved, saveError, draftId, onBlur, saveNow } = useAutosave({
+    content: text,
+    title,
+    draftId: draftIdProp,
+    debounceMs: 1500,
+    enabled: isHydrated && isStarterPlus,
+  });
 
   const words = useMemo(() => {
     const trimmed = stripHtml(text).trim();
@@ -685,6 +691,11 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const sectionIcons = ['📝', '📄', '📌', '🧭', '📊', '✅', '💡'];
 
   const handleManualSave = async () => {
+    if (!isStarterPlus) {
+      setManualSaveNote('Save Draft is available on Starter+ plans.');
+      window.setTimeout(() => setManualSaveNote(''), 2500);
+      return;
+    }
     if (!isHydrated) {
       setManualSaveNote('Draft is still loading...');
       window.setTimeout(() => setManualSaveNote(''), 1500);
@@ -890,7 +901,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                onBlur={onBlur}
+                onBlur={isStarterPlus ? onBlur : undefined}
                 placeholder="Untitled Draft"
                 className="min-w-[220px] max-w-[560px] flex-1 border-none bg-transparent text-base font-bold tracking-tight text-[#0A0F1A] outline-none md:text-lg"
               />
@@ -900,11 +911,18 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5 text-xs md:text-sm">
-              <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide md:text-xs ${statusClass}`}>{status}</span>
-              <span className={`font-semibold ${saveColor}`}>{saveLabel}</span>
-              <span className="text-slate-500 tabular-nums">
-                Last saved: {lastSavedAt ? `${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${savedAgo}` : 'Not yet'}
-              </span>
+              {isStarterPlus && <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide md:text-xs ${statusClass}`}>{status}</span>}
+              {isStarterPlus && <span className={`font-semibold ${saveColor}`}>{saveLabel}</span>}
+              {isStarterPlus && (
+                <span className="text-slate-500 tabular-nums">
+                  Last saved: {lastSavedAt ? `${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${savedAgo}` : 'Not yet'}
+                </span>
+              )}
+              {!isStarterPlus && (
+                <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+                  Free Preview - Save Locked
+                </span>
+              )}
               {isStarterPlus && (
                 <button
                   onClick={handleDownloadPdf}
@@ -931,13 +949,15 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   Download TXT
                 </button>
               )}
-              <button
-                onClick={handleUploadDraft}
-                title="Google Drive Picker requires OAuth setup and can be enabled on request."
-                className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
-              >
-                Upload Draft (PDF, DOCX, DOC, TXT)
-              </button>
+              {isStarterPlus && (
+                <button
+                  onClick={handleUploadDraft}
+                  title="Google Drive Picker requires OAuth setup and can be enabled on request."
+                  className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5"
+                >
+                  Upload Draft (PDF, DOCX, DOC, TXT)
+                </button>
+              )}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -945,36 +965,40 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 className="hidden"
                 onChange={handleFileSelected}
               />
-              <button
-                type="button"
-                onClick={handleManualSave}
-                disabled={saving}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  !saving
-                    ? 'bg-[#0A0F1A] text-[#D4AF37] hover:opacity-90'
-                    : 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                }`}
-              >
-                Save Draft
-              </button>
-              <button
-                type="button"
-                onClick={goBack}
-                disabled={historyIndex <= 0}
-                title="Go back"
-                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                ← Back
-              </button>
-              <button
-                type="button"
-                onClick={goForward}
-                disabled={historyIndex >= history.length - 1}
-                title="Go forward"
-                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Forward →
-              </button>
+              {isStarterPlus && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleManualSave}
+                    disabled={saving}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                      !saving
+                        ? 'bg-[#0A0F1A] text-[#D4AF37] hover:opacity-90'
+                        : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                    }`}
+                  >
+                    Save Draft
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    disabled={historyIndex <= 0}
+                    title="Go back"
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goForward}
+                    disabled={historyIndex >= history.length - 1}
+                    title="Go forward"
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Forward →
+                  </button>
+                </>
+              )}
               {isStarterPlus && (
                 <button
                   onClick={handleScoreDraft}
@@ -994,7 +1018,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 </button>
               )}
             </div>
-            {saveError && (
+            {isStarterPlus && saveError && (
               <p className="w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{saveError}</p>
             )}
             {manualSaveNote && !saveError && (
@@ -1076,6 +1100,35 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
               </div>
             </aside>
           )}
+          {!isStarterPlus && (
+            <aside className="order-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:order-1">
+              <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Sections</div>
+              <div className="space-y-2">
+                {sections.map((section) => (
+                  <button
+                    key={section}
+                    onClick={() => handleSectionClick(section)}
+                    className={`w-full rounded-lg px-3 py-2.5 text-left text-sm transition ${
+                      activeSection === section
+                        ? 'bg-slate-100 font-semibold text-slate-900 border-l-4 border-l-slate-900 border-y border-r border-slate-200'
+                        : 'text-slate-500 hover:bg-slate-50 border border-transparent'
+                    }`}
+                  >
+                    {section}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs">
+                <p className="font-semibold text-amber-800">Upgrade to Starter+</p>
+                <ul className="mt-2 list-disc space-y-1 pl-4 text-amber-700">
+                  <li>Save drafts and export</li>
+                  <li>AI drafting tools</li>
+                  <li>Scoring and Funder Fit</li>
+                  <li>Full proposal sections</li>
+                </ul>
+              </div>
+            </aside>
+          )}
 
           <section className="order-1 lg:order-2">
             <div className="overflow-hidden rounded-2xl border border-[#D4AF37]/50 bg-white shadow-[0_20px_45px_rgba(15,23,42,0.08)]">
@@ -1083,40 +1136,68 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 {activeSection}
               </div>
               <div className="p-6">
-                <div className="mb-4 rounded-xl border border-[#003A8C]/15 bg-[#F8FBFF] p-4">
-                  <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#003A8C]">Idea Input</p>
-                  <textarea
-                    value={ideaInput}
-                    onChange={(e) => setIdeaInput(e.target.value)}
-                    placeholder="Describe the grant, funder, or outcome you want Steve to shape into a proposal..."
-                    className="min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#D4AF37]"
-                  />
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button type="button" onClick={() => handleAIAction('Use Idea', 'rewrite')} disabled={aiLoading} className="rounded-full bg-[#003A8C] px-4 py-2 text-xs font-bold text-white transition hover:opacity-90 disabled:opacity-60">Use Idea</button>
-                    <button type="button" onClick={() => setIdeaInput('')} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-[#D4AF37]">Clear</button>
+                {isStarterPlus && (
+                  <div className="mb-4 rounded-xl border border-[#003A8C]/15 bg-[#F8FBFF] p-4">
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#003A8C]">Idea Input</p>
+                    <textarea
+                      value={ideaInput}
+                      onChange={(e) => setIdeaInput(e.target.value)}
+                      placeholder="Describe the grant, funder, or outcome you want Steve to shape into a proposal..."
+                      className="min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#D4AF37]"
+                    />
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleAIAction('Use Idea', 'rewrite')}
+                        disabled={aiLoading || !isStarterPlus}
+                        className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                          isStarterPlus
+                            ? 'bg-[#003A8C] text-white hover:opacity-90 disabled:opacity-60'
+                            : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                        }`}
+                      >
+                        {isStarterPlus ? 'Use Idea' : 'Use Idea (Starter+)'}
+                      </button>
+                      <button type="button" onClick={() => setIdeaInput('')} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-[#D4AF37]">Clear</button>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {!isStarterPlus && (
+                  <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-sm font-semibold text-amber-800">Upgrade to Starter+ to unlock drafting tools</p>
+                    <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-amber-700">
+                      <li>Save drafts and export to PDF/DOCX</li>
+                      <li>AI tools: Regenerate, Improve, and Rewrite sections</li>
+                      <li>Scoring, Funder Fit, and Readiness Checklist</li>
+                      <li>Full proposal structure with version history</li>
+                    </ul>
+                  </div>
+                )}
 
                 <h3 className="mb-3 text-base font-semibold text-[#0A0F1A]">{activeSection}</h3>
-                <div className="mb-3 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleAIAction('Regenerate Section', 'generate_section')}
-                    disabled={aiLoading}
-                    className="rounded-full border border-[#003A8C]/30 bg-white px-3 py-1.5 text-[11px] font-semibold text-[#003A8C] transition hover:bg-[#003A8C]/5 disabled:opacity-60"
-                  >
-                    {aiLoading && activeAction === 'Regenerate Section' ? 'Regenerating...' : 'Regenerate Section'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAIAction('Improve Section', 'rewrite')}
-                    disabled={aiLoading}
-                    className="rounded-full border border-[#003A8C]/30 bg-white px-3 py-1.5 text-[11px] font-semibold text-[#003A8C] transition hover:bg-[#003A8C]/5 disabled:opacity-60"
-                  >
-                    {aiLoading && activeAction === 'Improve Section' ? 'Improving...' : 'Improve Section'}
-                  </button>
-                </div>
-                <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                {isStarterPlus && (
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAIAction('Regenerate Section', 'generate_section')}
+                      disabled={aiLoading || !isStarterPlus}
+                      className="rounded-full border border-[#003A8C]/30 bg-white px-3 py-1.5 text-[11px] font-semibold text-[#003A8C] transition hover:bg-[#003A8C]/5 disabled:opacity-60"
+                    >
+                      {aiLoading && activeAction === 'Regenerate Section' ? 'Regenerating...' : 'Regenerate Section'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAIAction('Improve Section', 'rewrite')}
+                      disabled={aiLoading || !isStarterPlus}
+                      className="rounded-full border border-[#003A8C]/30 bg-white px-3 py-1.5 text-[11px] font-semibold text-[#003A8C] transition hover:bg-[#003A8C]/5 disabled:opacity-60"
+                    >
+                      {aiLoading && activeAction === 'Improve Section' ? 'Improving...' : 'Improve Section'}
+                    </button>
+                  </div>
+                )}
+                {isStarterPlus && (
+                  <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                   <div className="mb-2 flex items-center justify-between">
                     <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Draft Metadata</p>
                     <span className="rounded-full border border-[#003A8C]/20 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#003A8C]">Starter - Full Drafting Unlocked</span>
@@ -1127,7 +1208,8 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                     <input disabled value={`Last saved: ${lastSavedAt ? `${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${savedAgo})` : 'Not yet'}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600" />
                     <input disabled value={`Status: ${status}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600" />
                   </div>
-                </div>
+                  </div>
+                )}
                 <style>{`
                   .tgm-html-editor {
                     min-height: 58vh;
@@ -1190,11 +1272,17 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   onKeyUp={() => setSelectedText(window.getSelection()?.toString() || '')}
                 />
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/75 px-6 py-2.5 text-xs font-medium text-slate-500">
-                <span>{words} words</span>
-                <span>{readingTime} min read</span>
-                <span>{characters} characters</span>
-              </div>
+              {isStarterPlus ? (
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/75 px-6 py-2.5 text-xs font-medium text-slate-500">
+                  <span>{words} words</span>
+                  <span>{readingTime} min read</span>
+                  <span>{characters} characters</span>
+                </div>
+              ) : (
+                <div className="border-t border-slate-100 bg-slate-50/75 px-6 py-2.5 text-xs font-semibold text-slate-600">
+                  Free preview mode. Upgrade to Starter+ to save, score, export, and use AI drafting tools.
+                </div>
+              )}
             </div>
             {aiError && (
               <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{aiError}</p>
