@@ -38,7 +38,12 @@ function FreeDashboard() {
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
-        setDraftCount(Array.isArray(data?.drafts) ? data.drafts.length : 0);
+        const drafts = Array.isArray(data?.drafts)
+          ? data.drafts
+          : Array.isArray(data)
+            ? data
+            : [];
+        setDraftCount(drafts.length);
       })
       .catch(() => {
         if (!cancelled) setDraftCount(0);
@@ -80,7 +85,9 @@ function FreeDashboard() {
           <aside className="rounded-lg border border-[#E2E8F0] bg-white p-5 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-widest text-gray-500">Workspace</p>
             <h2 className="mt-2 text-xl font-bold text-[#003A8C]">Your Drafts ({Math.min(draftCount, 1)} of 1)</h2>
-            <p className="mt-3 text-sm leading-6 text-gray-600">No drafts yet. Create your first one below.</p>
+            <p className="mt-3 text-sm leading-6 text-gray-600">
+              {draftCount > 0 ? 'You already have your Free draft. Open it to continue editing.' : 'No drafts yet. Create your first one below.'}
+            </p>
           </aside>
         </div>
       </section>
