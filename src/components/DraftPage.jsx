@@ -372,7 +372,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [drafts, setDrafts] = useState([]);
   const [aiActionCount, setAiActionCount] = useState(0);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const hasSavedDraft = !!draftId;
+  const hasSavedDraft = !!draftIdProp;
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const syncEditorFromStateRef = useRef(false);
