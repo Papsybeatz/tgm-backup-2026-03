@@ -1,7 +1,7 @@
 const TIERS = {
   free: {
     features: ['draft_basic', 'view_drafts', 'brainstorming_unlimited', 'scoring_basic', 'export_pdf', 'export_doc', 'ny_grants', 'email_support'],
-    limits: { drafts: 3, scoring: 3, matching: 0 }
+    limits: { drafts: 1, scoring: 3, matching: 0 }
   },
   starter: {
     features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'matching_basic', 'matching_engine', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'project_templates', 'priority_support'],

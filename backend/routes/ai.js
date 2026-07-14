@@ -1,5 +1,7 @@
 const express = require('express');
 const https = require('https');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const router = express.Router();
 const requireAuth = require('../middleware/auth');
 const { logError, logAiAction } = require('../utils/logger');
@@ -207,6 +209,76 @@ Return the improved content as HTML using <h2>, <h3>, <p>, <ul>, <li> tags. Outp
   } catch (err) {
     logError('AI_IMPROVE', err, { email: req.user?.email });
     return res.status(500).json({ message: err.message || 'AI improve failed' });
+  }
+});
+
+/* ── POST /api/ai/rewrite-basic ── */
+router.post('/rewrite-basic', requireAuth, async (req, res) => {
+  const { action, content, draftId } = req.body;
+  if (!action || !content) return res.status(400).json({ message: 'action and content are required' });
+
+  try {
+    const isFree = req.user.tier === 'free';
+    if (isFree && draftId) {
+      const draft = await prisma.draft.findFirst({ where: { id: draftId, userId: req.user.id } });
+      if (draft && draft.aiActionCount >= 3) {
+        return res.status(403).json({ success: false, canUseAi: false, reason: 'ai_limit_reached', message: 'Free tier AI limit reached (3 actions per draft). Upgrade for unlimited AI.' });
+      }
+    }
+
+    let systemPrompt = '';
+    switch (action) {
+      case 'rewrite':
+        systemPrompt = 'You are an expert grant writer. Rewrite the provided grant proposal section to make it clearer, more compelling, and funder-focused. Preserve the HTML structure using <h2>, <h3>, <p>, <ul>, <li> tags. Output only the HTML, no markdown fences.';
+        break;
+      case 'rewrite_clarity':
+        systemPrompt = 'You are an expert grant editor. Rewrite the provided grant proposal section for maximum clarity and readability. Simplify complex sentences, improve flow, and ensure the need statement is easy to understand. Preserve HTML structure. Output only the HTML.';
+        break;
+      case 'rewrite_impact':
+        systemPrompt = 'You are an expert grant writer. Rewrite the provided grant proposal section to maximize emotional and logical impact. Strengthen the need statement, use powerful but truthful language, and make the case for funding irresistible. Preserve HTML structure. Output only the HTML.';
+        break;
+      case 'brainstorm_basic':
+        systemPrompt = 'You are a grant-writing brainstorming assistant for a free-tier workspace. Expand the user\'s idea into 1-2 short, topic-aligned paragraphs in plain text. Do not output HTML. Do not invent unrelated sectors. Stay tightly grounded in the user\'s prompt and keep the response concise and specific.';
+        break;
+      case 'draft_letter':
+        systemPrompt = 'You are an expert grant writer. Draft a professional grant proposal letter based on the provided content. Use formal letter format with proper greeting, introduction, need statement, project description, and closing. Use HTML with <h2>, <p>, <br/> tags. Output only the HTML.';
+        break;
+      default:
+        return res.status(400).json({ message: 'Invalid action' });
+    }
+
+    let output;
+    try {
+      output = await groqChat([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: content },
+      ]);
+    } catch (e) {
+      if (e.message === 'NO_KEY') {
+        output = content;
+      } else {
+        throw e;
+      }
+    }
+
+    if (isFree && draftId) {
+      try {
+        await prisma.draft.update({ where: { id: draftId }, data: { aiActionCount: { increment: 1 } } });
+      } catch (e) {
+        console.warn('[AI] failed to increment aiActionCount', e && e.message ? e.message : e);
+      }
+    }
+
+    const response = { success: true, output };
+    if (isFree && draftId) {
+      const updated = await prisma.draft.findUnique({ where: { id: draftId } });
+      response.aiActionCount = updated?.aiActionCount ?? null;
+    }
+    logAiAction(`rewrite_basic_${action}`, { email: req.user?.email, draftId: draftId || null });
+    return res.json(response);
+  } catch (err) {
+    logError('AI_REWRITE_BASIC', err, { email: req.user?.email });
+    return res.status(500).json({ message: err.message || 'AI rewrite failed' });
   }
 });
 

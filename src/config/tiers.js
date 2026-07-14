@@ -4,7 +4,7 @@ export const TIERS = {
     name: 'Free',
     features: ['draft_basic', 'view_drafts', 'brainstorming_unlimited', 'scoring_basic', 'export_pdf', 'export_doc', 'ny_grants', 'email_support'],
     limits: {
-      drafts: 3,
+      drafts: 1,
       scoring: 3,
       matching: 0,
       exports: true,

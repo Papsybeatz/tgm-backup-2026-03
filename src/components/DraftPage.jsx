@@ -369,6 +369,10 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [drafts, setDrafts] = useState([]);
+  const [aiActionCount, setAiActionCount] = useState(0);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const hasSavedDraft = !!draftId;
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const syncEditorFromStateRef = useRef(false);
@@ -382,8 +386,31 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     title,
     draftId: draftIdProp,
     debounceMs: 1500,
-    enabled: isHydrated && isStarterPlus,
+    enabled: isHydrated && (isStarterPlus || !hasSavedDraft),
   });
+
+  useEffect(() => {
+    const fetchDrafts = async () => {
+      try {
+        const token = getToken();
+        const res = await fetch(apiUrl('/api/drafts'), {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const userDrafts = data?.drafts || [];
+          setDrafts(userDrafts);
+          const current = userDrafts.find((d) => d.id === draftIdProp) || userDrafts[0];
+          if (current) {
+            setAiActionCount(current.aiActionCount || 0);
+          }
+        }
+      } catch (e) {
+        console.warn('[DraftPage] failed to fetch drafts', e);
+      }
+    };
+    fetchDrafts();
+  }, [draftIdProp]);
 
   const words = useMemo(() => {
     const trimmed = stripHtml(text).trim();
@@ -676,6 +703,63 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     }
   };
 
+  const callRewriteBasic = async (action) => {
+    if (!isStarterPlus && aiActionCount >= 3) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    setAiLoading(true);
+    setAiError('');
+    setActiveAction(action);
+    try {
+      const token = getToken();
+      const currentContent = sectionContentMap[activeSection] || text || '';
+      const body = {
+        action,
+        content: currentContent,
+        draftId: draftId || null,
+      };
+      const res = await fetch(apiUrl('/api/ai/rewrite-basic'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        if (data?.reason === 'ai_limit_reached') {
+          setShowUpgradeModal(true);
+          return;
+        }
+        throw new Error(data?.message || 'AI request failed');
+      }
+      const normalized = normalizeAiHtml(data?.output || '');
+      if (action === 'brainstorm_basic') {
+        setIdeaInput((normalized || '') + (ideaInput ? '\n\n' + ideaInput : ''));
+      } else if (action === 'draft_letter') {
+        const nextMap = { ...sectionContentMap, [activeSection]: normalized };
+        updateSectionAndEditor(nextMap);
+        window.setTimeout(() => scrollToSection(activeSection), 50);
+      } else {
+        const nextMap = { ...sectionContentMap, [activeSection]: normalized };
+        updateSectionAndEditor(nextMap);
+        window.setTimeout(() => scrollToSection(activeSection), 50);
+      }
+      if (data?.aiActionCount !== undefined) {
+        setAiActionCount(data.aiActionCount);
+      } else {
+        setAiActionCount((c) => c + 1);
+      }
+    } catch (error) {
+      setAiError(error?.message || 'AI request failed. Please try again.');
+    } finally {
+      setAiLoading(false);
+      setActiveAction('');
+    }
+  };
+
   const savedAgo = useMemo(() => {
     if (!lastSavedAt) return 'Not yet';
     const diffMs = Math.max(0, nowTs - lastSavedAt.getTime());
@@ -691,9 +775,8 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const sectionIcons = ['📝', '📄', '📌', '🧭', '📊', '✅', '💡'];
 
   const handleManualSave = async () => {
-    if (!isStarterPlus) {
-      setManualSaveNote('Save Draft is available on Starter+ plans.');
-      window.setTimeout(() => setManualSaveNote(''), 2500);
+    if (!isStarterPlus && hasSavedDraft) {
+      setShowUpgradeModal(true);
       return;
     }
     if (!isHydrated) {
@@ -705,6 +788,11 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     const liveHtml = editorRef.current?.innerHTML ?? text;
     dispatchWorkspace({ type: 'UPDATE_FROM_EDITOR', payload: { html: liveHtml, pushHistory: false } });
     const ok = await saveNow({ title, content: liveHtml, force: true });
+    if (!isStarterPlus && !ok && saveError?.includes('draft_limit_reached')) {
+      setShowUpgradeModal(true);
+      setManualSaveNote('');
+      return;
+    }
     setManualSaveNote(ok ? 'Saved just now' : 'Save failed');
     window.setTimeout(() => setManualSaveNote(''), 2500);
   };
@@ -958,6 +1046,25 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   Upload Draft (PDF, DOCX, DOC, TXT)
                 </button>
               )}
+              {!isStarterPlus && hasSavedDraft && (
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={!draftId}
+                  className="rounded-lg border border-[#003A8C]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Export to PDF
+                </button>
+              )}
+              {!isStarterPlus && !hasSavedDraft && (
+                <button
+                  type="button"
+                  disabled
+                  className="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-500 cursor-not-allowed"
+                  title="Save your draft first to export"
+                >
+                  Export to PDF
+                </button>
+              )}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -965,7 +1072,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 className="hidden"
                 onChange={handleFileSelected}
               />
-              {isStarterPlus && (
+              {isStarterPlus ? (
                 <>
                   <button
                     type="button"
@@ -998,6 +1105,22 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                     Forward →
                   </button>
                 </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={hasSavedDraft ? () => setShowUpgradeModal(true) : handleManualSave}
+                  disabled={!hasSavedDraft && saving}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                    hasSavedDraft
+                      ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                      : !saving
+                        ? 'bg-[#0A0F1A] text-[#D4AF37] hover:opacity-90'
+                        : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                  }`}
+                  title={hasSavedDraft ? 'Upgrade to save more' : ''}
+                >
+                  {hasSavedDraft ? 'Save Draft (Starter+)' : 'Save Draft'}
+                </button>
               )}
               {isStarterPlus && (
                 <button
@@ -1118,14 +1241,63 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   </button>
                 ))}
               </div>
+
+              <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50/70 p-2.5">
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Rewrite (Basic)</p>
+                <button
+                  onClick={() => callRewriteBasic('rewrite')}
+                  disabled={aiLoading || (!isStarterPlus && aiActionCount >= 3)}
+                  className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {aiLoading && activeAction === 'rewrite' ? 'Rewriting...' : 'Rewrite'}
+                </button>
+                <button
+                  onClick={() => callRewriteBasic('rewrite_clarity')}
+                  disabled={aiLoading || (!isStarterPlus && aiActionCount >= 3)}
+                  className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {aiLoading && activeAction === 'rewrite_clarity' ? 'Rewriting...' : 'Rewrite for Clarity'}
+                </button>
+                <button
+                  onClick={() => callRewriteBasic('rewrite_impact')}
+                  disabled={aiLoading || (!isStarterPlus && aiActionCount >= 3)}
+                  className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {aiLoading && activeAction === 'rewrite_impact' ? 'Rewriting...' : 'Rewrite for Impact'}
+                </button>
+                <button
+                  onClick={() => callRewriteBasic('brainstorm_basic')}
+                  disabled={aiLoading || (!isStarterPlus && aiActionCount >= 3)}
+                  className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {aiLoading && activeAction === 'brainstorm_basic' ? 'Brainstorming...' : 'Basic Brainstorming'}
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50/70 p-2.5">
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={!hasSavedDraft}
+                  className="w-full rounded-md border border-[#003A8C]/30 bg-white px-2.5 py-2 text-left text-xs font-semibold text-[#003A8C] transition hover:border-[#003A8C] hover:bg-[#003A8C]/5 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {hasSavedDraft ? 'Export to PDF' : 'Save your draft first to export'}
+                </button>
+              </div>
+
               <div className="mt-4 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs">
                 <p className="font-semibold text-amber-800">Upgrade to Starter+</p>
                 <ul className="mt-2 list-disc space-y-1 pl-4 text-amber-700">
-                  <li>Save drafts and export</li>
-                  <li>AI drafting tools</li>
+                  <li>Unlimited saved drafts</li>
+                  <li>Full AI drafting tools</li>
                   <li>Scoring and Funder Fit</li>
-                  <li>Full proposal sections</li>
+                  <li>Regenerate and Improve sections</li>
                 </ul>
+                <button
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="mt-3 w-full rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-amber-700"
+                >
+                  Upgrade Now
+                </button>
               </div>
             </aside>
           )}
@@ -1176,6 +1348,50 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 )}
 
                 <h3 className="mb-3 text-base font-semibold text-[#0A0F1A]">{activeSection}</h3>
+                {!isStarterPlus && (
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => callRewriteBasic('rewrite')}
+                      disabled={aiLoading || aiActionCount >= 3}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {aiLoading && activeAction === 'rewrite' ? 'Rewriting...' : 'Rewrite'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => callRewriteBasic('rewrite_clarity')}
+                      disabled={aiLoading || aiActionCount >= 3}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {aiLoading && activeAction === 'rewrite_clarity' ? 'Rewriting...' : 'Rewrite for Clarity'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => callRewriteBasic('rewrite_impact')}
+                      disabled={aiLoading || aiActionCount >= 3}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {aiLoading && activeAction === 'rewrite_impact' ? 'Rewriting...' : 'Rewrite for Impact'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => callRewriteBasic('brainstorm_basic')}
+                      disabled={aiLoading || aiActionCount >= 3}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {aiLoading && activeAction === 'brainstorm_basic' ? 'Brainstorming...' : 'Basic Brainstorming'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => callRewriteBasic('draft_letter')}
+                      disabled={aiLoading || aiActionCount >= 3}
+                      className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-700 transition hover:border-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {aiLoading && activeAction === 'draft_letter' ? 'Drafting...' : 'Draft Letter'}
+                    </button>
+                  </div>
+                )}
                 {isStarterPlus && (
                   <div className="mb-3 flex flex-wrap gap-2">
                     <button
@@ -1332,6 +1548,49 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
           </section>
         </div>
       </div>
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+            <h2 className="mb-2 text-lg font-bold text-[#0A0F1A]">Upgrade to Starter+</h2>
+            <p className="mb-4 text-sm text-slate-600">
+              {!hasSavedDraft
+                ? 'You\'ve reached your free limit. Upgrade to save your draft and unlock full drafting tools.'
+                : 'You\'ve reached your free limit — upgrade to save more drafts and unlock full drafting tools.'}
+            </p>
+            <ul className="mb-6 space-y-2 text-xs text-slate-600">
+              <li className="flex items-center gap-2">
+                <span className="text-emerald-600">✓</span> Unlimited saved drafts
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-emerald-600">✓</span> Full AI drafting tools
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-emerald-600">✓</span> Scoring and Funder Fit
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-emerald-600">✓</span> Regenerate and Improve sections
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-emerald-600">✓</span> Export to PDF and DOCX
+              </li>
+            </ul>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowUpgradeModal(false)}
+                className="flex-1 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]"
+              >
+                Maybe Later
+              </button>
+              <button
+                onClick={() => { setShowUpgradeModal(false); window.location.href = '/pricing'; }}
+                className="flex-1 rounded-lg bg-[#0A0F1A] px-4 py-2.5 text-xs font-bold text-[#D4AF37] transition hover:opacity-90"
+              >
+                View Plans
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </WorkspaceLayout>
   );
 }

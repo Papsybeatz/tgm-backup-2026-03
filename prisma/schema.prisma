@@ -79,15 +79,16 @@ model Session {
 }
 
 model Draft {
-  id             String   @id @default(uuid())
-  userId         String
-  user           User     @relation(fields: [userId], references: [id])
-  title          String
-  content        String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  tierAtCreation Tier
-}
+   id             String   @id @default(uuid())
+   userId         String
+   user           User     @relation(fields: [userId], references: [id])
+   title          String
+   content        String
+   createdAt      DateTime @default(now())
+   updatedAt      DateTime @updatedAt
+   tierAtCreation Tier
+   aiActionCount  Int      @default(0)
+ }
 
 model Invite {
   id         String      @id @default(uuid())

@@ -19,12 +19,16 @@ router.post('/', requireAuth, async (req, res) => {
   console.log('[DRAFTS] CREATE (auth)', { user: req.user && { id: req.user.id, email: req.user.email }, bodySample: req.body && { title: req.body.title } });
   const { title, content } = req.body;
   try {
+    if (req.user.tier === 'free') {
+      const existingCount = await prisma.draft.count({ where: { userId: req.user.id } });
+      if (existingCount >= 1) {
+        return res.status(403).json({ success: false, canSave: false, reason: 'draft_limit_reached', message: 'Free tier limit reached. Upgrade to save more drafts.' });
+      }
+    }
     const draft = await prisma.draft.create({
       data: { userId: req.user.id, title: title || 'Untitled Draft', content: content || '', tierAtCreation: req.user.tier || 'free' },
     });
-    // Log AI action for tracking
     await logAiAction(req.user.id, 'generate');
-    // versioning snapshot
     try { await prisma.draftVersion.create({ data: { draftId: draft.id, content: draft.content } }); } catch (e) { console.warn('[DRAFTS] versioning create error', e && e.message ? e.message : e); }
     return res.json({ success: true, draft });
   } catch (e) {
