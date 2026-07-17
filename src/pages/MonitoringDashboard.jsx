@@ -249,31 +249,255 @@ function displayNameForSignup(u) {
   return `${first.charAt(0).toUpperCase()}${first.slice(1)} ${last.charAt(0).toUpperCase()}.`;
 }
 
+const ACTIVE_WINDOW_DAYS = 30;
+const RECENT_WINDOW_DAYS = 7;
+const FREE_PAGE_SIZE = 50;
+
+function normalizeTier(tier) {
+  const value = String(tier || '').toLowerCase();
+  if (['professional'].includes(value)) return 'pro';
+  if (['business', 'agency_starter'].includes(value)) return 'agency';
+  if (['enterprise'].includes(value)) return 'lifetime';
+  if (['free', 'starter', 'pro', 'agency', 'lifetime'].includes(value)) return value;
+  return value || 'free';
+}
+
+function tierLabel(tier) {
+  const normalized = normalizeTier(tier);
+  return normalized ? normalized.charAt(0).toUpperCase() + normalized.slice(1) : 'Free';
+}
+
+function formatShortDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+}
+
+function isWithinDays(dateValue, days) {
+  if (!dateValue) return false;
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return false;
+  return date.getTime() >= Date.now() - (days * 24 * 60 * 60 * 1000);
+}
+
+function getUserStatus(user) {
+  return isWithinDays(user?.lastLogin, ACTIVE_WINDOW_DAYS) ? 'active' : 'inactive';
+}
+
+function normalizeUserRow(user) {
+  return {
+    ...user,
+    displayName: displayNameForSignup(user),
+    tierValue: normalizeTier(user?.tier),
+    signupDateValue: user?.createdAt ? new Date(user.createdAt) : null,
+    lastActiveValue: user?.lastLogin ? new Date(user.lastLogin) : null,
+    status: getUserStatus(user),
+  };
+}
+
+function RecentSignupsCard({ users }) {
+  return (
+    <div style={s.card}>
+      <div style={s.sectionTitle}>Recent Signups</div>
+      {users.length === 0 ? (
+        <div style={{ color: '#94a3b8', fontSize: 14, textAlign: 'center', padding: 12 }}>No recent signups</div>
+      ) : (
+        <div style={{ display: 'grid', gap: 10 }}>
+          {users.map((user) => (
+            <div key={user.userId || user.id || user.email} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>{user.displayName}</div>
+                <div style={{ fontSize: 12, color: '#64748b' }}>{user.email}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#334155' }}>{formatShortDate(user.createdAt)}</div>
+                <div style={{ fontSize: 11, color: '#94a3b8' }}>Signed up</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UsersTable({ users, page, pageSize, onPageChange }) {
+  const pageCount = Math.max(1, Math.ceil(users.length / pageSize));
+  const safePage = Math.min(page, pageCount);
+  const start = (safePage - 1) * pageSize;
+  const visibleUsers = users.slice(start, start + pageSize);
+  const showPagination = users.length > pageSize;
+
+  return (
+    <div style={s.card}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div>
+          <div style={s.sectionTitle}>Users</div>
+          <div style={{ fontSize: 13, color: '#64748b' }}>{users.length.toLocaleString()} user{users.length === 1 ? '' : 's'}</div>
+        </div>
+        {showPagination && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => onPageChange(Math.max(1, safePage - 1))} disabled={safePage <= 1} style={paginationButtonStyle(safePage <= 1)}>
+              Previous
+            </button>
+            <button type="button" onClick={() => onPageChange(Math.min(pageCount, safePage + 1))} disabled={safePage >= pageCount} style={paginationButtonStyle(safePage >= pageCount)}>
+              Next
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860 }}>
+          <thead>
+            <tr>
+              {['Name', 'Email', 'Tier', 'Signup date', 'Last active date', 'Status'].map((column) => (
+                <th key={column} style={s.tableHeader}>{column}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {visibleUsers.map((user) => (
+              <tr key={user.userId || user.id || user.email} style={s.tableRow}>
+                <td style={s.tableCell}>{user.displayName}</td>
+                <td style={s.tableCell}>{user.email}</td>
+                <td style={s.tableCell}>{tierLabel(user.tierValue)}</td>
+                <td style={s.tableCell}>{formatShortDate(user.signupDateValue)}</td>
+                <td style={s.tableCell}>{formatShortDate(user.lastActiveValue)}</td>
+                <td style={s.tableCell}>
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    borderRadius: 999,
+                    padding: '4px 10px',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    background: user.status === 'active' ? '#ecfdf5' : '#f8fafc',
+                    color: user.status === 'active' ? '#059669' : '#64748b',
+                    textTransform: 'capitalize',
+                  }}>
+                    {user.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {showPagination && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ fontSize: 13, color: '#64748b' }}>
+            Showing {start + 1}-{Math.min(start + pageSize, users.length)} of {users.length}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {Array.from({ length: pageCount }, (_, index) => index + 1).slice(Math.max(0, safePage - 3), Math.max(0, safePage - 3) + 5).map((pageNumber) => (
+              <button
+                key={pageNumber}
+                type="button"
+                onClick={() => onPageChange(pageNumber)}
+                style={{
+                  border: '1px solid #cbd5e1',
+                  background: pageNumber === safePage ? '#003A8C' : '#fff',
+                  color: pageNumber === safePage ? '#fff' : '#334155',
+                  borderRadius: 10,
+                  padding: '6px 10px',
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                {pageNumber}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function paginationButtonStyle(disabled) {
+  return {
+    border: '1px solid #cbd5e1',
+    background: disabled ? '#f8fafc' : '#fff',
+    color: disabled ? '#94a3b8' : '#334155',
+    borderRadius: 10,
+    padding: '6px 10px',
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+  };
+}
+
+function monitoringSelectStyle(disabled) {
+  return {
+    border: '1px solid #cbd5e1',
+    borderRadius: 10,
+    padding: '10px 12px',
+    fontSize: 13,
+    color: disabled ? '#94a3b8' : '#0f172a',
+    background: disabled ? '#f8fafc' : '#fff',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+  };
+}
+
 export default function MonitoringDashboard() {
   const [data, setData] = useState(null);
+  const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
+  const [viewMode, setViewMode] = useState('allUsers');
+  const [tierFilter, setTierFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) { setLoading(false); setDenied(true); return; }
-    fetch('/api/admin/metrics', { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => {
-        if (res.status === 401 || res.status === 403) {
-          // Token expired — clear session and force re-login
+    let cancelled = false;
+
+    async function loadDashboard() {
+      try {
+        const [metricsRes, usersRes] = await Promise.all([
+          fetch('/api/admin/metrics', { headers: { Authorization: `Bearer ${token}` } }),
+          fetch('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+
+        if ([metricsRes, usersRes].some((res) => res.status === 401 || res.status === 403)) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          setDenied(true);
-          throw new Error('Unauthorized');
+          if (!cancelled) setDenied(true);
+          return;
         }
-        if (!res.ok) throw new Error('Server error');
-        return res.json();
-      })
-      .then(setData)
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
+
+        if (!metricsRes.ok || !usersRes.ok) {
+          throw new Error('Server error');
+        }
+
+        const [metricsJson, usersJson] = await Promise.all([metricsRes.json(), usersRes.json()]);
+        if (cancelled) return;
+        setData(metricsJson);
+        setUsers(Array.isArray(usersJson) ? usersJson : usersJson.users || []);
+      } catch (e) {
+        if (!cancelled) setError(e.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadDashboard();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [viewMode, tierFilter, statusFilter, dateFilter]);
 
   if (loading) return <LoadingSkeleton />;
   if (denied) return <Navigate to="/login" replace />;
@@ -283,6 +507,36 @@ export default function MonitoringDashboard() {
   let subData = [], aiData = [];
   try { subData = (data.subscriptionsByTier || []).map(x => ({ tier: x.tier, count: x._count?.tier || 0 })); } catch(e) {}
   try { aiData = (data.aiUsage || []).map(x => ({ action: x.action, count: x._count?.action || 0 })); } catch(e) {}
+
+  const normalizedUsers = users.map(normalizeUserRow).sort((a, b) => {
+    const left = a.signupDateValue?.getTime() || 0;
+    const right = b.signupDateValue?.getTime() || 0;
+    return right - left;
+  });
+
+  const recentSignups = normalizedUsers.filter((user) => isWithinDays(user.signupDateValue, RECENT_WINDOW_DAYS));
+  const activeFreeUsers = normalizedUsers.filter((user) => user.tierValue === 'free' && user.status === 'active');
+  const activeStarterUsers = normalizedUsers.filter((user) => user.tierValue === 'starter' && user.status === 'active');
+
+  const effectiveTierFilter = viewMode === 'allFreeUsers' ? 'free' : tierFilter;
+  const effectiveDateFilter = viewMode === 'recentSignups' ? '7d' : dateFilter;
+
+  const filteredUsers = normalizedUsers.filter((user) => {
+    if (viewMode === 'allFreeUsers' && user.tierValue !== 'free') return false;
+    if (viewMode === 'recentSignups' && !isWithinDays(user.signupDateValue, RECENT_WINDOW_DAYS)) return false;
+
+    if (effectiveTierFilter !== 'all' && user.tierValue !== effectiveTierFilter) return false;
+    if (statusFilter !== 'all' && user.status !== statusFilter) return false;
+
+    if (effectiveDateFilter === '7d' && !isWithinDays(user.signupDateValue, RECENT_WINDOW_DAYS)) return false;
+    if (effectiveDateFilter === '30d' && !isWithinDays(user.signupDateValue, 30)) return false;
+
+    return true;
+  });
+
+  const paginatedUsers = filteredUsers.slice((page - 1) * FREE_PAGE_SIZE, page * FREE_PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / FREE_PAGE_SIZE));
+  const showPagination = filteredUsers.length > FREE_PAGE_SIZE;
 
   return (
     <div style={s.page}>
@@ -309,10 +563,10 @@ export default function MonitoringDashboard() {
       <p style={s.heroSubtext}>Full drafting, scoring, and funder fit unlocked</p>
 
       <div style={s.grid4}>
-        <MetricTile label="Starter Users" value={(subData.find((d) => d.tier === 'starter') || {}).count || 0} sublabel="Active Starter accounts" />
-        <MetricTile label="Free Users" value={(subData.find((d) => d.tier === 'free') || {}).count || 0} sublabel="Active Free accounts" />
+        <MetricTile label="Active Free Accounts" value={activeFreeUsers.length} sublabel="Status: active" />
+        <MetricTile label="Active Starter Accounts" value={activeStarterUsers.length} sublabel="Status: active" />
         <MetricTile label="AI Drafts Today" value={data.system?.aiDraftsToday} sublabel="Generated today" />
-        <MetricTile label="New Signups" value={data.system?.newSignups7d} sublabel="Last 7 days" />
+        <MetricTile label="New Signups" value={recentSignups.length} sublabel="Last 7 days" />
       </div>
 
       <div style={{ ...s.grid2, ...s.sectionBlock }}>
@@ -343,16 +597,7 @@ export default function MonitoringDashboard() {
       </div>
 
       <div style={{ ...s.grid2, ...s.sectionBlock }}>
-        <DataTable 
-          title="Recent Signups" 
-          columns={['Name', 'Email', 'Tier', 'Date']} 
-          data={(data.recentSignups || []).map(u => ({
-            name: displayNameForSignup(u),
-            email: u.email,
-            tier: u.tier,
-            createdAt: new Date(u.createdAt).toLocaleDateString(),
-          }))} 
-        />
+        <RecentSignupsCard users={recentSignups.slice(0, 5)} />
         <DataTable 
           title="Error Logs" 
           columns={['Error', 'Endpoint', 'Severity', 'Time']} 
@@ -363,6 +608,88 @@ export default function MonitoringDashboard() {
             createdAt: new Date(e.createdAt).toLocaleDateString(),
           }))} 
         />
+      </div>
+
+      <div style={{ ...s.sectionBlock }}>
+        <div style={{ ...s.card, marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+            <div>
+              <div style={s.sectionTitle}>Users</div>
+              <div style={{ fontSize: 13, color: '#64748b' }}>Unified list with tier, signup date, last active date, and status.</div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {[
+                { key: 'allUsers', label: 'All Users' },
+                { key: 'allFreeUsers', label: 'Show All Free Users' },
+                { key: 'recentSignups', label: 'Show Recent Signups' },
+              ].map((mode) => (
+                <button
+                  key={mode.key}
+                  type="button"
+                  onClick={() => setViewMode(mode.key)}
+                  style={{
+                    border: '1px solid #cbd5e1',
+                    background: viewMode === mode.key ? '#003A8C' : '#fff',
+                    color: viewMode === mode.key ? '#fff' : '#334155',
+                    borderRadius: 999,
+                    padding: '8px 12px',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {mode.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, marginTop: 18 }}>
+            <label style={{ display: 'grid', gap: 6, fontSize: 12, color: '#64748b', fontWeight: 700 }}>
+              Tier
+              <select
+                value={tierFilter}
+                onChange={(event) => setTierFilter(event.target.value)}
+                disabled={viewMode === 'allFreeUsers'}
+                style={monitoringSelectStyle(viewMode === 'allFreeUsers')}
+              >
+                <option value="all">All</option>
+                <option value="free">Free</option>
+                <option value="starter">Starter</option>
+                <option value="pro">Pro</option>
+                <option value="agency">Agency</option>
+                <option value="lifetime">Lifetime</option>
+              </select>
+            </label>
+            <label style={{ display: 'grid', gap: 6, fontSize: 12, color: '#64748b', fontWeight: 700 }}>
+              Status
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                style={monitoringSelectStyle(false)}
+              >
+                <option value="all">All</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </label>
+            <label style={{ display: 'grid', gap: 6, fontSize: 12, color: '#64748b', fontWeight: 700 }}>
+              Date
+              <select
+                value={dateFilter}
+                onChange={(event) => setDateFilter(event.target.value)}
+                disabled={viewMode === 'recentSignups'}
+                style={monitoringSelectStyle(viewMode === 'recentSignups')}
+              >
+                <option value="all">All time</option>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <UsersTable users={filteredUsers} page={page} pageSize={FREE_PAGE_SIZE} onPageChange={setPage} />
       </div>
 
       <style>{`

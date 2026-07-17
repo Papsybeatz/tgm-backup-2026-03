@@ -105,14 +105,17 @@ router.get('/users', requireAdmin, async (req, res) => {
     const users = await prisma.user.findMany({
       select: {
         id: true, email: true, tier: true, role: true,
+        name: true,
         subscriptionStatus: true, subscriptionType: true,
         createdAt: true, updatedAt: true,
+        lastLogin: true,
         _count: { select: { drafts: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
     const mapped = users.map(u => ({
       userId: u.id,
+      name: u.name,
       email: u.email,
       tier: u.tier,
       role: u.role,
@@ -120,6 +123,7 @@ router.get('/users', requireAdmin, async (req, res) => {
       subscriptionType: u.subscriptionType,
       draftsUsed: u._count.drafts,
       createdAt: u.createdAt,
+      lastLogin: u.lastLogin,
       updatedAt: u.updatedAt,
     }));
     res.json(mapped);
