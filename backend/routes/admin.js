@@ -102,31 +102,51 @@ async function logAdminBillingEvent({ userId, message, severity = 'info' }) {
 // GET /api/admin/users
 router.get('/users', requireAdmin, async (req, res) => {
   try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true, email: true, tier: true, role: true,
-        name: true,
-        subscriptionStatus: true, subscriptionType: true,
-        createdAt: true, updatedAt: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    // Get draft counts separately
-    const draftCounts = await prisma.draft.groupBy({
-      by: ['userId'],
-      _count: { id: true },
-    });
+    let users = [];
+    try {
+      users = await prisma.user.findMany({
+        select: {
+          id: true, email: true, tier: true, role: true,
+          name: true,
+          subscriptionStatus: true, subscriptionType: true,
+          createdAt: true, updatedAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    } catch (userErr) {
+      console.error('[ADMIN] /users primary query failed, using fallback:', userErr.message);
+      // Fallback for environments where DB schema temporarily lags code schema.
+      users = await prisma.user.findMany({
+        select: {
+          id: true,
+          email: true,
+          tier: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
 
     const draftCountMap = {};
-    draftCounts.forEach(dc => { draftCountMap[dc.userId] = dc._count.id; });
+    try {
+      const draftCounts = await prisma.draft.groupBy({
+        by: ['userId'],
+        _count: { id: true },
+      });
+      draftCounts.forEach((dc) => {
+        draftCountMap[dc.userId] = dc._count.id;
+      });
+    } catch (draftErr) {
+      console.error('[ADMIN] /users draft count fallback:', draftErr.message);
+    }
 
     const mapped = users.map(u => ({
       userId: u.id,
       name: u.name,
       email: u.email,
       tier: u.tier,
-      role: u.role,
+      role: u.role || 'user',
       subscriptionStatus: u.subscriptionStatus,
       subscriptionType: u.subscriptionType,
       draftsUsed: draftCountMap[u.id] || 0,
