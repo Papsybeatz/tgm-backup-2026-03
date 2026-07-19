@@ -116,6 +116,20 @@ function FreeDashboard() {
           </div>
         </section>
 
+        <section className="mb-8 rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-[#B8960C]">Your Drafts</p>
+              <h2 className="mt-1 text-xl font-extrabold tracking-tight text-[#003A8C]">Free Draft Card</h2>
+              <p className="mt-2 text-sm leading-6 text-gray-600">Open your saved draft below. Untitled drafts still render as cards.</p>
+            </div>
+            <span className="rounded-full border border-[#003A8C]/20 bg-[#EFF6FF] px-3 py-1.5 text-xs font-semibold text-[#003A8C]">
+              Free Draft (1 of 1)
+            </span>
+          </div>
+          <DraftsList />
+        </section>
+
         <section className="rounded-lg border border-[#E2E8F0] bg-white px-6 py-8 text-center shadow-sm">
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
             <button
