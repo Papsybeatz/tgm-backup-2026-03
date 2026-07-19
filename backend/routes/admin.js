@@ -108,7 +108,6 @@ router.get('/users', requireAdmin, async (req, res) => {
         name: true,
         subscriptionStatus: true, subscriptionType: true,
         createdAt: true, updatedAt: true,
-        lastLogin: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -132,7 +131,9 @@ router.get('/users', requireAdmin, async (req, res) => {
       subscriptionType: u.subscriptionType,
       draftsUsed: draftCountMap[u.id] || 0,
       createdAt: u.createdAt,
-      lastLogin: u.lastLogin,
+      // Prisma User model does not currently include lastLogin.
+      // Keep key for frontend compatibility until field is reintroduced.
+      lastLogin: null,
       updatedAt: u.updatedAt,
     }));
     res.json(mapped);
