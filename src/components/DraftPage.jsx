@@ -1488,6 +1488,16 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   className="tgm-html-editor"
                   onInput={(e) => {
                     const next = e.currentTarget.innerHTML;
+                    if (sections.length === 1) {
+                      // Free-tier workspace uses a single section; persist live editor HTML directly.
+                      // This avoids losing typed text during heading canonicalization.
+                      pushHistorySnapshot(next);
+                      dispatchWorkspace({
+                        type: 'SET_SECTION_BODY',
+                        payload: { section: activeSection, html: next, pushHistory: true },
+                      });
+                      return;
+                    }
                     const headingCount = (String(next).match(/<h2[^>]*>/gi) || []).length;
                     if (headingCount < sections.length) {
                       // If structure drifts (missing section headings), force a reducer-driven resync.
