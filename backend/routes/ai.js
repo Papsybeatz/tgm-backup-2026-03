@@ -113,9 +113,12 @@ function templateBrainstorm(prompt) {
   const cleanedPrompt = String(prompt || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   const projectText = cleanedPrompt || 'a community project in need of support';
   return [
-    `This grant request seeks funding to support ${projectText}. The proposal focuses on a clear, immediate need and explains how targeted funding will improve day-to-day care, stability, and long-term outcomes for the people being served.`,
-    `Funding would help cover core programme needs, staffing, supplies, and a safe operating environment while giving the organisation a stronger foundation for measurable impact. This summary can be expanded into a full proposal once the project goals, budget, and expected outcomes are confirmed.`,
-  ].join('\n\n');
+    `- Clarify the core idea for ${projectText} in one sentence and define the exact beneficiary group.`,
+    '- Map a simple sustainability model: funding source, expected return range, and what operating costs it covers.',
+    '- Set governance guardrails: who approves spending, risk limits, and annual review checkpoints.',
+    '- Start with a pilot amount and track results for 6-12 months before scaling.',
+    '- Validate legal/financial compliance requirements with a local advisor before launch.',
+  ].join('\n');
 }
 
 /* ── POST /api/ai/brainstorm ── */
@@ -243,7 +246,7 @@ router.post('/rewrite-basic', requireAuth, async (req, res) => {
         systemPrompt = 'You are an impact rewrite assistant. Rewrite ONLY the user\'s text to sound stronger while preserving the same topic, facts, and context. Do not invent new themes or sectors. Do not output sections. Return one concise block of plain text.';
         break;
       case 'brainstorm_basic':
-        systemPrompt = 'You are a grant-writing brainstorming assistant for a free-tier workspace. Expand the user\'s idea into 1-2 short, topic-aligned paragraphs in plain text. Do not output HTML. Do not invent unrelated sectors. Stay tightly grounded in the user\'s prompt and keep the response concise and specific.';
+        systemPrompt = 'You are a free-tier brainstorming assistant. Expand ONLY the user\'s exact idea into 3-5 short, practical bullet points. Keep the same topic and context. No headings, no proposal sections, no templates, no unrelated sectors. Output plain text bullets only.';
         break;
       case 'draft_letter':
         systemPrompt = 'You are an expert grant writer. Draft a professional grant proposal letter based on the provided content. Use formal letter format with proper greeting, introduction, need statement, project description, and closing. Use HTML with <h2>, <p>, <br/> tags. Output only the HTML.';

@@ -749,7 +749,9 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
       }
       const normalized = normalizeAiHtml(data?.output || '');
       if (action === 'brainstorm_basic') {
-        setIdeaInput((normalized || '') + (ideaInput ? '\n\n' + ideaInput : ''));
+        const nextMap = { ...sectionContentMap, [activeSection]: normalized };
+        updateSectionAndEditor(nextMap);
+        window.setTimeout(() => scrollToSection(activeSection), 50);
       } else if (action === 'draft_letter') {
         const nextMap = { ...sectionContentMap, [activeSection]: normalized };
         updateSectionAndEditor(nextMap);
