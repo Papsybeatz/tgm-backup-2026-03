@@ -109,10 +109,19 @@ router.get('/users', requireAdmin, async (req, res) => {
         subscriptionStatus: true, subscriptionType: true,
         createdAt: true, updatedAt: true,
         lastLogin: true,
-        _count: { select: { drafts: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    // Get draft counts separately
+    const draftCounts = await prisma.draft.groupBy({
+      by: ['userId'],
+      _count: { id: true },
+    });
+
+    const draftCountMap = {};
+    draftCounts.forEach(dc => { draftCountMap[dc.userId] = dc._count.id; });
+
     const mapped = users.map(u => ({
       userId: u.id,
       name: u.name,
@@ -121,7 +130,7 @@ router.get('/users', requireAdmin, async (req, res) => {
       role: u.role,
       subscriptionStatus: u.subscriptionStatus,
       subscriptionType: u.subscriptionType,
-      draftsUsed: u._count.drafts,
+      draftsUsed: draftCountMap[u.id] || 0,
       createdAt: u.createdAt,
       lastLogin: u.lastLogin,
       updatedAt: u.updatedAt,
