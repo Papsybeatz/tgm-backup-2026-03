@@ -505,8 +505,18 @@ export default function MonitoringDashboard() {
   if (!data) return <div style={{ ...s.page, color: '#94a3b8', textAlign: 'center', paddingTop: 48 }}>No data available</div>;
 
   let subData = [], aiData = [];
-  try { subData = (data.subscriptionsByTier || []).map(x => ({ tier: x.tier, count: x._count?.tier || 0 })); } catch(e) {}
-  try { aiData = (data.aiUsage || []).map(x => ({ action: x.action, count: x._count?.action || 0 })); } catch(e) {}
+  try {
+    subData = (data.subscriptionsByTier || []).map((x) => ({
+      tier: x.tier,
+      count: x._count?.tier ?? x.count ?? 0,
+    }));
+  } catch (e) {}
+  try {
+    aiData = (data.aiUsage || []).map((x) => ({
+      action: x.action,
+      count: x._count?.action ?? x.count ?? 0,
+    }));
+  } catch (e) {}
 
   const normalizedUsers = users.map(normalizeUserRow).sort((a, b) => {
     const left = a.signupDateValue?.getTime() || 0;

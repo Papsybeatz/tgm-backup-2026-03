@@ -141,6 +141,21 @@ router.get('/users', requireAdmin, async (req, res) => {
       console.error('[ADMIN] /users draft count fallback:', draftErr.message);
     }
 
+    const lastLoginByEmail = {};
+    try {
+      const sessionRows = await prisma.session.groupBy({
+        by: ['email'],
+        _max: { createdAt: true },
+      });
+      sessionRows.forEach((row) => {
+        if (row?.email) {
+          lastLoginByEmail[row.email.toLowerCase()] = row._max?.createdAt || null;
+        }
+      });
+    } catch (sessionErr) {
+      console.error('[ADMIN] /users session activity fallback:', sessionErr.message);
+    }
+
     const mapped = users.map(u => ({
       userId: u.id,
       name: u.name,
@@ -151,9 +166,8 @@ router.get('/users', requireAdmin, async (req, res) => {
       subscriptionType: u.subscriptionType,
       draftsUsed: draftCountMap[u.id] || 0,
       createdAt: u.createdAt,
-      // Prisma User model does not currently include lastLogin.
-      // Keep key for frontend compatibility until field is reintroduced.
-      lastLogin: null,
+      // Derived from latest session for monitoring activity state.
+      lastLogin: lastLoginByEmail[String(u.email || '').toLowerCase()] || null,
       updatedAt: u.updatedAt,
     }));
     res.json(mapped);
