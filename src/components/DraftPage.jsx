@@ -185,6 +185,12 @@ function parseSectionsFromHtml(html = '', sectionNames = []) {
     }
   });
 
+  // Free-tier editor commonly stores a single unsectioned block.
+  // Preserve that as the active section body instead of dropping it.
+  if (sectionNames.length === 1 && stripHtml(result[sectionNames[0]] || '').length === 0 && stripHtml(normalized).length > 0) {
+    result[sectionNames[0]] = normalized;
+  }
+
   return result;
 }
 
@@ -707,7 +713,10 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
       setShowUpgradeModal(true);
       return;
     }
-    const currentContent = sectionContentMap[activeSection] || text || '';
+    const liveHtml = editorRef.current?.innerHTML || '';
+    const parsedLive = parseSectionsFromHtml(liveHtml, sections);
+    const liveSectionContent = parsedLive[activeSection] || (sections.length === 1 ? liveHtml : '');
+    const currentContent = liveSectionContent || sectionContentMap[activeSection] || text || '';
     if (stripHtml(currentContent).trim().length < 5) {
       setAiError('Type something first.');
       return;
