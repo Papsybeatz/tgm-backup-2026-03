@@ -217,6 +217,11 @@ router.post('/rewrite-basic', requireAuth, async (req, res) => {
   const { action, content, draftId } = req.body;
   if (!action || !content) return res.status(400).json({ message: 'action and content are required' });
 
+  const plainInput = String(content || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (plainInput.length < 5) {
+    return res.status(400).json({ success: false, message: 'Type something first.' });
+  }
+
   try {
     const isFree = req.user.tier === 'free';
     if (isFree && draftId) {
@@ -229,13 +234,13 @@ router.post('/rewrite-basic', requireAuth, async (req, res) => {
     let systemPrompt = '';
     switch (action) {
       case 'rewrite':
-        systemPrompt = 'You are an expert grant writer. Rewrite the provided grant proposal section to make it clearer, more compelling, and funder-focused. Preserve the HTML structure using <h2>, <h3>, <p>, <ul>, <li> tags. Output only the HTML, no markdown fences.';
+        systemPrompt = 'You are a basic rewrite assistant for free-tier users. Rewrite ONLY the user\'s provided text. Keep the same topic, entities, location, and intent. Do NOT introduce new project types, templates, sections, or unrelated ideas. Return one concise rewritten block (plain text only).';
         break;
       case 'rewrite_clarity':
-        systemPrompt = 'You are an expert grant editor. Rewrite the provided grant proposal section for maximum clarity and readability. Simplify complex sentences, improve flow, and ensure the need statement is easy to understand. Preserve HTML structure. Output only the HTML.';
+        systemPrompt = 'You are a clarity rewrite assistant. Rewrite ONLY the user\'s provided text for clarity and readability while keeping the exact same topic and meaning. No templates, no headings, no bullet sections, no topic changes. Return one concise block of plain text.';
         break;
       case 'rewrite_impact':
-        systemPrompt = 'You are an expert grant writer. Rewrite the provided grant proposal section to maximize emotional and logical impact. Strengthen the need statement, use powerful but truthful language, and make the case for funding irresistible. Preserve HTML structure. Output only the HTML.';
+        systemPrompt = 'You are an impact rewrite assistant. Rewrite ONLY the user\'s text to sound stronger while preserving the same topic, facts, and context. Do not invent new themes or sectors. Do not output sections. Return one concise block of plain text.';
         break;
       case 'brainstorm_basic':
         systemPrompt = 'You are a grant-writing brainstorming assistant for a free-tier workspace. Expand the user\'s idea into 1-2 short, topic-aligned paragraphs in plain text. Do not output HTML. Do not invent unrelated sectors. Stay tightly grounded in the user\'s prompt and keep the response concise and specific.';

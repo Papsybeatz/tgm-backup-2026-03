@@ -629,14 +629,13 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
 
     try {
       const token = getToken();
-      const fullDraftRewriteMode = action === 'rewrite' && isStarterPlus;
-      const endpoint = fullDraftRewriteMode
+      const generateSectionMode = action === 'generate_section';
+      const generateFromIdeaMode = action === 'generate_from_idea' && isStarterPlus;
+      const endpoint = (generateSectionMode || generateFromIdeaMode)
         ? '/api/ai/draft'
-        : action === 'generate_section'
-          ? '/api/ai/draft'
-          : '/api/ai/improve';
+        : '/api/ai/improve';
 
-      const sectionScopedAction = action === 'generate_section';
+      const sectionScopedAction = generateSectionMode;
       const currentSectionText = sectionContentMap[activeSection] || '';
       const baseContent = sectionScopedAction
         ? currentSectionText || selectedText || text || ''
@@ -644,7 +643,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
       const plainContent = stripHtml(baseContent);
       const body = endpoint === '/api/ai/draft'
         ? {
-            prompt: fullDraftRewriteMode
+            prompt: generateFromIdeaMode
               ? `Write a full grant proposal with these exact sections and headings: ${sections.join(', ')}. Context: ${ideaInput.trim() || plainContent || title || 'Write a grant proposal'}`
               : action === 'generate_section'
                 ? `Write only the ${activeSection} section for this grant proposal. Context: ${ideaInput.trim() || plainContent || title || 'Write a grant proposal section'}`
@@ -681,7 +680,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
 
       if (output) {
         const normalizedOutput = normalizeAiHtml(output);
-        if (fullDraftRewriteMode) {
+        if (generateFromIdeaMode) {
           const parsed = parseSectionsFromHtml(normalizedOutput, sections);
           updateSectionAndEditor({ ...sectionContentMap, ...parsed });
         } else if (action === 'generate_section' || sectionScopedAction) {
@@ -708,12 +707,16 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
       setShowUpgradeModal(true);
       return;
     }
+    const currentContent = sectionContentMap[activeSection] || text || '';
+    if (stripHtml(currentContent).trim().length < 5) {
+      setAiError('Type something first.');
+      return;
+    }
     setAiLoading(true);
     setAiError('');
     setActiveAction(action);
     try {
       const token = getToken();
-      const currentContent = sectionContentMap[activeSection] || text || '';
       const body = {
         action,
         content: currentContent,
@@ -1320,7 +1323,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                     <div className="mt-3 flex flex-wrap gap-2">
                       <button
                         type="button"
-                        onClick={() => handleAIAction('Use Idea', 'rewrite')}
+                        onClick={() => handleAIAction('Use Idea', 'generate_from_idea')}
                         disabled={aiLoading || !isStarterPlus}
                         className={`rounded-full px-4 py-2 text-xs font-bold transition ${
                           isStarterPlus
