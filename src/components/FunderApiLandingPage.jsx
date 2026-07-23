@@ -96,12 +96,19 @@ function ApiDemoAnimation() {
 
       {/* Step content */}
       <div style={{ minHeight: 160 }}>
-        <p style={{ color: GOLD, fontSize: 11, fontWeight: 700, letterSpacing: '.8px', textTransform: 'uppercase', marginBottom: 8 }}>
-          Step {step + 1} of {DEMO_STEPS.length}
-        </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
           <span style={{ fontSize: 36 }}>{current.icon}</span>
-          <h3 style={{ color: '#fff', fontSize: 20, fontWeight: 800, margin: 0 }}>{current.label}</h3>
+          <div>
+            <span style={{
+              display: 'inline-block', background: 'rgba(212,175,55,.18)',
+              border: '1px solid rgba(212,175,55,.35)', borderRadius: 20,
+              color: GOLD, fontSize: 10, fontWeight: 800, letterSpacing: '.7px',
+              textTransform: 'uppercase', padding: '2px 10px', marginBottom: 5,
+            }}>
+              {step + 1} / {DEMO_STEPS.length}
+            </span>
+            <h3 style={{ color: '#fff', fontSize: 20, fontWeight: 800, margin: 0 }}>{current.label}</h3>
+          </div>
         </div>
         <div style={{
           fontFamily: 'monospace', fontSize: 13, color: GOLD_LT,
@@ -479,9 +486,9 @@ export default function FunderApiLandingPage() {
               Funders don't care about writing grants. They care about decisions.
             </h2>
             <p style={{ color: SLATE, fontSize: 16, lineHeight: 1.75, maxWidth: 620, margin: '0 auto' }}>
-              TGM was built to help nonprofits write better proposals.
-              The Funder Intelligence API turns that same engine around —
-              so you get better applicants, faster cycles, and smarter decisions.
+              We turned the same engine that powers the sharpest nonprofit proposals around — and pointed it at funders.
+              Now you get better applicants, faster cycles, and smarter decisions
+              without rebuilding your stack.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
@@ -551,10 +558,14 @@ export default function FunderApiLandingPage() {
                 }}>
                   {icon}
                 </div>
-                <p style={{ color: GOLD, fontSize: 11, fontWeight: 700, letterSpacing: '.7px', textTransform: 'uppercase', marginBottom: 8 }}>
-                  Pattern {i + 1} — {label}
-                </p>
-                <h3 style={{ color: '#fff', fontSize: 17, fontWeight: 800, marginBottom: 10 }}>{title}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <span style={{
+                    flexShrink: 0, width: 24, height: 24, borderRadius: '50%',
+                    background: GOLD, color: NAVY, fontSize: 11, fontWeight: 900,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>{i + 1}</span>
+                  <h3 style={{ color: '#fff', fontSize: 17, fontWeight: 800, margin: 0 }}>{title}</h3>
+                </div>
                 <p style={{ color: 'rgba(255,255,255,.65)', fontSize: 14, lineHeight: 1.7, margin: 0 }}>{body}</p>
               </div>
             ))}
