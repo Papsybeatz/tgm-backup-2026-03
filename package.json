@@ -5,10 +5,12 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "start:funder-api": "node backend/funder-intelligence-api/server.js",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "test": "jest tests/api",
+    "test:funder-api": "node --test tests/api/funder-intelligence-api.test.js",
     "test:e2e": "playwright test tests/e2e",
     "postinstall": "npx prisma generate"
   },

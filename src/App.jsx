@@ -17,6 +17,7 @@ import TermsPage from './components/TermsPage';
 import NewYorkGrantsPage from './components/NewYorkGrantsPage';
 import NewYorkChecklistPage from './components/NewYorkChecklistPage';
 import ConsultantLandingPage from './components/ConsultantLandingPage';
+import FunderApiLandingPage from './components/FunderApiLandingPage';
 import ClientsPage from './components/ClientsPage';
 import ClientWorkspacePage from './components/ClientWorkspacePage';
 import ScottDistributionPage from './components/ScottDistributionPage';
@@ -73,6 +74,7 @@ function App() {
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/consultants" element={<ConsultantLandingPage />} />
                 <Route path="/consultant-mode" element={<ConsultantLandingPage />} />
+                <Route path="/funder-api" element={<FunderApiLandingPage />} />
                 <Route path="/new-york-grants" element={<NewYorkGrantsPage />} />
                 <Route path="/new-york-grants/checklist" element={<NewYorkChecklistPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />

@@ -1,0 +1,253 @@
+{
+  "info": {
+    "name": "TGM Funder Intelligence API v1",
+    "description": "Complete Postman collection for the TGM Funder Intelligence API sidecar. Import this into Postman or Thunder Client.\n\nWorkflow:\n1. Run 'Register Funder' — copy funder_id and api_key from response\n2. Set collection variables: BASE_URL, API_KEY, FUNDER_ID\n3. Run remaining endpoints in order",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "https://your-railway-url.up.railway.app",
+      "description": "Replace with your Railway deployment URL"
+    },
+    {
+      "key": "API_KEY",
+      "value": "",
+      "description": "Paste the api_key returned from /funder/register"
+    },
+    {
+      "key": "FUNDER_ID",
+      "value": "",
+      "description": "Paste the funder_id returned from /funder/register"
+    },
+    {
+      "key": "BATCH_ID",
+      "value": "",
+      "description": "Paste batch_id returned from /batch/score"
+    },
+    {
+      "key": "CYCLE_ID",
+      "value": "",
+      "description": "Paste cycle_id returned from /batch/score"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/health",
+        "description": "Verify the sidecar is live. Expect 200 with status: ok."
+      }
+    },
+    {
+      "name": "Register Funder",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body.funder_id) pm.collectionVariables.set('FUNDER_ID', body.funder_id);",
+              "if (body.api_key) pm.collectionVariables.set('API_KEY', body.api_key);",
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "pm.test('Has funder_id', () => pm.expect(body.funder_id).to.be.a('string'));",
+              "pm.test('Has api_key', () => pm.expect(body.api_key).to.be.a('string'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{BASE_URL}}/funder/register",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Impact First Foundation\",\n  \"mission\": \"Advance STEM education and workforce readiness in underserved communities.\",\n  \"priority_areas\": [\"STEM education\", \"workforce readiness\", \"equity\"],\n  \"geographies\": [\"usa\", \"jamaica\"],\n  \"eligibility_rules\": [\n    { \"type\": \"organization_type\", \"allowed\": [\"nonprofit\"] }\n  ],\n  \"rubric_definition\": {\n    \"criteria\": [\n      {\n        \"name\": \"Impact Potential\",\n        \"weight\": 45,\n        \"description\": \"Expected measurable outcomes, KPI rigor, and community reach.\"\n      },\n      {\n        \"name\": \"Execution Plan\",\n        \"weight\": 35,\n        \"description\": \"Operational readiness, timeline, partnerships, and delivery mechanics.\"\n      },\n      {\n        \"name\": \"Budget Credibility\",\n        \"weight\": 20,\n        \"description\": \"Budget realism and direct linkage to outcomes.\"\n      }\n    ]\n  }\n}"
+        },
+        "description": "Onboard a funder with mission, priorities, eligibility rules, and rubric. Returns funder_id and api_key. SAVE BOTH — they don't repeat."
+      }
+    },
+    {
+      "name": "Score Application",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has overall_score', () => pm.expect(body.overall_score).to.be.a('number'));",
+              "pm.test('Has scores_by_criterion', () => pm.expect(body.scores_by_criterion).to.be.an('array'));",
+              "pm.test('Has suggested_next_step', () => pm.expect(body.suggested_next_step).to.be.a('string'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{BASE_URL}}/application/score",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-api-key", "value": "{{API_KEY}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"funder_id\": \"{{FUNDER_ID}}\",\n  \"application\": {\n    \"id\": \"app_001\",\n    \"org_profile\": {\n      \"organization_type\": \"nonprofit\",\n      \"country\": \"usa\"\n    },\n    \"project_summary\": \"STEM education and workforce readiness for low-income youth with measurable outcomes, data, and evidence-based curriculum.\",\n    \"narratives\": [\n      \"Our baseline data shows 45% placement rate; target is 70% within 12 months.\",\n      \"Program combines tutoring, mentorship, and employer partnerships for sustainable workforce outcomes.\"\n    ],\n    \"budget\": {\n      \"total\": 200000,\n      \"admin_cost\": 40000,\n      \"program_cost\": 130000\n    },\n    \"metadata\": {\n      \"geography\": \"usa\",\n      \"cycle\": \"fall-2026\"\n    },\n    \"attachments\": [\n      { \"name\": \"logic-model.pdf\" },\n      { \"name\": \"budget.xlsx\" }\n    ]\n  }\n}"
+        },
+        "description": "Score a single application against the funder rubric. Returns per-criterion scores, overall score, confidence, risk score, reviewer flags, and suggested next step."
+      }
+    },
+    {
+      "name": "Funder Fit",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has fit_score', () => pm.expect(body.fit_score).to.be.a('number'));",
+              "pm.test('Has recommended_band', () => pm.expect(['reject','review','fast-track']).to.include(body.recommended_band));",
+              "pm.test('Has eligibility_pass', () => pm.expect(body.eligibility_pass).to.be.a('boolean'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{BASE_URL}}/application/funder-fit",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-api-key", "value": "{{API_KEY}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"funder_id\": \"{{FUNDER_ID}}\",\n  \"application\": {\n    \"id\": \"app_001\",\n    \"org_profile\": {\n      \"organization_type\": \"nonprofit\",\n      \"country\": \"usa\"\n    },\n    \"project_summary\": \"STEM education and workforce readiness for low-income youth with measurable outcomes.\",\n    \"narratives\": [\n      \"Our baseline data shows 45% placement; target is 70% within 12 months.\"\n    ],\n    \"budget\": {\n      \"total\": 200000,\n      \"admin_cost\": 40000,\n      \"program_cost\": 130000\n    },\n    \"metadata\": {\n      \"geography\": \"usa\"\n    }\n  }\n}"
+        },
+        "description": "Evaluate how well an application aligns with the funder's priorities, geography, and eligibility rules. Returns fit_score, eligibility_pass/fail, why/why_not, and recommended_band (reject / review / fast-track)."
+      }
+    },
+    {
+      "name": "Batch Score (Cycle)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body.batch_id) pm.collectionVariables.set('BATCH_ID', body.batch_id);",
+              "if (body.cycle_id) pm.collectionVariables.set('CYCLE_ID', body.cycle_id);",
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has applications', () => pm.expect(body.applications).to.be.an('array'));",
+              "pm.test('Has cohort_analytics', () => pm.expect(body.cohort_analytics).to.be.an('object'));",
+              "pm.test('Has shortlist', () => pm.expect(body.cohort_analytics.shortlist).to.be.an('array'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{BASE_URL}}/batch/score",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-api-key", "value": "{{API_KEY}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"funder_id\": \"{{FUNDER_ID}}\",\n  \"cycle_id\": \"fall-2026\",\n  \"applications\": [\n    {\n      \"id\": \"app_001\",\n      \"org_profile\": { \"organization_type\": \"nonprofit\", \"country\": \"usa\" },\n      \"project_summary\": \"STEM education and workforce readiness with evidence-based outcomes and data.\",\n      \"narratives\": [\"Baseline 45% placement, target 70% with mentorship and employer partnerships.\"],\n      \"budget\": { \"total\": 200000, \"admin_cost\": 40000, \"program_cost\": 130000 },\n      \"metadata\": { \"geography\": \"usa\" },\n      \"attachments\": [{ \"name\": \"logic-model.pdf\" }]\n    },\n    {\n      \"id\": \"app_002\",\n      \"org_profile\": { \"organization_type\": \"nonprofit\", \"country\": \"usa\" },\n      \"project_summary\": \"Digital literacy and workforce readiness for rural youth in the USA with outcome metrics.\",\n      \"narratives\": [\"Targeting 300 students with digital skills training and job placement support.\"],\n      \"budget\": { \"total\": 150000, \"admin_cost\": 30000, \"program_cost\": 100000 },\n      \"metadata\": { \"geography\": \"usa\" },\n      \"attachments\": []\n    },\n    {\n      \"id\": \"app_003\",\n      \"org_profile\": { \"organization_type\": \"nonprofit\", \"country\": \"jamaica\" },\n      \"project_summary\": \"Community health education program with very little data or evaluation plan.\",\n      \"narratives\": [\"We help people stay healthy.\"],\n      \"budget\": { \"total\": 500000, \"admin_cost\": 200000, \"program_cost\": 150000 },\n      \"metadata\": { \"geography\": \"jamaica\" },\n      \"attachments\": []\n    }\n  ]\n}"
+        },
+        "description": "Score a batch of applications for a grant cycle. Returns per-application scores, cohort analytics, shortlist (top 20%), risk clusters, alignment clusters, and bias detection signals."
+      }
+    },
+    {
+      "name": "Cycle Intelligence",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has intelligence', () => pm.expect(body.intelligence).to.be.an('object'));",
+              "pm.test('Has alignment_heatmap', () => pm.expect(body.intelligence.alignment_heatmap).to.be.an('array'));",
+              "pm.test('Has shortlist_suggestions', () => pm.expect(body.intelligence.shortlist_suggestions).to.be.an('array'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{BASE_URL}}/cycle/intelligence",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-api-key", "value": "{{API_KEY}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"funder_id\": \"{{FUNDER_ID}}\",\n  \"cycle_id\": \"{{CYCLE_ID}}\",\n  \"batch_id\": \"{{BATCH_ID}}\"\n}"
+        },
+        "description": "Portfolio-level insights for a grant cycle. Returns shortlist suggestions, risk clusters, alignment heatmap per priority area, and over/under-funding signals."
+      }
+    },
+    {
+      "name": "Configure Webhook",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has webhook config', () => pm.expect(body.webhook).to.be.an('object'));",
+              "pm.test('Has test_event', () => pm.expect(body.test_event).to.be.an('object'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{BASE_URL}}/webhook/config",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-api-key", "value": "{{API_KEY}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"funder_id\": \"{{FUNDER_ID}}\",\n  \"url\": \"https://your-portal.org/webhooks/tgm\",\n  \"auth\": {\n    \"type\": \"bearer\",\n    \"token_hint\": \"configure-your-token-in-your-system\"\n  },\n  \"mapping\": {\n    \"move_to_committee_review\": \"committee_review\",\n    \"needs_program_officer_review\": \"program_officer_review\",\n    \"auto_reject_or_request_revision\": \"decline_or_revise\"\n  }\n}"
+        },
+        "description": "Register a webhook URL so your portal receives TGM suggested statuses. The test_event in the response is the payload TGM will send on every score/fit call."
+      }
+    },
+    {
+      "name": "Get Funder Record",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has funder', () => pm.expect(body.funder).to.be.an('object'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/funder/{{FUNDER_ID}}",
+        "header": [
+          { "key": "x-api-key", "value": "{{API_KEY}}" }
+        ],
+        "description": "Retrieve your full funder record — mission, priorities, rubric, eligibility rules, and cycle configs."
+      }
+    }
+  ]
+}

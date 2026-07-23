@@ -109,6 +109,8 @@ const contactRoutes = require('./routes/contact');
 app.use('/api/contact', contactRoutes);
 const leadMagnetRoutes = require('./routes/leadMagnet');
 app.use('/api/lead-magnet', leadMagnetRoutes);
+const funderApiRequestRoutes = require('./routes/funderApiRequest');
+app.use('/api/funder-api', funderApiRequestRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/team', teamInvitesRoutes);
 app.use('/api/auth', authRoutes);
