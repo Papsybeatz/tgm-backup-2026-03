@@ -34,5 +34,11 @@ const result = await executeAgent('PlannerAgent', { ...input }, memory);
 ## SaaS Deployment
 - See /app for frontend/backend integration
 
+## Funder Intelligence API (Sidecar)
+- Separate subsystem: `backend/funder-intelligence-api`
+- Runs in parallel with existing TGM user flows
+- Docs: `docs/funder-intelligence-api.md`
+- Start: `npm run start:funder-api`
+
 ## License
 MIT
