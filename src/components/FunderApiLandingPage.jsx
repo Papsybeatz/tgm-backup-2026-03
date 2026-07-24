@@ -662,7 +662,7 @@ export default function FunderApiLandingPage() {
               Apply for Pilot Access →
             </a>
             <a
-              href="/docs/funder-intelligence-api"
+              href="https://github.com/Papsybeatz/tgm-backup-2026-03/blob/main/docs/funder-intelligence-api.md"
               target="_blank"
               rel="noopener noreferrer"
               style={{
