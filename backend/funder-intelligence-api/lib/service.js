@@ -1,6 +1,6 @@
 const { computeFunderFit, computeScoring, cycleIntelligenceFromBatch, summarizeBatch } = require('./engines');
 const { readDatabase, withDatabase } = require('./datastore');
-const { createApiKey, createId, toArray } = require('./utils');
+const { average, createApiKey, createId, toArray } = require('./utils');
 
 function normalizeRubricCriteria(criteriaInput = []) {
   return toArray(criteriaInput).map((criterion, index) => {
@@ -35,7 +35,201 @@ function buildValidationReport(criteria) {
   };
 }
 
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function getDefaultEnterpriseRubric() {
+  return {
+    criteria: [
+      {
+        criterion_id: createId('crit'),
+        name: 'Strategic Alignment',
+        weight: 30,
+        description: 'How strongly the application aligns to strategic priorities and portfolio goals.',
+        scoring_scale: '0-100',
+      },
+      {
+        criterion_id: createId('crit'),
+        name: 'Execution Capacity',
+        weight: 25,
+        description: 'Operational delivery confidence, milestones, staffing model, and implementation feasibility.',
+        scoring_scale: '0-100',
+      },
+      {
+        criterion_id: createId('crit'),
+        name: 'Impact Evidence',
+        weight: 20,
+        description: 'Use of outcomes, baselines, and measurable impact indicators.',
+        scoring_scale: '0-100',
+      },
+      {
+        criterion_id: createId('crit'),
+        name: 'Budget Integrity',
+        weight: 15,
+        description: 'Budget realism, reasonableness, and direct linkage to outcomes.',
+        scoring_scale: '0-100',
+      },
+      {
+        criterion_id: createId('crit'),
+        name: 'Risk and Compliance',
+        weight: 10,
+        description: 'Regulatory readiness, risk controls, and compliance posture.',
+        scoring_scale: '0-100',
+      },
+    ],
+    examples: [],
+    risk_flags: [
+      'insufficient_outcomes_evidence',
+      'budget_allocation_imbalance',
+      'eligibility_conflict',
+    ],
+  };
+}
+
+function getDefaultRetentionPolicy() {
+  return {
+    policy_id: createId('retention'),
+    application_data_days: 365,
+    audit_log_days: 730,
+    pii_redaction_days: 30,
+    auto_purge_enabled: true,
+  };
+}
+
+function getDefaultSlaProfile() {
+  return {
+    profile_id: createId('sla'),
+    uptime_target_percent: 99.9,
+    p95_latency_ms_target: 500,
+    error_rate_percent_threshold: 0.5,
+    batch_score_seconds_threshold: 10,
+  };
+}
+
+function generateSsoMetadata(funderId, orgSlug) {
+  const tenantBase = `https://tgm-funder-intelligence.local/${orgSlug}`;
+  return {
+    provider: 'saml',
+    entity_id: `${tenantBase}/sso/entity/${funderId}`,
+    acs_url: `${tenantBase}/sso/acs`,
+    login_url: `${tenantBase}/sso/login`,
+    logout_url: `${tenantBase}/sso/logout`,
+    cert_fingerprint: createId('cert'),
+  };
+}
+
+function normalizeRubricFromInput(input) {
+  const criteria = normalizeRubricCriteria(input?.criteria || input || []);
+  if (!criteria.length) {
+    throw new Error('Unable to parse rubric criteria from provided input.');
+  }
+  return { criteria };
+}
+
+function parseCsvRubric(csvText) {
+  const lines = String(csvText || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (lines.length < 2) {
+    throw new Error('CSV rubric must include header and at least one criterion row.');
+  }
+  const headers = lines[0].split(',').map((item) => item.trim().toLowerCase());
+  const nameIdx = headers.findIndex((item) => item === 'name' || item === 'criterion');
+  const weightIdx = headers.findIndex((item) => item === 'weight');
+  const descriptionIdx = headers.findIndex((item) => item === 'description');
+  const scaleIdx = headers.findIndex((item) => item === 'scoring_scale' || item === 'scale');
+  if (nameIdx < 0) {
+    throw new Error('CSV rubric header must include "name" or "criterion".');
+  }
+
+  return lines.slice(1).map((line) => {
+    const parts = line.split(',').map((item) => item.trim());
+    return {
+      name: parts[nameIdx] || 'Unnamed criterion',
+      weight: weightIdx >= 0 ? Number(parts[weightIdx]) || 0 : 0,
+      description: descriptionIdx >= 0 ? parts[descriptionIdx] || '' : '',
+      scoring_scale: scaleIdx >= 0 ? parts[scaleIdx] || '0-100' : '0-100',
+    };
+  });
+}
+
+function parsePdfLikeRubric(text) {
+  const lines = String(text || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const parsed = lines.map((line) => {
+    const match = line.match(/^(.+?)(?:\s*[-:|]\s*)(\d{1,3})(?:\s*[-:|]\s*)(.+)$/);
+    if (match) {
+      return {
+        name: match[1].trim(),
+        weight: Number(match[2]),
+        description: match[3].trim(),
+        scoring_scale: '0-100',
+      };
+    }
+    return null;
+  }).filter(Boolean);
+
+  if (!parsed.length) {
+    throw new Error('PDF rubric parser could not detect criteria lines. Use JSON or CSV format.');
+  }
+  return parsed;
+}
+
+function parseRubricInput({ format, content }) {
+  const normalizedFormat = String(format || '').toLowerCase();
+  if (!normalizedFormat) throw new Error('Rubric format is required (json, csv, or pdf).');
+  if (!String(content || '').trim()) throw new Error('Rubric content is required.');
+
+  if (normalizedFormat === 'json') {
+    const parsed = JSON.parse(String(content));
+    return normalizeRubricFromInput(parsed);
+  }
+  if (normalizedFormat === 'csv') {
+    return normalizeRubricFromInput(parseCsvRubric(content));
+  }
+  if (normalizedFormat === 'pdf') {
+    return normalizeRubricFromInput(parsePdfLikeRubric(content));
+  }
+  throw new Error('Unsupported rubric format. Use json, csv, or pdf.');
+}
+
+function buildFunderRecord({
+  funderId,
+  name,
+  payload,
+  criteria,
+  now,
+  tier = 'scale',
+}) {
+  return {
+    id: funderId,
+    name,
+    mission: String(payload?.mission || ''),
+    priority_areas: toArray(payload?.priority_areas).map(String),
+    geographies: toArray(payload?.geographies).map(String),
+    eligibility_rules: toArray(payload?.eligibility_rules),
+    rubric_definition: {
+      criteria,
+      examples: toArray(payload?.rubric_definition?.examples),
+      risk_flags: toArray(payload?.rubric_definition?.risk_flags),
+    },
+    cycle_configs: toArray(payload?.cycle_configs),
+    plan_tier: tier,
+    created_at: now,
+    updated_at: now,
+  };
+}
+
 async function registerFunder(payload) {
+  const tier = String(payload?.plan_tier || payload?.tier || 'scale').toLowerCase();
+  if (tier === 'enterprise') {
+    return createEnterpriseFunder(payload);
+  }
+
   const name = String(payload?.name || '').trim();
   if (!name) {
     throw new Error('Funder name is required.');
@@ -59,22 +253,14 @@ async function registerFunder(payload) {
   const apiKey = createApiKey();
   const now = new Date().toISOString();
 
-  const funderRecord = {
-    id: funderId,
+  const funderRecord = buildFunderRecord({
+    funderId,
     name,
-    mission: String(payload?.mission || ''),
-    priority_areas: toArray(payload?.priority_areas).map(String),
-    geographies: toArray(payload?.geographies).map(String),
-    eligibility_rules: toArray(payload?.eligibility_rules),
-    rubric_definition: {
-      criteria,
-      examples: toArray(payload?.rubric_definition?.examples),
-      risk_flags: toArray(payload?.rubric_definition?.risk_flags),
-    },
-    cycle_configs: toArray(payload?.cycle_configs),
-    created_at: now,
-    updated_at: now,
-  };
+    payload,
+    criteria,
+    now,
+    tier: 'scale',
+  });
 
   await withDatabase((db) => {
     db.funders[funderId] = funderRecord;
@@ -96,7 +282,102 @@ async function registerFunder(payload) {
   return {
     funder_id: funderId,
     api_key: apiKey,
+    plan_tier: funderRecord.plan_tier,
     validation_report: validation,
+  };
+}
+
+async function createEnterpriseFunder(payload) {
+  const name = String(payload?.name || '').trim();
+  if (!name) {
+    throw new Error('Funder name is required.');
+  }
+  const now = nowIso();
+  const funderId = createId('funder');
+  const orgId = createId('org');
+  const orgApiKey = createApiKey();
+  const sso = generateSsoMetadata(funderId, name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+  const retentionPolicy = payload?.retention_policy || getDefaultRetentionPolicy();
+  const slaProfile = payload?.sla_profile || getDefaultSlaProfile();
+  const enterpriseRubric = getDefaultEnterpriseRubric();
+  const criteria = normalizeRubricCriteria(payload?.rubric_definition?.criteria || enterpriseRubric.criteria);
+  const validation = buildValidationReport(criteria);
+
+  const funderRecord = buildFunderRecord({
+    funderId,
+    name,
+    payload,
+    criteria,
+    now,
+    tier: 'enterprise',
+  });
+
+  const accountManagerId = `va_${createId('manager')}`;
+  const accountManager = {
+    id: accountManagerId,
+    type: 'virtual_account_manager',
+    label: payload?.account_manager_label || 'TGM Enterprise Concierge',
+    contact_email: payload?.account_manager_email || 'enterprise@thegrantsmaster.com',
+    escalation_channel: payload?.escalation_channel || 'priority-inbox',
+  };
+
+  await withDatabase((db) => {
+    db.funders[funderId] = funderRecord;
+    db.apiKeys[orgApiKey] = {
+      funder_id: funderId,
+      created_at: now,
+      label: 'enterprise-org',
+      scope: 'org',
+      last_used_at: null,
+    };
+    db.enterpriseOrgs[orgId] = {
+      id: orgId,
+      funder_id: funderId,
+      org_name: name,
+      org_bucket: `enterprise_${orgId}`,
+      sso,
+      retention_policy: retentionPolicy,
+      sla_profile: slaProfile,
+      account_manager: accountManager,
+      support_profile: {
+        priority_queue: 'enterprise-priority',
+        ticket_sla_minutes: 30,
+      },
+      created_at: now,
+      updated_at: now,
+    };
+    db.auditLogs.push({
+      id: createId('log'),
+      type: 'enterprise_funder_registered',
+      funder_id: funderId,
+      org_id: orgId,
+      created_at: now,
+    });
+    return db;
+  });
+
+  return {
+    funder_id: funderId,
+    org_id: orgId,
+    org_api_key: orgApiKey,
+    plan_tier: 'enterprise',
+    validation_report: validation,
+    enterprise_config: {
+      org_bucket: `enterprise_${orgId}`,
+      sso_metadata: sso,
+      default_rubric_template: { criteria },
+      retention_policy: retentionPolicy,
+      sla_profile: slaProfile,
+      account_manager: accountManager,
+    },
+    onboarding_packet: {
+      steps: [
+        'Configure SSO metadata in your identity provider.',
+        'Use org_api_key for enterprise API calls.',
+        'Upload custom rubric via /enterprise/rubric/parse then confirm via /enterprise/rubric/confirm.',
+        'Configure alert webhook in enterprise config for SLA notifications.',
+      ],
+    },
   };
 }
 
@@ -280,6 +561,354 @@ async function upsertWebhookConfig(funder, body) {
   };
 }
 
+async function updateEnterpriseConfig(funder, updates) {
+  const now = nowIso();
+  const db = await readDatabase();
+  const enterpriseOrg = Object.values(db.enterpriseOrgs).find((org) => org.funder_id === funder.id);
+  if (!enterpriseOrg) {
+    throw new Error('Enterprise organization not found for this funder.');
+  }
+
+  await withDatabase((nextDb) => {
+    const current = nextDb.enterpriseOrgs[enterpriseOrg.id];
+    nextDb.enterpriseOrgs[enterpriseOrg.id] = {
+      ...current,
+      ...updates,
+      updated_at: now,
+    };
+    nextDb.auditLogs.push({
+      id: createId('log'),
+      type: 'enterprise_config_updated',
+      funder_id: funder.id,
+      org_id: enterpriseOrg.id,
+      created_at: now,
+    });
+    return nextDb;
+  });
+}
+
+async function parseEnterpriseRubric(funder, payload) {
+  const parsed = parseRubricInput(payload || {});
+  const normalizedCriteria = normalizeRubricCriteria(parsed.criteria);
+  const validation = buildValidationReport(normalizedCriteria);
+  const draftId = createId('rubric_draft');
+  const now = nowIso();
+
+  await withDatabase((db) => {
+    db.rubricDrafts[draftId] = {
+      id: draftId,
+      funder_id: funder.id,
+      criteria: normalizedCriteria,
+      validation_report: validation,
+      created_at: now,
+      confirmed: false,
+    };
+    db.auditLogs.push({
+      id: createId('log'),
+      type: 'enterprise_rubric_parsed',
+      funder_id: funder.id,
+      rubric_draft_id: draftId,
+      created_at: now,
+    });
+    return db;
+  });
+
+  return {
+    rubric_draft_id: draftId,
+    rubric_json: { criteria: normalizedCriteria },
+    validation_report: validation,
+    requires_manual_review: validation.ambiguous_criteria.length > 0,
+  };
+}
+
+async function confirmEnterpriseRubricDeployment(funder, payload) {
+  const draftId = String(payload?.rubric_draft_id || '').trim();
+  if (!draftId) throw new Error('rubric_draft_id is required.');
+  const now = nowIso();
+
+  const db = await readDatabase();
+  const draft = db.rubricDrafts[draftId];
+  if (!draft || draft.funder_id !== funder.id) {
+    throw new Error('Rubric draft not found for this funder.');
+  }
+
+  await withDatabase((nextDb) => {
+    nextDb.rubricDrafts[draftId] = {
+      ...nextDb.rubricDrafts[draftId],
+      confirmed: true,
+      confirmed_at: now,
+    };
+    nextDb.funders[funder.id] = {
+      ...nextDb.funders[funder.id],
+      rubric_definition: {
+        ...(nextDb.funders[funder.id].rubric_definition || {}),
+        criteria: draft.criteria,
+      },
+      updated_at: now,
+    };
+    nextDb.auditLogs.push({
+      id: createId('log'),
+      type: 'enterprise_rubric_deployed',
+      funder_id: funder.id,
+      rubric_draft_id: draftId,
+      created_at: now,
+    });
+    return nextDb;
+  });
+
+  return {
+    deployed: true,
+    rubric_draft_id: draftId,
+    criteria_count: draft.criteria.length,
+  };
+}
+
+function isEnterpriseFunder(funder) {
+  return String(funder?.plan_tier || '').toLowerCase() === 'enterprise';
+}
+
+async function getEnterpriseOrgByFunderId(funderId) {
+  const db = await readDatabase();
+  const org = Object.values(db.enterpriseOrgs).find((entry) => entry.funder_id === funderId);
+  return org || null;
+}
+
+async function emitEnterpriseSlaAlert(funder, alertPayload) {
+  const org = await getEnterpriseOrgByFunderId(funder.id);
+  if (!org) return;
+  const alertWebhook = org?.sla_profile?.alert_webhook_url;
+  const timestamp = nowIso();
+
+  await withDatabase((db) => {
+    db.metrics.alerts.push({
+      id: createId('sla_alert'),
+      funder_id: funder.id,
+      org_id: org.id,
+      ...alertPayload,
+      created_at: timestamp,
+    });
+    return db;
+  });
+
+  if (!alertWebhook) return;
+  try {
+    await fetch(alertWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event: 'tgm.enterprise.sla.alert',
+        funder_id: funder.id,
+        org_id: org.id,
+        timestamp,
+        alert: alertPayload,
+      }),
+    });
+  } catch (_error) {
+    await withDatabase((db) => {
+      db.auditLogs.push({
+        id: createId('log'),
+        type: 'enterprise_sla_alert_delivery_failed',
+        funder_id: funder.id,
+        created_at: timestamp,
+      });
+      return db;
+    });
+  }
+}
+
+async function recordRequestMetric(funder, eventType, statusCode, durationMs) {
+  if (!funder || !isEnterpriseFunder(funder)) return;
+  const now = nowIso();
+  const entry = {
+    id: createId('metric'),
+    funder_id: funder.id,
+    event_type: eventType,
+    status_code: statusCode,
+    duration_ms: durationMs,
+    created_at: now,
+  };
+
+  const db = await withDatabase((nextDb) => {
+    nextDb.metrics.requests.push(entry);
+    const cutoff = Date.now() - (31 * 24 * 60 * 60 * 1000);
+    nextDb.metrics.requests = nextDb.metrics.requests.filter((metric) => {
+      const createdAt = Date.parse(metric.created_at || '');
+      return Number.isFinite(createdAt) && createdAt >= cutoff;
+    });
+    return nextDb;
+  });
+
+  const recent = db.metrics.requests
+    .filter((metric) => metric.funder_id === funder.id)
+    .slice(-200);
+  const errorRate = recent.length
+    ? (recent.filter((metric) => metric.status_code >= 500).length / recent.length) * 100
+    : 0;
+
+  if (durationMs > 500) {
+    await emitEnterpriseSlaAlert(funder, {
+      type: 'latency_threshold_exceeded',
+      threshold_ms: 500,
+      observed_ms: durationMs,
+      event_type: eventType,
+    });
+  }
+  if (errorRate > 0.5) {
+    await emitEnterpriseSlaAlert(funder, {
+      type: 'error_rate_threshold_exceeded',
+      threshold_percent: 0.5,
+      observed_percent: Number(errorRate.toFixed(3)),
+      sample_size: recent.length,
+    });
+  }
+  if (eventType === 'batch.score' && durationMs > 10000) {
+    await emitEnterpriseSlaAlert(funder, {
+      type: 'batch_latency_threshold_exceeded',
+      threshold_ms: 10000,
+      observed_ms: durationMs,
+    });
+  }
+}
+
+async function getEnterpriseHeartbeat(funder) {
+  const org = await getEnterpriseOrgByFunderId(funder.id);
+  if (!org) throw new Error('Enterprise organization not found for this funder.');
+  const db = await readDatabase();
+  const metrics = db.metrics.requests.filter((entry) => entry.funder_id === funder.id).slice(-200);
+  const p95 = metrics.length
+    ? (() => {
+      const sorted = metrics.map((entry) => entry.duration_ms).sort((a, b) => a - b);
+      const idx = Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95));
+      return sorted[idx];
+    })()
+    : 0;
+  const errorRate = metrics.length
+    ? (metrics.filter((entry) => entry.status_code >= 500).length / metrics.length) * 100
+    : 0;
+
+  return {
+    status: 'ok',
+    funder_id: funder.id,
+    org_id: org.id,
+    sla_profile: org.sla_profile,
+    monitoring: {
+      sample_size: metrics.length,
+      p95_latency_ms: Math.round(p95),
+      error_rate_percent: Number(errorRate.toFixed(3)),
+      last_event_at: metrics.length ? metrics[metrics.length - 1].created_at : null,
+    },
+  };
+}
+
+async function createEnterpriseSupportTicket(funder, payload) {
+  const subject = String(payload?.subject || '').trim();
+  if (!subject) throw new Error('Ticket subject is required.');
+  const now = nowIso();
+  const ticketId = createId('ticket');
+  const org = await getEnterpriseOrgByFunderId(funder.id);
+  if (!org) throw new Error('Enterprise organization not found for this funder.');
+
+  const ticket = {
+    id: ticketId,
+    funder_id: funder.id,
+    org_id: org.id,
+    subject,
+    description: String(payload?.description || ''),
+    priority: 'enterprise',
+    assigned_to: org.account_manager,
+    queue: org.support_profile?.priority_queue || 'enterprise-priority',
+    status: 'open',
+    created_at: now,
+  };
+
+  await withDatabase((db) => {
+    db.supportTickets[ticketId] = ticket;
+    db.auditLogs.push({
+      id: createId('log'),
+      type: 'enterprise_support_ticket_created',
+      funder_id: funder.id,
+      ticket_id: ticketId,
+      created_at: now,
+    });
+    return db;
+  });
+
+  return ticket;
+}
+
+async function buildEnterpriseMonthlyReport(funder, payload) {
+  const month = String(payload?.month || '').trim() || new Date().toISOString().slice(0, 7);
+  const db = await readDatabase();
+  const org = await getEnterpriseOrgByFunderId(funder.id);
+  if (!org) throw new Error('Enterprise organization not found for this funder.');
+
+  const monthPrefix = `${month}-`;
+  const requestMetrics = db.metrics.requests.filter((entry) => entry.funder_id === funder.id && String(entry.created_at || '').startsWith(monthPrefix));
+  const monthBatches = Object.values(db.batches).filter((batch) => batch.funder_id === funder.id && String(batch.created_at || '').startsWith(monthPrefix));
+  const scores = monthBatches.flatMap((batch) => toArray(batch.results).map((row) => row?.scoring?.overall_score).filter((value) => typeof value === 'number'));
+  const fits = monthBatches.flatMap((batch) => toArray(batch.results).map((row) => row?.fit?.fit_score).filter((value) => typeof value === 'number'));
+
+  const avgScore = scores.length ? Math.round(average(scores)) : 0;
+  const avgFit = fits.length ? Math.round(average(fits)) : 0;
+  const errorRate = requestMetrics.length
+    ? (requestMetrics.filter((entry) => entry.status_code >= 500).length / requestMetrics.length) * 100
+    : 0;
+  const p95Latency = requestMetrics.length
+    ? (() => {
+      const sorted = requestMetrics.map((entry) => entry.duration_ms).sort((a, b) => a - b);
+      return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))];
+    })()
+    : 0;
+
+  const report = {
+    id: createId('report'),
+    month,
+    funder_id: funder.id,
+    org_id: org.id,
+    usage: {
+      total_requests: requestMetrics.length,
+      total_batches: monthBatches.length,
+    },
+    score_distribution: {
+      average_score: avgScore,
+      samples: scores.length,
+    },
+    fit_distribution: {
+      average_fit: avgFit,
+      samples: fits.length,
+    },
+    cycle_analytics: {
+      cycles_seen: new Set(monthBatches.map((batch) => batch.cycle_id)).size,
+      shortlist_candidates: monthBatches.reduce((acc, batch) => acc + toArray(batch.analytics?.shortlist).length, 0),
+    },
+    sla_compliance: {
+      uptime_target_percent: org.sla_profile?.uptime_target_percent || 99.9,
+      p95_latency_ms_target: org.sla_profile?.p95_latency_ms_target || 500,
+      observed_p95_latency_ms: Math.round(p95Latency),
+      error_rate_percent_threshold: org.sla_profile?.error_rate_percent_threshold || 0.5,
+      observed_error_rate_percent: Number(errorRate.toFixed(3)),
+      compliant:
+        Math.round(p95Latency) <= (org.sla_profile?.p95_latency_ms_target || 500) &&
+        errorRate <= (org.sla_profile?.error_rate_percent_threshold || 0.5),
+    },
+    generated_at: nowIso(),
+  };
+
+  await withDatabase((nextDb) => {
+    nextDb.monthlyReports[report.id] = report;
+    nextDb.auditLogs.push({
+      id: createId('log'),
+      type: 'enterprise_monthly_report_generated',
+      funder_id: funder.id,
+      report_id: report.id,
+      created_at: report.generated_at,
+    });
+    return nextDb;
+  });
+
+  return report;
+}
+
 function buildWebhookHeaders(config) {
   const headers = { 'Content-Type': 'application/json' };
   const auth = config?.auth || {};
@@ -381,12 +1010,20 @@ async function emitWorkflowWebhook(funder, eventType, payload) {
 
 module.exports = {
   buildCycleIntelligence,
+  buildEnterpriseMonthlyReport,
+  confirmEnterpriseRubricDeployment,
+  createEnterpriseFunder,
+  createEnterpriseSupportTicket,
   emitWorkflowWebhook,
+  getEnterpriseHeartbeat,
   evaluateFunderFit,
   getFunderById,
+  parseEnterpriseRubric,
+  recordRequestMetric,
   registerFunder,
   scoreApplication,
   scoreBatch,
   upsertWebhookConfig,
+  updateEnterpriseConfig,
   validateAndResolveFunder,
 };

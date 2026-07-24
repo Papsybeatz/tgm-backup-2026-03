@@ -43,6 +43,45 @@ This subsystem is a standalone sidecar API that runs in parallel with the existi
   - Configure callback endpoint + suggested-status mapping.
   - Returns test event payload for integration verification.
 
+## Enterprise automation endpoints
+
+- `POST /funder/register` with `plan_tier: "enterprise"`
+  - Auto-provisions:
+    - org-level API key
+    - SSO metadata
+    - dedicated org bucket
+    - default enterprise rubric template
+    - default retention policy
+    - default SLA profile
+    - virtual account manager profile
+  - Returns a complete onboarding packet in one response.
+
+- `POST /enterprise/config` (enterprise only)
+  - Updates enterprise config (for example, `sla_profile.alert_webhook_url`).
+
+- `POST /enterprise/rubric/parse` (enterprise only)
+  - Accepts rubric payload:
+    - `format: "json" | "csv" | "pdf"`
+    - `content: string`
+  - Returns parsed `rubric_json`, validation report, and `rubric_draft_id`.
+
+- `POST /enterprise/rubric/confirm` (enterprise only)
+  - Deploys a parsed rubric draft to the live enterprise funder profile.
+
+- `GET /enterprise/sla/heartbeat` (enterprise only)
+  - Returns SLA health + p95 latency + rolling error rate.
+
+- `POST /enterprise/support/ticket` (enterprise only)
+  - Creates a priority enterprise support ticket assigned to the virtual account manager queue.
+
+- `POST /enterprise/reports/monthly` (enterprise only)
+  - Generates monthly enterprise report:
+    - usage
+    - score distribution
+    - fit distribution
+    - cycle analytics
+    - SLA compliance
+
 ## Auth model
 
 - Funder registration mints a dedicated `api_key`.
