@@ -141,7 +141,7 @@ function scoreApplication(funder, application) {
     suggested_next_step: scoring.overall_score >= 80
       ? 'move_to_committee_review'
       : scoring.overall_score >= 60
-        ? 'request_program_officer_review'
+        ? 'needs_program_officer_review'
         : 'needs_clarification',
   };
 }
@@ -280,8 +280,108 @@ async function upsertWebhookConfig(funder, body) {
   };
 }
 
+function buildWebhookHeaders(config) {
+  const headers = { 'Content-Type': 'application/json' };
+  const auth = config?.auth || {};
+  const type = String(auth.type || '').toLowerCase();
+
+  if (type === 'bearer' && auth.token) {
+    headers.Authorization = `Bearer ${auth.token}`;
+  } else if (type === 'header' && auth.key && auth.value) {
+    headers[String(auth.key)] = String(auth.value);
+  } else if (type === 'basic' && auth.username && auth.password) {
+    const token = Buffer.from(`${auth.username}:${auth.password}`).toString('base64');
+    headers.Authorization = `Basic ${token}`;
+  }
+
+  return headers;
+}
+
+function mapSuggestedStage(mapping, payload) {
+  const mappingObj = mapping && typeof mapping === 'object' ? mapping : {};
+  const suggested = String(payload?.suggested_next_step || '').trim();
+  if (!suggested) return null;
+  return mappingObj[suggested] || null;
+}
+
+async function emitWorkflowWebhook(funder, eventType, payload) {
+  const db = await readDatabase();
+  const config = db.webhooks[funder.id];
+  const timestamp = new Date().toISOString();
+
+  if (!config?.url) {
+    return {
+      configured: false,
+      delivered: false,
+      skipped_reason: 'no_webhook_config',
+      timestamp,
+    };
+  }
+
+  const envelope = {
+    event: `tgm.funder-intelligence.${eventType}`,
+    funder_id: funder.id,
+    timestamp,
+    payload: {
+      ...payload,
+      mapped_stage: mapSuggestedStage(config.mapping, payload),
+    },
+  };
+
+  try {
+    const response = await fetch(config.url, {
+      method: 'POST',
+      headers: buildWebhookHeaders(config),
+      body: JSON.stringify(envelope),
+    });
+
+    const responseText = await response.text();
+    const delivered = response.status >= 200 && response.status < 300;
+
+    await withDatabase((nextDb) => {
+      nextDb.auditLogs.push({
+        id: createId('log'),
+        type: delivered ? 'webhook_delivery_succeeded' : 'webhook_delivery_failed',
+        funder_id: funder.id,
+        event_type: eventType,
+        status_code: response.status,
+        created_at: timestamp,
+      });
+      return nextDb;
+    });
+
+    return {
+      configured: true,
+      delivered,
+      status_code: response.status,
+      response_preview: responseText.slice(0, 300),
+      timestamp,
+    };
+  } catch (error) {
+    await withDatabase((nextDb) => {
+      nextDb.auditLogs.push({
+        id: createId('log'),
+        type: 'webhook_delivery_error',
+        funder_id: funder.id,
+        event_type: eventType,
+        error_message: error.message || 'Unknown webhook error',
+        created_at: timestamp,
+      });
+      return nextDb;
+    });
+
+    return {
+      configured: true,
+      delivered: false,
+      error: error.message || 'Unknown webhook error',
+      timestamp,
+    };
+  }
+}
+
 module.exports = {
   buildCycleIntelligence,
+  emitWorkflowWebhook,
   evaluateFunderFit,
   getFunderById,
   registerFunder,

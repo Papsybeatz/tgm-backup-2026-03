@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
+const http = require('node:http');
 
 const app = require('../../backend/funder-intelligence-api/app');
 const { databasePath } = require('../../backend/funder-intelligence-api/lib/datastore');
@@ -24,6 +25,31 @@ test('Funder Intelligence API v1 workflow', async () => {
   const server = app.listen(0);
   const address = server.address();
   const baseUrl = `http://127.0.0.1:${address.port}`;
+  const webhookEvents = [];
+  const webhookReceiver = http.createServer((req, res) => {
+    if (req.method !== 'POST') {
+      res.statusCode = 405;
+      res.end();
+      return;
+    }
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += chunk;
+    });
+    req.on('end', () => {
+      try {
+        webhookEvents.push(JSON.parse(raw || '{}'));
+      } catch (_error) {
+        webhookEvents.push({ invalid_json: true });
+      }
+      res.statusCode = 200;
+      res.setHeader('content-type', 'application/json');
+      res.end(JSON.stringify({ ok: true }));
+    });
+  });
+  await new Promise((resolve) => webhookReceiver.listen(0, resolve));
+  const webhookAddress = webhookReceiver.address();
+  const webhookUrl = `http://127.0.0.1:${webhookAddress.port}/events`;
 
   async function request(path, options = {}) {
     const response = await fetch(`${baseUrl}${path}`, options);
@@ -143,8 +169,8 @@ test('Funder Intelligence API v1 workflow', async () => {
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey },
       body: JSON.stringify({
         funder_id: funderId,
-        url: 'https://example.org/webhooks/tgm',
-        auth: { type: 'bearer', token_hint: 'configured-out-of-band' },
+        url: webhookUrl,
+        auth: { type: 'bearer', token: 'test-token' },
         mapping: {
           move_to_committee_review: 'committee_review',
           needs_program_officer_review: 'program_officer_review',
@@ -153,9 +179,24 @@ test('Funder Intelligence API v1 workflow', async () => {
       }),
     });
     assert.equal(webhook.response.status, 200);
-    assert.equal(webhook.body.webhook.url, 'https://example.org/webhooks/tgm');
+    assert.equal(webhook.body.webhook.url, webhookUrl);
     assert.equal(webhook.body.test_event.mapped_stage, 'program_officer_review');
+
+    const scoreAfterWebhook = await request('/application/score', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey },
+      body: JSON.stringify({
+        funder_id: funderId,
+        application: { ...sampleApplication, id: 'app_003' },
+      }),
+    });
+    assert.equal(scoreAfterWebhook.response.status, 200);
+    assert.equal(scoreAfterWebhook.body.webhook_delivery.configured, true);
+    assert.equal(scoreAfterWebhook.body.webhook_delivery.delivered, true);
+    assert.ok(webhookEvents.length >= 1);
+    assert.equal(webhookEvents[0].event, 'tgm.funder-intelligence.application.score');
   } finally {
+    await new Promise((resolve) => webhookReceiver.close(resolve));
     await new Promise((resolve) => server.close(resolve));
   }
 });

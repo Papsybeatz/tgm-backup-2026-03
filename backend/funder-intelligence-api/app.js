@@ -5,6 +5,7 @@ const {
   validateAndResolveFunder,
   scoreApplication,
   evaluateFunderFit,
+  emitWorkflowWebhook,
   scoreBatch,
   buildCycleIntelligence,
   upsertWebhookConfig,
@@ -38,7 +39,8 @@ app.post('/application/score', async (req, res) => {
   try {
     const payload = validateAndResolveFunder(req.auth, req.body || {});
     const score = scoreApplication(payload.funder, payload.application);
-    return res.status(200).json(score);
+    const webhookDelivery = await emitWorkflowWebhook(payload.funder, 'application.score', score);
+    return res.status(200).json({ ...score, webhook_delivery: webhookDelivery });
   } catch (error) {
     return res.status(400).json({ message: error.message || 'Application scoring failed.' });
   }
@@ -48,7 +50,8 @@ app.post('/application/funder-fit', async (req, res) => {
   try {
     const payload = validateAndResolveFunder(req.auth, req.body || {});
     const fit = evaluateFunderFit(payload.funder, payload.application);
-    return res.status(200).json(fit);
+    const webhookDelivery = await emitWorkflowWebhook(payload.funder, 'application.funder-fit', fit);
+    return res.status(200).json({ ...fit, webhook_delivery: webhookDelivery });
   } catch (error) {
     return res.status(400).json({ message: error.message || 'Funder-fit evaluation failed.' });
   }
@@ -58,7 +61,8 @@ app.post('/batch/score', async (req, res) => {
   try {
     const payload = validateAndResolveFunder(req.auth, req.body || {});
     const result = await scoreBatch(payload.funder, payload.body, payload.applicationList);
-    return res.status(200).json(result);
+    const webhookDelivery = await emitWorkflowWebhook(payload.funder, 'batch.score', result);
+    return res.status(200).json({ ...result, webhook_delivery: webhookDelivery });
   } catch (error) {
     return res.status(400).json({ message: error.message || 'Batch scoring failed.' });
   }
@@ -68,7 +72,8 @@ app.post('/cycle/intelligence', async (req, res) => {
   try {
     const payload = validateAndResolveFunder(req.auth, req.body || {});
     const result = await buildCycleIntelligence(payload.funder, payload.body, payload.applicationList);
-    return res.status(200).json(result);
+    const webhookDelivery = await emitWorkflowWebhook(payload.funder, 'cycle.intelligence', result);
+    return res.status(200).json({ ...result, webhook_delivery: webhookDelivery });
   } catch (error) {
     return res.status(400).json({ message: error.message || 'Cycle intelligence failed.' });
   }
