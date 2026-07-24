@@ -11,6 +11,14 @@ const defaultDatabase = () => ({
   batches: {},
   cycles: {},
   auditLogs: [],
+  enterpriseOrgs: {},
+  rubricDrafts: {},
+  metrics: {
+    requests: [],
+    alerts: [],
+  },
+  supportTickets: {},
+  monthlyReports: {},
 });
 
 async function ensureDatabase() {
@@ -26,10 +34,13 @@ async function readDatabase() {
   await ensureDatabase();
   const raw = await fs.promises.readFile(databasePath, 'utf8');
   const parsed = JSON.parse(raw);
-  return {
-    ...defaultDatabase(),
-    ...parsed,
+  const base = defaultDatabase();
+  const merged = { ...base, ...parsed };
+  merged.metrics = {
+    requests: Array.isArray(parsed?.metrics?.requests) ? parsed.metrics.requests : [],
+    alerts: Array.isArray(parsed?.metrics?.alerts) ? parsed.metrics.alerts : [],
   };
+  return merged;
 }
 
 async function writeDatabase(nextData) {
