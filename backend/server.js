@@ -181,6 +181,11 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend running on port ${PORT}`);
+  console.log(`[BREVO] API key:         ${process.env.BREVO_API_KEY ? 'PRESENT ✓' : 'MISSING ✗'}`);
+  console.log(`[BREVO] From email:      ${process.env.BREVO_FROM_EMAIL || 'MISSING ✗'}`);
+  console.log(`[BREVO] From name:       ${process.env.BREVO_FROM_NAME || 'MISSING ✗'}`);
+  console.log(`[BREVO] Funder list:     ${process.env.BREVO_FUNDER_LIST_ID || 'MISSING ✗'}`);
+  console.log(`[BREVO] Fallback list:   ${process.env.BREVO_LIST_ID || 'MISSING ✗'}`);
   console.log(`[STRIPE] Secret key:      ${process.env.STRIPE_SECRET_KEY      ? 'PRESENT ✓' : 'MISSING ✗'}`);
   console.log(`[STRIPE] Webhook secret:  ${process.env.STRIPE_WEBHOOK_SECRET  ? 'PRESENT ✓' : 'MISSING ✗'}`);
   console.log(`[STRIPE] Starter price:   ${process.env.STRIPE_STARTER_PRICE_ID          || 'MISSING ✗'}`);
