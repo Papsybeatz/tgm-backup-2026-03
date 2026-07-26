@@ -17,6 +17,9 @@ function getStripe() {
 }
 
 const APP_URL = process.env.APP_URL || 'https://www.thegrantsmaster.com';
+const FUNDER_PILOT_PRICE_ID = process.env.STRIPE_FUNDER_PILOT_PRICE_ID || 'price_1TxLdP64TrQMI3mIwohgkoSa';
+const FUNDER_SCALE_PRICE_ID = process.env.STRIPE_FUNDER_SCALE_PRICE_ID || 'price_1TxLku64TrQMI3mIiFBlby8P';
+const FUNDER_ENTERPRISE_PRICE_ID = process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'price_1TxLrO64TrQMI3mIKMEbGAvL';
 
 // Built at request time so Railway env vars are always resolved
 function getPriceTierMap() {
@@ -27,6 +30,9 @@ function getPriceTierMap() {
     [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:   'agency_starter',
     [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
     [process.env.STRIPE_LIFETIME_PRICE_ID]:         'lifetime',
+    [FUNDER_PILOT_PRICE_ID]:                         'funder_pilot',
+    [FUNDER_SCALE_PRICE_ID]:                         'funder_scale',
+    [FUNDER_ENTERPRISE_PRICE_ID]:                    'funder_enterprise',
   };
 }
 
@@ -40,8 +46,13 @@ router.post('/create-session', requireAuth, async (req, res) => {
     return res.status(500).json({ error: 'Stripe not configured' });
   }
 
-  const { priceId } = req.body;
+  const { priceId, successPath, cancelPath, checkoutContext } = req.body;
   if (!priceId) return res.status(400).json({ error: 'priceId is required' });
+
+  const normalizedSuccessPath =
+    typeof successPath === 'string' && successPath.startsWith('/') ? successPath : '/billing/processing';
+  const normalizedCancelPath =
+    typeof cancelPath === 'string' && cancelPath.startsWith('/') ? cancelPath : '/pricing';
 
   const PRICE_TIER_MAP   = getPriceTierMap();
   const LIFETIME_PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID;
@@ -76,9 +87,9 @@ router.post('/create-session', requireAuth, async (req, res) => {
       payment_method_types: ['card'],
       customer:            customerId,
       line_items: [{ price: priceId, quantity: 1 }],
-      metadata: { price_id: priceId, user_id: String(user.id) },
-      success_url: `${APP_URL}/billing/processing`,
-      cancel_url:  `${APP_URL}/pricing`,
+      metadata: { price_id: priceId, user_id: String(user.id), checkout_context: String(checkoutContext || 'app') },
+      success_url: `${APP_URL}${normalizedSuccessPath}`,
+      cancel_url:  `${APP_URL}${normalizedCancelPath}`,
     };
 
     // For subscriptions, also embed metadata on the subscription object
@@ -109,6 +120,11 @@ router.get('/prices', (req, res) => {
       agency_starter:   process.env.STRIPE_AGENCY_STARTER_PRICE_ID,
       agency_unlimited: process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID,
       lifetime:         process.env.STRIPE_LIFETIME_PRICE_ID,
+      funder: {
+        pilot: FUNDER_PILOT_PRICE_ID,
+        scale: FUNDER_SCALE_PRICE_ID,
+        enterprise: FUNDER_ENTERPRISE_PRICE_ID,
+      },
     },
   });
 });

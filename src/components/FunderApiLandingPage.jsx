@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useStripeCheckout } from '../hooks/useStripeCheckout';
 
 /* ─────────────────────────────────────────────
    Brand tokens (match TGM palette)
@@ -266,7 +267,26 @@ function RequestKeyForm() {
    Main page
 ───────────────────────────────────────────── */
 export default function FunderApiLandingPage() {
-  const navigate = useNavigate();
+  const { startCheckout, loading: checkoutLoading, error: checkoutError } = useStripeCheckout();
+  const [funderPriceIds, setFunderPriceIds] = useState({});
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const response = await fetch('/api/checkout/prices');
+        const payload = await response.json();
+        if (!response.ok || !payload?.prices?.funder || !active) return;
+        setFunderPriceIds(payload.prices.funder);
+      } catch {
+        if (!active) return;
+        setFunderPriceIds({});
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const trustStats = [
     ['500+', 'Organizations on TGM'],
@@ -345,8 +365,9 @@ export default function FunderApiLandingPage() {
         'Webhook config',
         'Email support',
       ],
-      cta: 'Request Pilot Access',
+      cta: 'Start Pilot Checkout',
       ctaAction: '#request-key',
+      stripeKey: 'pilot',
     },
     {
       name: 'Scale',
@@ -363,8 +384,9 @@ export default function FunderApiLandingPage() {
         'Dedicated onboarding session',
         'White-label report exports',
       ],
-      cta: 'Request API Key',
+      cta: 'Start Scale Checkout',
       ctaAction: '#request-key',
+      stripeKey: 'scale',
     },
     {
       name: 'Enterprise',
@@ -381,8 +403,9 @@ export default function FunderApiLandingPage() {
         'Dedicated account manager',
         'Custom data retention policy',
       ],
-      cta: 'Talk to Us',
+      cta: 'Start Enterprise Checkout',
       ctaAction: '#request-key',
+      stripeKey: 'enterprise',
     },
   ];
 
@@ -577,7 +600,7 @@ export default function FunderApiLandingPage() {
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-6 items-start">
-            {pricingTiers.map(({ name, price, sub, highlight, tag, features, cta, ctaAction }) => (
+            {pricingTiers.map(({ name, price, sub, highlight, tag, features, cta, ctaAction, stripeKey }) => (
               <div
                 key={name}
                 style={{
@@ -608,20 +631,45 @@ export default function FunderApiLandingPage() {
                     </li>
                   ))}
                 </ul>
-                <a
-                  href={ctaAction}
-                  style={{
-                    display: 'block', textAlign: 'center', padding: '12px 20px', borderRadius: 9,
-                    background: highlight ? GOLD : BLUE,
-                    color: highlight ? NAVY : '#fff',
-                    fontWeight: 800, fontSize: 14, textDecoration: 'none',
-                  }}
-                >
-                  {cta}
-                </a>
+                {funderPriceIds[stripeKey] ? (
+                  <button
+                    type="button"
+                    disabled={checkoutLoading}
+                    onClick={() => startCheckout(funderPriceIds[stripeKey], {
+                      successPath: '/billing/processing?context=funder&return=/funder-api',
+                      cancelPath: '/funder-api',
+                      checkoutContext: 'funder_api',
+                      loginRedirectPath: '/funder-api',
+                    })}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'center', padding: '12px 20px', borderRadius: 9,
+                      background: highlight ? GOLD : BLUE,
+                      color: highlight ? NAVY : '#fff',
+                      fontWeight: 800, fontSize: 14, border: 'none',
+                      cursor: checkoutLoading ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {checkoutLoading ? 'Redirecting...' : cta}
+                  </button>
+                ) : (
+                  <a
+                    href={ctaAction}
+                    style={{
+                      display: 'block', textAlign: 'center', padding: '12px 20px', borderRadius: 9,
+                      background: highlight ? GOLD : BLUE,
+                      color: highlight ? NAVY : '#fff',
+                      fontWeight: 800, fontSize: 14, textDecoration: 'none',
+                    }}
+                  >
+                    {cta}
+                  </a>
+                )}
               </div>
             ))}
           </div>
+          {checkoutError && (
+            <p style={{ color: '#B91C1C', textAlign: 'center', marginTop: 18, fontSize: 14 }}>{checkoutError}</p>
+          )}
         </div>
       </section>
 

@@ -193,4 +193,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`[STRIPE] Agency Starter:  ${process.env.STRIPE_AGENCY_STARTER_PRICE_ID   || 'MISSING ✗'}`);
   console.log(`[STRIPE] Agency Unlim:    ${process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID || 'MISSING ✗'}`);
   console.log(`[STRIPE] Lifetime price:  ${process.env.STRIPE_LIFETIME_PRICE_ID         || 'MISSING ✗'}`);
+  console.log(`[STRIPE] Funder Pilot:    ${process.env.STRIPE_FUNDER_PILOT_PRICE_ID     || 'MISSING ✗'}`);
+  console.log(`[STRIPE] Funder Scale:    ${process.env.STRIPE_FUNDER_SCALE_PRICE_ID     || 'MISSING ✗'}`);
+  console.log(`[STRIPE] Funder Ent:      ${process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'MISSING ✗'}`);
 });

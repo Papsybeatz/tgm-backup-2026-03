@@ -17,6 +17,9 @@ const PREVIEW_PROVIDER = 'preview';
 const APP_URL = process.env.APP_URL || 'https://www.thegrantsmaster.com';
 const PASSWORD_RESET_TTL_MINUTES = 30;
 const PASSWORD_RESET_TOKEN_PREFIX = 'pwdreset_';
+const FUNDER_PILOT_PRICE_ID = process.env.STRIPE_FUNDER_PILOT_PRICE_ID || 'price_1TxLdP64TrQMI3mIwohgkoSa';
+const FUNDER_SCALE_PRICE_ID = process.env.STRIPE_FUNDER_SCALE_PRICE_ID || 'price_1TxLku64TrQMI3mIiFBlby8P';
+const FUNDER_ENTERPRISE_PRICE_ID = process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'price_1TxLrO64TrQMI3mIKMEbGAvL';
 
 function databaseReady(res) {
   if (process.env.DATABASE_URL) return true;
@@ -59,6 +62,9 @@ function getPriceTierMap() {
     [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]: 'agency_starter',
     [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
     [process.env.STRIPE_LIFETIME_PRICE_ID]: 'lifetime',
+    [FUNDER_PILOT_PRICE_ID]: 'funder_pilot',
+    [FUNDER_SCALE_PRICE_ID]: 'funder_scale',
+    [FUNDER_ENTERPRISE_PRICE_ID]: 'funder_enterprise',
   };
 }
 

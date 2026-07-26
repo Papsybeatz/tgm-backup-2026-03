@@ -39,17 +39,23 @@ export function useStripeCheckout() {
     };
   }, []);
 
-  async function startCheckout(priceId) {
+  async function startCheckout(priceId, options = {}) {
     if (!priceId) { setError('No price selected'); return; }
     setLoading(true);
     setError(null);
 
     try {
       const token = localStorage.getItem('token');
+      const successPath = typeof options.successPath === 'string' ? options.successPath : '/billing/processing';
+      const cancelPath = typeof options.cancelPath === 'string' ? options.cancelPath : '/pricing';
+      const checkoutContext = typeof options.checkoutContext === 'string' ? options.checkoutContext : 'app';
+      const loginRedirectPath =
+        typeof options.loginRedirectPath === 'string' ? options.loginRedirectPath : window.location.pathname;
+      const loginRedirect = encodeURIComponent(loginRedirectPath);
 
       // Not logged in — send to login with redirect back to pricing
       if (!token) {
-        window.location.href = '/login?redirect=/pricing';
+        window.location.href = `/login?redirect=${loginRedirect}`;
         return;
       }
 
@@ -59,14 +65,14 @@ export function useStripeCheckout() {
           'Content-Type':  'application/json',
           Authorization:   `Bearer ${token}`,
         },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ priceId, successPath, cancelPath, checkoutContext }),
       });
 
       const data = await res.json();
 
       if (res.status === 401) {
         // Token expired — send to login
-        window.location.href = '/login?redirect=/pricing';
+        window.location.href = `/login?redirect=${loginRedirect}`;
         return;
       }
 
