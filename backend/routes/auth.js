@@ -10,7 +10,15 @@ const { passwordResetLimiter } = require('../middleware/rateLimit');
 
 const prisma = new PrismaClient();
 const router = express.Router();
-const STRIPE_PAID_TIERS = new Set(['starter', 'pro', 'agency_starter', 'agency_unlimited']);
+const STRIPE_PAID_TIERS = new Set([
+  'starter',
+  'pro',
+  'agency_starter',
+  'agency_unlimited',
+  'funder_pilot',
+  'funder_scale',
+  'funder_enterprise',
+]);
 const MANUAL_COMP_PROVIDER = 'manual_comp';
 const MANUAL_COMP_TYPE = 'manual_comp';
 const PREVIEW_PROVIDER = 'preview';
