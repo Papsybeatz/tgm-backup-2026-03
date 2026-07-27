@@ -636,6 +636,7 @@ export default function FunderApiLandingPage() {
                     type="button"
                     disabled={checkoutLoading}
                     onClick={() => startCheckout(funderPriceIds[stripeKey], {
+                      publicCheckout: true,
                       successPath: '/billing/processing?context=funder&return=/funder-api',
                       cancelPath: '/funder-api',
                       checkoutContext: 'funder_api',

@@ -1,24 +1,10 @@
 import { useState, useEffect } from 'react';
 
-/**
- * useStripeCheckout
- *
- * Calls /api/checkout/create-session with the given priceId,
- * then redirects the browser to the Stripe-hosted checkout URL.
- *
- * Usage:
- *   const { startCheckout, loading, error } = useStripeCheckout();
- *   <button onClick={() => startCheckout(priceId)} disabled={loading}>
- *     {loading ? 'Redirecting...' : 'Upgrade'}
- *   </button>
- */
 export function useStripeCheckout() {
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Reset loading when user navigates back from Stripe checkout.
-    // The 'pageshow' event fires on back-navigation (including bfcache restores).
     const handlePageShow = (e) => {
       if (e.persisted || document.visibilityState === 'visible') {
         setLoading(false);
@@ -40,11 +26,16 @@ export function useStripeCheckout() {
   }, []);
 
   async function startCheckout(priceId, options = {}) {
-    if (!priceId) { setError('No price selected'); return; }
+    if (!priceId) {
+      setError('No price selected');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
+      const publicCheckout = options.publicCheckout === true;
       const token = localStorage.getItem('token');
       const successPath = typeof options.successPath === 'string' ? options.successPath : '/billing/processing';
       const cancelPath = typeof options.cancelPath === 'string' ? options.cancelPath : '/pricing';
@@ -53,25 +44,26 @@ export function useStripeCheckout() {
         typeof options.loginRedirectPath === 'string' ? options.loginRedirectPath : window.location.pathname;
       const loginRedirect = encodeURIComponent(loginRedirectPath);
 
-      // Not logged in — send to login with redirect back to pricing
-      if (!token) {
+      if (!publicCheckout && !token) {
         window.location.href = `/login?redirect=${loginRedirect}`;
         return;
       }
 
-      const res  = await fetch('/api/checkout/create-session', {
-        method:  'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          Authorization:   `Bearer ${token}`,
-        },
+      const endpoint = publicCheckout ? '/api/checkout/create-funder-session' : '/api/checkout/create-session';
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers,
         body: JSON.stringify({ priceId, successPath, cancelPath, checkoutContext }),
       });
 
       const data = await res.json();
 
-      if (res.status === 401) {
-        // Token expired — send to login
+      if (!publicCheckout && res.status === 401) {
         window.location.href = `/login?redirect=${loginRedirect}`;
         return;
       }
@@ -80,13 +72,11 @@ export function useStripeCheckout() {
         throw new Error(data.error || 'Checkout failed');
       }
 
-      // Redirect to Stripe hosted checkout
       window.location.href = data.url;
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
       setLoading(false);
     }
-    // Don't setLoading(false) on success — page is navigating away
   }
 
   return { startCheckout, loading, error };
