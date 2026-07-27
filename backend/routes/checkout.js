@@ -36,6 +36,52 @@ function getPriceTierMap() {
   };
 }
 
+function normalizeCheckoutPaths(successPath, cancelPath) {
+  return {
+    successPath: typeof successPath === 'string' && successPath.startsWith('/') ? successPath : '/billing/processing',
+    cancelPath: typeof cancelPath === 'string' && cancelPath.startsWith('/') ? cancelPath : '/pricing',
+  };
+}
+
+function buildSessionParams({ priceId, customerId, userId, checkoutContext, successPath, cancelPath }) {
+  const LIFETIME_PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID;
+  const isLifetime = priceId === LIFETIME_PRICE_ID;
+
+  const sessionParams = {
+    mode: isLifetime ? 'payment' : 'subscription',
+    payment_method_types: ['card'],
+    line_items: [{ price: priceId, quantity: 1 }],
+    metadata: {
+      price_id: priceId,
+      checkout_context: String(checkoutContext || 'app'),
+    },
+    success_url: `${APP_URL}${successPath}`,
+    cancel_url: `${APP_URL}${cancelPath}`,
+  };
+
+  if (customerId) {
+    sessionParams.customer = customerId;
+  }
+
+  if (userId) {
+    sessionParams.metadata.user_id = String(userId);
+  }
+
+  if (!isLifetime) {
+    sessionParams.subscription_data = {
+      metadata: {
+        price_id: priceId,
+        checkout_context: String(checkoutContext || 'app'),
+      },
+    };
+    if (userId) {
+      sessionParams.subscription_data.metadata.user_id = String(userId);
+    }
+  }
+
+  return sessionParams;
+}
+
 // ── POST /api/checkout/create-session ─────────────────────────────────────────
 // Creates a Stripe Checkout session and returns the hosted URL.
 // Requires auth so we can attach the user's email to the session.
@@ -49,21 +95,15 @@ router.post('/create-session', requireAuth, async (req, res) => {
   const { priceId, successPath, cancelPath, checkoutContext } = req.body;
   if (!priceId) return res.status(400).json({ error: 'priceId is required' });
 
-  const normalizedSuccessPath =
-    typeof successPath === 'string' && successPath.startsWith('/') ? successPath : '/billing/processing';
-  const normalizedCancelPath =
-    typeof cancelPath === 'string' && cancelPath.startsWith('/') ? cancelPath : '/pricing';
+  const normalizedPaths = normalizeCheckoutPaths(successPath, cancelPath);
 
   const PRICE_TIER_MAP   = getPriceTierMap();
-  const LIFETIME_PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID;
 
   const tier = PRICE_TIER_MAP[priceId];
   if (!tier) {
     console.error('[CHECKOUT] Unknown priceId:', priceId, '| Known IDs:', Object.keys(PRICE_TIER_MAP));
     return res.status(400).json({ error: 'Unknown price ID' });
   }
-
-  const isLifetime = priceId === LIFETIME_PRICE_ID;
 
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
@@ -82,27 +122,56 @@ router.post('/create-session', requireAuth, async (req, res) => {
       });
     }
 
-    const sessionParams = {
-      mode:                isLifetime ? 'payment' : 'subscription',
-      payment_method_types: ['card'],
-      customer:            customerId,
-      line_items: [{ price: priceId, quantity: 1 }],
-      metadata: { price_id: priceId, user_id: String(user.id), checkout_context: String(checkoutContext || 'app') },
-      success_url: `${APP_URL}${normalizedSuccessPath}`,
-      cancel_url:  `${APP_URL}${normalizedCancelPath}`,
-    };
-
-    // For subscriptions, also embed metadata on the subscription object
-    if (!isLifetime) {
-      sessionParams.subscription_data = {
-        metadata: { price_id: priceId, user_id: String(user.id) },
-      };
-    }
+    const sessionParams = buildSessionParams({
+      priceId,
+      customerId,
+      userId: user.id,
+      checkoutContext,
+      successPath: normalizedPaths.successPath,
+      cancelPath: normalizedPaths.cancelPath,
+    });
 
     const session = await stripe.checkout.sessions.create(sessionParams);
     return res.json({ url: session.url });
   } catch (err) {
     console.error('[CHECKOUT] create-session error:', err.message);
+    return res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+
+router.post('/create-funder-session', async (req, res) => {
+  const stripe = getStripe();
+  if (!stripe) {
+    console.error('[CHECKOUT] STRIPE_SECRET_KEY not set. Value:', process.env.STRIPE_SECRET_KEY ? 'present' : 'MISSING');
+    return res.status(500).json({ error: 'Stripe not configured' });
+  }
+
+  const { priceId, successPath, cancelPath, checkoutContext } = req.body;
+  if (!priceId) return res.status(400).json({ error: 'priceId is required' });
+
+  const PRICE_TIER_MAP = getPriceTierMap();
+  const tier = PRICE_TIER_MAP[priceId];
+  if (!tier) {
+    console.error('[CHECKOUT] Unknown funder priceId:', priceId);
+    return res.status(400).json({ error: 'Unknown price ID' });
+  }
+  if (!tier.startsWith('funder_')) {
+    return res.status(400).json({ error: 'Funder checkout only supports funder plan prices' });
+  }
+
+  const normalizedPaths = normalizeCheckoutPaths(successPath, cancelPath);
+
+  try {
+    const sessionParams = buildSessionParams({
+      priceId,
+      checkoutContext: checkoutContext || 'funder_api',
+      successPath: normalizedPaths.successPath,
+      cancelPath: normalizedPaths.cancelPath,
+    });
+    const session = await stripe.checkout.sessions.create(sessionParams);
+    return res.json({ url: session.url });
+  } catch (err) {
+    console.error('[CHECKOUT] create-funder-session error:', err.message);
     return res.status(500).json({ error: 'Failed to create checkout session' });
   }
 });

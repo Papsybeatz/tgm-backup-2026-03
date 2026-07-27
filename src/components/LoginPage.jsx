@@ -41,6 +41,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { setUser } = useUser();
+  const redirectFromQuery = new URLSearchParams(location.search).get('redirect');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,7 +68,7 @@ const LoginPage = () => {
       setStatus('success');
       setMessage('Login successful!');
       // Redirect back to where they came from, or dashboard
-      const from = location.state?.from || '/dashboard';
+      const from = location.state?.from || redirectFromQuery || '/dashboard';
       setTimeout(() => navigate(from, { replace: true }), 500);
     } catch (err) {
       setStatus('error');
