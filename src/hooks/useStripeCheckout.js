@@ -69,7 +69,8 @@ export function useStripeCheckout() {
       }
 
       if (!res.ok) {
-        throw new Error(data.error || 'Checkout failed');
+        const detail = data.reason ? `${data.reason}${data.code ? ` [${data.code}]` : ''}` : null;
+        throw new Error(detail || data.error || 'Checkout failed');
       }
 
       window.location.href = data.url;
