@@ -681,37 +681,19 @@ export default function FunderApiLandingPage() {
             Pilot program — 3 slots open
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-[#0A0F1A] mb-6">
-            Be one of the first three funders to run on TGM.
+            Run 1–2 cycles on TGM at no cost.
           </h2>
-          <p style={{ color: SLATE, fontSize: 16, lineHeight: 1.8, maxWidth: 620, margin: '0 auto 32px' }}>
-            Pilot funders get free cycles, direct access to the team, and co-authorship
-            on case studies that will define TGM as the infrastructure behind the funding industry.
-            This is the Stripe moment — the moment you're on the inside before everyone else arrives.
+          <p style={{ color: SLATE, fontSize: 16, lineHeight: 1.8, maxWidth: 640, margin: '0 auto 16px' }}>
+            Pilot funders get full access to scoring, fit intelligence, filtering, cohort analytics,
+            and cycle insights — all inside the systems they already use.
           </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
-            <a
-              href="#request-key"
-              style={{
-                padding: '14px 32px', borderRadius: 10, background: GOLD,
-                color: NAVY, fontWeight: 800, fontSize: 16, textDecoration: 'none',
-                boxShadow: '0 4px 20px rgba(212,175,55,.35)',
-              }}
-            >
-              Apply for Pilot Access →
-            </a>
-            <a
-              href="https://github.com/Papsybeatz/tgm-backup-2026-03/blob/main/docs/funder-intelligence-api.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                padding: '14px 28px', borderRadius: 10,
-                border: `2px solid ${BLUE}`, color: BLUE,
-                fontWeight: 700, fontSize: 16, textDecoration: 'none',
-              }}
-            >
-              Read the Docs
-            </a>
-          </div>
+          <p style={{ color: SLATE, fontSize: 16, lineHeight: 1.8, maxWidth: 640, margin: '0 auto 16px' }}>
+            You'll help shape the next generation of funding intelligence while getting early access
+            to the same engine powering our Scale and Enterprise tiers.
+          </p>
+          <p style={{ color: NAVY, fontSize: 16, fontWeight: 700, lineHeight: 1.8, maxWidth: 640, margin: '0 auto 0' }}>
+            If you're one of the first three funders to join, your pilot cycles are completely free.
+          </p>
         </div>
       </section>
 
