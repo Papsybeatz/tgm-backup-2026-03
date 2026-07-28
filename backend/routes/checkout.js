@@ -21,7 +21,6 @@ const FUNDER_PILOT_PRICE_ID = process.env.STRIPE_FUNDER_PILOT_PRICE_ID || 'price
 const FUNDER_SCALE_PRICE_ID = process.env.STRIPE_FUNDER_SCALE_PRICE_ID || 'price_1TxLku64TrQMI3mIiFBlby8P';
 const FUNDER_ENTERPRISE_PRICE_ID = process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'price_1TxLrO64TrQMI3mIKMEbGAvL';
 
-// Built at request time so Railway env vars are always resolved
 function getPriceTierMap() {
   return {
     [process.env.STRIPE_STARTER_PRICE_ID]:          'starter',
@@ -43,12 +42,20 @@ function normalizeCheckoutPaths(successPath, cancelPath) {
   };
 }
 
-function buildSessionParams({ priceId, customerId, userId, checkoutContext, successPath, cancelPath }) {
+function toCheckoutError(error) {
+  const reason = error && error.raw && error.raw.message ? error.raw.message : (error && error.message ? error.message : 'Unknown Stripe error');
+  const code = error && error.raw && error.raw.code ? error.raw.code : (error && error.code ? error.code : null);
+  return { reason, code };
+}
+
+function buildSessionParams({ priceId, customerId, userId, checkoutContext, successPath, cancelPath, modeOverride }) {
   const LIFETIME_PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID;
-  const isLifetime = priceId === LIFETIME_PRICE_ID;
+  const inferredMode = priceId === LIFETIME_PRICE_ID ? 'payment' : 'subscription';
+  const mode = modeOverride || inferredMode;
+  const isSubscription = mode === 'subscription';
 
   const sessionParams = {
-    mode: isLifetime ? 'payment' : 'subscription',
+    mode,
     payment_method_types: ['card'],
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: {
@@ -67,7 +74,7 @@ function buildSessionParams({ priceId, customerId, userId, checkoutContext, succ
     sessionParams.metadata.user_id = String(userId);
   }
 
-  if (!isLifetime) {
+  if (isSubscription) {
     sessionParams.subscription_data = {
       metadata: {
         price_id: priceId,
@@ -82,9 +89,6 @@ function buildSessionParams({ priceId, customerId, userId, checkoutContext, succ
   return sessionParams;
 }
 
-// ── POST /api/checkout/create-session ─────────────────────────────────────────
-// Creates a Stripe Checkout session and returns the hosted URL.
-// Requires auth so we can attach the user's email to the session.
 router.post('/create-session', requireAuth, async (req, res) => {
   const stripe = getStripe();
   if (!stripe) {
@@ -96,9 +100,7 @@ router.post('/create-session', requireAuth, async (req, res) => {
   if (!priceId) return res.status(400).json({ error: 'priceId is required' });
 
   const normalizedPaths = normalizeCheckoutPaths(successPath, cancelPath);
-
-  const PRICE_TIER_MAP   = getPriceTierMap();
-
+  const PRICE_TIER_MAP = getPriceTierMap();
   const tier = PRICE_TIER_MAP[priceId];
   if (!tier) {
     console.error('[CHECKOUT] Unknown priceId:', priceId, '| Known IDs:', Object.keys(PRICE_TIER_MAP));
@@ -135,7 +137,8 @@ router.post('/create-session', requireAuth, async (req, res) => {
     return res.json({ url: session.url });
   } catch (err) {
     console.error('[CHECKOUT] create-session error:', err.message);
-    return res.status(500).json({ error: 'Failed to create checkout session' });
+    const details = toCheckoutError(err);
+    return res.status(500).json({ error: 'Failed to create checkout session', reason: details.reason, code: details.code });
   }
 });
 
@@ -162,23 +165,30 @@ router.post('/create-funder-session', async (req, res) => {
   const normalizedPaths = normalizeCheckoutPaths(successPath, cancelPath);
 
   try {
+    const stripePrice = await stripe.prices.retrieve(priceId);
+    const modeOverride = stripePrice && stripePrice.recurring ? 'subscription' : 'payment';
+
     const sessionParams = buildSessionParams({
       priceId,
       checkoutContext: checkoutContext || 'funder_api',
       successPath: normalizedPaths.successPath,
       cancelPath: normalizedPaths.cancelPath,
+      modeOverride,
     });
+
+    if (modeOverride === 'payment') {
+      sessionParams.customer_creation = 'always';
+    }
+
     const session = await stripe.checkout.sessions.create(sessionParams);
     return res.json({ url: session.url });
   } catch (err) {
     console.error('[CHECKOUT] create-funder-session error:', err.message);
-    return res.status(500).json({ error: 'Failed to create checkout session' });
+    const details = toCheckoutError(err);
+    return res.status(500).json({ error: 'Failed to create checkout session', reason: details.reason, code: details.code });
   }
 });
 
-// ── GET /api/checkout/prices ───────────────────────────────────────────────────
-// Returns the price IDs and publishable key to the frontend.
-// No auth required — public endpoint.
 router.get('/prices', (req, res) => {
   res.json({
     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
