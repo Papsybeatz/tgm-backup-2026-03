@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Brand tokens (match TGM palette)
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const NAVY    = '#0A0F1A';
 const BLUE    = '#003A8C';
 const GOLD    = '#D4AF37';
@@ -12,47 +12,47 @@ const GOLD_LT = '#E8D28C';
 const LIGHT   = '#F7F9FB';
 const SLATE   = '#64748B';
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    API demo steps animation
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const DEMO_STEPS = [
   {
-    icon: '📥',
+    icon: 'ðŸ“¥',
     label: 'Application arrives',
     code: 'POST /application/score',
-    desc: 'Funder portal sends an application payload — text, budget, attachments metadata.',
+    desc: 'Funder portal sends an application payload â€” text, budget, attachments metadata.',
     output: null,
   },
   {
-    icon: '⚖️',
+    icon: 'âš–ï¸',
     label: 'Rubric engine fires',
-    code: 'Rubric → 3 criteria, weighted',
-    desc: 'TGM applies your weighted rubric — Impact Potential 45%, Execution 35%, Budget 20%.',
+    code: 'Rubric â†’ 3 criteria, weighted',
+    desc: 'TGM applies your weighted rubric â€” Impact Potential 45%, Execution 35%, Budget 20%.',
     output: null,
   },
   {
-    icon: '🎯',
+    icon: 'ðŸŽ¯',
     label: 'Score returned',
     code: '{ overall_score: 84, confidence: 79 }',
-    desc: 'Per-criterion scores, confidence, risk flags, and a suggested next step — in milliseconds.',
+    desc: 'Per-criterion scores, confidence, risk flags, and a suggested next step â€” in milliseconds.',
     output: 'overall_score: 84 / 100',
   },
   {
-    icon: '🔍',
+    icon: 'ðŸ”',
     label: 'Funder-fit check',
     code: 'POST /application/funder-fit',
     desc: 'Geography, org type, and priority alignment checked in parallel.',
     output: 'recommended_band: fast-track',
   },
   {
-    icon: '📊',
+    icon: 'ðŸ“Š',
     label: 'Cohort intelligence',
     code: 'POST /batch/score',
-    desc: 'Score your entire cycle — get a shortlist, risk clusters, and alignment heatmap.',
+    desc: 'Score your entire cycle â€” get a shortlist, risk clusters, and alignment heatmap.',
     output: 'shortlist: top 20% identified',
   },
   {
-    icon: '🚀',
+    icon: 'ðŸš€',
     label: 'Decision delivered',
     code: 'Webhook fires to your portal',
     desc: 'Suggested status maps to your workflow stage. Reviewers see TGM signals alongside their own.',
@@ -119,7 +119,7 @@ function ApiDemoAnimation() {
             marginTop: 14, background: 'rgba(212,175,55,.12)', border: '1px solid rgba(212,175,55,.35)',
             borderRadius: 8, padding: '8px 14px', fontFamily: 'monospace', fontSize: 13, color: GOLD,
           }}>
-            ✓ {current.output}
+            âœ“ {current.output}
           </div>
         )}
       </div>
@@ -129,25 +129,25 @@ function ApiDemoAnimation() {
         <button
           onClick={() => { setStep((s) => (s - 1 + DEMO_STEPS.length) % DEMO_STEPS.length); setRunning(false); }}
           style={{ padding: '7px 18px', borderRadius: 7, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.2)', color: '#fff', cursor: 'pointer', fontSize: 12 }}
-        >← Prev</button>
+        >â† Prev</button>
         <button
           onClick={() => { setStep((s) => (s + 1) % DEMO_STEPS.length); setRunning(false); }}
           style={{ padding: '7px 18px', borderRadius: 7, background: GOLD, border: 'none', color: NAVY, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}
-        >Next →</button>
+        >Next â†’</button>
         <button
           onClick={() => setRunning((r) => !r)}
           style={{ marginLeft: 'auto', padding: '7px 14px', borderRadius: 7, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)', color: 'rgba(255,255,255,.6)', cursor: 'pointer', fontSize: 11 }}
         >
-          {running ? '⏸ Pause' : '▶ Play'}
+          {running ? 'â¸ Pause' : 'â–¶ Play'}
         </button>
       </div>
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Request API Key form
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function RequestKeyForm() {
   const [form, setForm] = useState({ name: '', org: '', email: '', role: '', message: '' });
   const [state, setState] = useState('idle'); // idle | submitting | success | error
@@ -190,13 +190,13 @@ function RequestKeyForm() {
         background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`,
         borderRadius: 16, border: '1px solid rgba(255,255,255,.1)',
       }}>
-        <div style={{ fontSize: 52, marginBottom: 16 }}>✅</div>
+        <div style={{ fontSize: 52, marginBottom: 16 }}>âœ…</div>
         <h3 style={{ color: '#fff', fontSize: 22, fontWeight: 800, marginBottom: 12 }}>
           Request received.
         </h3>
         <p style={{ color: GOLD_LT, fontSize: 15, lineHeight: 1.7, maxWidth: 420, margin: '0 auto' }}>
           We'll review your application and send your API key within 24 hours.
-          Pilot funders are onboarded in one session — usually under 30 minutes.
+          Pilot funders are onboarded in one session â€” usually under 30 minutes.
         </p>
       </div>
     );
@@ -254,7 +254,7 @@ function RequestKeyForm() {
           letterSpacing: '.2px', transition: 'all .2s',
         }}
       >
-        {state === 'submitting' ? 'Sending...' : 'Request API Key →'}
+        {state === 'submitting' ? 'Sending...' : 'Request API Key â†’'}
       </button>
       <p style={{ fontSize: 12, color: SLATE, margin: 0, textAlign: 'center' }}>
         No commitment. Pilot cycles are free. We respond within 24 hours.
@@ -263,9 +263,9 @@ function RequestKeyForm() {
   );
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Main page
-───────────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function FunderApiLandingPage() {
   const { startCheckout, loading: checkoutLoading, error: checkoutError } = useStripeCheckout();
   const [funderPriceIds, setFunderPriceIds] = useState({});
@@ -297,32 +297,32 @@ export default function FunderApiLandingPage() {
 
   const capabilities = [
     {
-      icon: '⚖️',
+      icon: 'âš–ï¸',
       title: 'Rubric-based scoring',
-      body: 'Your criteria. Your weights. TGM applies them deterministically — per criterion, per application, at scale.',
+      body: 'Your criteria. Your weights. TGM applies them deterministically â€” per criterion, per application, at scale.',
     },
     {
-      icon: '🎯',
+      icon: 'ðŸŽ¯',
       title: 'Funder-fit intelligence',
       body: 'Hard eligibility checks (geography, org type) plus priority alignment scoring. Every application gets a band: reject, review, or fast-track.',
     },
     {
-      icon: '📊',
+      icon: 'ðŸ“Š',
       title: 'Cohort & cycle analytics',
-      body: 'Score a full cycle in one call. Get a shortlist, alignment heatmap, risk clusters, and bias detection signals — before reviewers open a single file.',
+      body: 'Score a full cycle in one call. Get a shortlist, alignment heatmap, risk clusters, and bias detection signals â€” before reviewers open a single file.',
     },
     {
-      icon: '🔗',
+      icon: 'ðŸ”—',
       title: 'Workflow hooks',
-      body: 'Map TGM\'s suggested statuses to your portal\'s own stages. Fluxx, Foundant, Submittable, custom — we augment what you already run.',
+      body: 'Map TGM\'s suggested statuses to your portal\'s own stages. Fluxx, Foundant, Submittable, custom â€” we augment what you already run.',
     },
     {
-      icon: '🛡️',
+      icon: 'ðŸ›¡ï¸',
       title: 'Deterministic guardrails',
-      body: 'AI scores are anchored by hard logic — eligibility rules never bend, budget sanity is always checked, rubric weights are applied numerically.',
+      body: 'AI scores are anchored by hard logic â€” eligibility rules never bend, budget sanity is always checked, rubric weights are applied numerically.',
     },
     {
-      icon: '🔑',
+      icon: 'ðŸ”‘',
       title: 'API key auth + audit logs',
       body: 'Per-funder API keys. Every call is logged. You always know who scored what, and when.',
     },
@@ -333,19 +333,19 @@ export default function FunderApiLandingPage() {
       label: 'Scoring plug-in',
       title: 'Add TGM scores to your reviewer workflow',
       body: 'Your reviewer portal calls /application/score and /application/funder-fit. Scores appear alongside human scores. Over time, auto-route based on TGM output.',
-      icon: '🔌',
+      icon: 'ðŸ”Œ',
     },
     {
       label: 'Pre-screening filter',
       title: 'Stop junk proposals before they reach reviewers',
-      body: 'Before an application hits your queue, your system calls TGM. Low-fit, low-score apps get auto-reject or "needs revision" — without a human spending 30 minutes on them.',
-      icon: '🧹',
+      body: 'Before an application hits your queue, your system calls TGM. Low-fit, low-score apps get auto-reject or "needs revision" â€” without a human spending 30 minutes on them.',
+      icon: 'ðŸ§¹',
     },
     {
       label: 'Portfolio intelligence overlay',
       title: 'See your whole cycle at a glance',
       body: 'At cycle end, send all applications to /batch/score + /cycle/intelligence. Get a decision analytics layer that shows where you\'re over/under-funding and who the real contenders are.',
-      icon: '🗂️',
+      icon: 'ðŸ—‚ï¸',
     },
   ];
 
@@ -412,7 +412,7 @@ export default function FunderApiLandingPage() {
   const faqs = [
     {
       q: 'Does TGM replace our existing grant portal?',
-      a: 'No. TGM is the intelligence layer behind your portal — not a replacement. You keep Fluxx, Foundant, Submittable, or your custom system. TGM augments them with scoring and fit intelligence via API.',
+      a: 'No. TGM is the intelligence layer behind your portal â€” not a replacement. You keep Fluxx, Foundant, Submittable, or your custom system. TGM augments them with scoring and fit intelligence via API.',
     },
     {
       q: 'What happens to our data?',
@@ -424,30 +424,30 @@ export default function FunderApiLandingPage() {
     },
     {
       q: 'Can we customize the rubric?',
-      a: 'Yes — rubric definition is entirely yours. You set criteria names, weights, descriptions, and scoring scale. TGM applies your rubric; you own the intelligence layer.',
+      a: 'Yes â€” rubric definition is entirely yours. You set criteria names, weights, descriptions, and scoring scale. TGM applies your rubric; you own the intelligence layer.',
     },
     {
       q: 'What does the pilot look like?',
-      a: 'One or two real grant cycles — you keep your existing portal. We run scoring, fit, and cycle intelligence as an overlay. You keep all the output. We document the results for your team.',
+      a: 'One or two real grant cycles â€” you keep your existing portal. We run scoring, fit, and cycle intelligence as an overlay. You keep all the output. We document the results for your team.',
     },
   ];
 
   return (
     <div className="w-full min-h-screen bg-white text-gray-900">
 
-      {/* ── HERO ── */}
+      {/* â”€â”€ HERO â”€â”€ */}
       <section style={{ background: `linear-gradient(135deg, ${NAVY} 0%, ${BLUE} 100%)` }} className="px-6 py-24 text-white">
         <div className="mx-auto max-w-6xl grid md:grid-cols-2 gap-14 items-center">
           <div>
             <p style={{ color: GOLD, fontWeight: 700, fontSize: 11, letterSpacing: '.9px', textTransform: 'uppercase', marginBottom: 14 }}>
-              TGM Funder Intelligence API — v1
+              TGM Funder Intelligence API â€” v1
             </p>
             <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-5">
               The scoring brain behind your grant portal.
             </h1>
             <p style={{ color: GOLD_LT, fontSize: 17, lineHeight: 1.75, marginBottom: 28 }}>
               Stop reviewing junk proposals. Stop running cycles blind.
-              TGM gives you automated scoring, funder-fit intelligence, and portfolio analytics — via API, inside the systems you already use.
+              TGM gives you automated scoring, funder-fit intelligence, and portfolio analytics â€” via API, inside the systems you already use.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
               <a
@@ -458,7 +458,7 @@ export default function FunderApiLandingPage() {
                   boxShadow: '0 4px 20px rgba(212,175,55,.35)',
                 }}
               >
-                Request API Key →
+                Request API Key â†’
               </a>
               <a
                 href="#how-it-works"
@@ -479,7 +479,7 @@ export default function FunderApiLandingPage() {
         </div>
       </section>
 
-      {/* ── TRUST STATS ── */}
+      {/* â”€â”€ TRUST STATS â”€â”€ */}
       <section style={{ background: NAVY, borderBottom: '1px solid rgba(255,255,255,.06)' }} className="px-6 py-10">
         <div className="mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-6">
           {trustStats.map(([stat, label]) => (
@@ -491,7 +491,7 @@ export default function FunderApiLandingPage() {
         </div>
       </section>
 
-      {/* ── VALUE PROP FOR FUNDERS ── */}
+      {/* â”€â”€ VALUE PROP FOR FUNDERS â”€â”€ */}
       <section style={{ background: LIGHT }} className="px-6 py-20">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-14">
@@ -503,15 +503,15 @@ export default function FunderApiLandingPage() {
             </h2>
             <p style={{ color: SLATE, fontSize: 16, lineHeight: 1.75, maxWidth: 620, margin: '0 auto' }}>
               TGM was built to help nonprofits write better proposals.
-              The Funder Intelligence API turns that same engine around —
+              The Funder Intelligence API turns that same engine around â€”
               so you get better applicants, faster cycles, and smarter decisions.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: '🏆', title: 'Better applicants', body: 'Nonprofits using TGM submit stronger, more aligned proposals. Your average quality goes up before the cycle opens.' },
-              { icon: '⚡', title: 'Faster review cycles', body: 'Pre-screened applicants, ranked cohorts, and auto-suggested statuses. Your reviewers touch fewer files — but make better decisions.' },
-              { icon: '💰', title: 'More impact per dollar', body: 'Portfolio intelligence shows you where you\'re over/under-funding, who the outliers are, and what the alignment heatmap looks like before you commit.' },
+              { icon: 'ðŸ†', title: 'Better applicants', body: 'Nonprofits using TGM submit stronger, more aligned proposals. Your average quality goes up before the cycle opens.' },
+              { icon: 'âš¡', title: 'Faster review cycles', body: 'Pre-screened applicants, ranked cohorts, and auto-suggested statuses. Your reviewers touch fewer files â€” but make better decisions.' },
+              { icon: 'ðŸ’°', title: 'More impact per dollar', body: 'Portfolio intelligence shows you where you\'re over/under-funding, who the outliers are, and what the alignment heatmap looks like before you commit.' },
             ].map(({ icon, title, body }) => (
               <div key={title} style={{ background: '#fff', borderRadius: 14, padding: 28, border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,.05)' }}>
                 <div style={{ fontSize: 32, marginBottom: 14 }}>{icon}</div>
@@ -523,7 +523,7 @@ export default function FunderApiLandingPage() {
         </div>
       </section>
 
-      {/* ── CAPABILITIES ── */}
+      {/* â”€â”€ CAPABILITIES â”€â”€ */}
       <section id="how-it-works" className="px-6 py-20">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-14">
@@ -546,7 +546,7 @@ export default function FunderApiLandingPage() {
         </div>
       </section>
 
-      {/* ── INTEGRATION PATTERNS ── */}
+      {/* â”€â”€ INTEGRATION PATTERNS â”€â”€ */}
       <section style={{ background: NAVY }} className="px-6 py-20">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-14">
@@ -575,7 +575,7 @@ export default function FunderApiLandingPage() {
                   {icon}
                 </div>
                 <p style={{ color: GOLD, fontSize: 11, fontWeight: 700, letterSpacing: '.7px', textTransform: 'uppercase', marginBottom: 8 }}>
-                  Pattern {i + 1} — {label}
+                  Pattern {i + 1} â€” {label}
                 </p>
                 <h3 style={{ color: '#fff', fontSize: 17, fontWeight: 800, marginBottom: 10 }}>{title}</h3>
                 <p style={{ color: 'rgba(255,255,255,.65)', fontSize: 14, lineHeight: 1.7, margin: 0 }}>{body}</p>
@@ -585,7 +585,7 @@ export default function FunderApiLandingPage() {
         </div>
       </section>
 
-      {/* ── PRICING ── */}
+      {/* â”€â”€ PRICING â”€â”€ */}
       <section id="pricing" style={{ background: LIGHT }} className="px-6 py-20">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-14">
@@ -626,7 +626,7 @@ export default function FunderApiLandingPage() {
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 28px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {features.map((f) => (
                     <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 14, color: highlight ? 'rgba(255,255,255,.85)' : '#374151' }}>
-                      <span style={{ color: GOLD, fontWeight: 900, flexShrink: 0, marginTop: 1 }}>✓</span>
+                      <span style={{ color: GOLD, fontWeight: 900, flexShrink: 0, marginTop: 1 }}>âœ“</span>
                       {f}
                     </li>
                   ))}
@@ -674,7 +674,7 @@ export default function FunderApiLandingPage() {
         </div>
       </section>
 
-      {/* ── PILOT INVITATION ── */}
+      {/* -- PILOT INVITATION -- */}
       <section className="px-6 py-20">
         <div className="mx-auto max-w-4xl text-center">
           <p style={{ color: '#B8960C', fontSize: 11, fontWeight: 700, letterSpacing: '.8px', textTransform: 'uppercase', marginBottom: 12 }}>
@@ -697,7 +697,7 @@ export default function FunderApiLandingPage() {
         </div>
       </section>
 
-      {/* ── FAQ ── */}
+      {/* â”€â”€ FAQ â”€â”€ */}
       <section style={{ background: LIGHT }} className="px-6 py-20">
         <div className="mx-auto max-w-3xl">
           <div className="text-center mb-12">
@@ -714,19 +714,55 @@ export default function FunderApiLandingPage() {
         </div>
       </section>
 
-      {/* ── REQUEST API KEY FORM ── */}
+
+      {/* -- GET STARTED -- */}
       <section id="request-key" className="px-6 py-20">
-        <div className="mx-auto max-w-2xl">
+        <div className="mx-auto max-w-3xl">
+
+          {/* Intro */}
           <div className="text-center mb-12">
             <p style={{ color: '#B8960C', fontSize: 11, fontWeight: 700, letterSpacing: '.8px', textTransform: 'uppercase', marginBottom: 10 }}>
               Get started
             </p>
-            <h2 className="text-3xl md:text-4xl font-bold text-[#0A0F1A] mb-4">
-              Request your API key.
+            <h2 className="text-3xl md:text-4xl font-bold text-[#0A0F1A] mb-5">
+              Ready to Get Started?
             </h2>
+            <p style={{ color: SLATE, fontSize: 16, lineHeight: 1.8, maxWidth: 660, margin: '0 auto' }}>
+              Whether you're joining the Pilot, Scale, or Enterprise tier, every funder begins the same way —
+              with a dedicated API key that unlocks scoring, fit intelligence, filtering, cohort analytics,
+              cycle insights, and webhook routing inside your existing systems.
+            </p>
+          </div>
+
+          {/* What's included */}
+          <div style={{ background: '#F7F9FB', borderRadius: 14, padding: '28px 32px', marginBottom: 40, border: '1px solid #E2E8F0' }}>
+            <p style={{ color: NAVY, fontSize: 14, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.7px', marginBottom: 16 }}>
+              Your API Key Includes
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[
+                'Full access to the Funder Intelligence API',
+                'A 30-minute onboarding session',
+                'Rubric setup and scoring validation',
+                'Webhook configuration support',
+                'Enterprise automation (if applicable)',
+              ].map((item) => (
+                <li key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 15, color: '#374151' }}>
+                  <span style={{ color: GOLD, fontWeight: 900, flexShrink: 0, marginTop: 1 }}>✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Form */}
+          <div className="text-center mb-8">
+            <h3 style={{ color: NAVY, fontSize: 20, fontWeight: 800, marginBottom: 8 }}>
+              Request Your API Key
+            </h3>
             <p style={{ color: SLATE, fontSize: 15, lineHeight: 1.7 }}>
-              Tell us about your foundation and your current review process.
-              We'll send your key and schedule a 30-minute onboarding session.
+              Tell us about your organization and your funding cycle. We'll generate your API key
+              and send your onboarding packet directly to your inbox.
             </p>
           </div>
           <div style={{ background: '#fff', borderRadius: 16, padding: 36, border: '1px solid #E2E8F0', boxShadow: '0 4px 24px rgba(0,0,0,.07)' }}>
@@ -735,40 +771,26 @@ export default function FunderApiLandingPage() {
         </div>
       </section>
 
-      {/* ── FOOTER CTA ── */}
-      <section style={{ background: `linear-gradient(135deg, ${NAVY}, ${BLUE})` }} className="px-6 py-16 text-center">
-        <p style={{ color: GOLD, fontSize: 11, fontWeight: 700, letterSpacing: '.9px', textTransform: 'uppercase', marginBottom: 14 }}>
+      {/* -- FOOTER -- */}
+      <section style={{ background: `linear-gradient(135deg, ${NAVY}, ${BLUE})` }} className="px-6 py-12 text-center">
+        <p style={{ color: GOLD, fontSize: 11, fontWeight: 700, letterSpacing: '.9px', textTransform: 'uppercase', marginBottom: 10 }}>
           The Grants Master — Funder Intelligence API
         </p>
-        <h2 style={{ color: '#fff', fontSize: 28, fontWeight: 800, marginBottom: 12 }}>
-          The infrastructure funders rely on.
-        </h2>
-        <p style={{ color: 'rgba(255,255,255,.6)', fontSize: 15, marginBottom: 28, maxWidth: 500, margin: '12px auto 28px' }}>
-          Once funders adopt your scoring engine, nonprofits and consultants must use TGM to stay aligned.
-          That's network lock-in. That's OS-level positioning.
+        <p style={{ color: 'rgba(255,255,255,.6)', fontSize: 14, marginBottom: 20, maxWidth: 480, margin: '8px auto 20px' }}>
+          The infrastructure funders rely on. Once funders adopt TGM scoring, nonprofits and consultants
+          must use TGM to stay aligned. That's network lock-in.
         </p>
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <a
-            href="#request-key"
-            style={{
-              padding: '13px 30px', borderRadius: 9, background: GOLD,
-              color: NAVY, fontWeight: 800, fontSize: 15, textDecoration: 'none',
-            }}
-          >
-            Request API Key →
-          </a>
-          <Link
-            to="/"
-            style={{
-              padding: '13px 26px', borderRadius: 9,
-              border: '1px solid rgba(255,255,255,.28)', color: '#fff',
-              fontWeight: 700, fontSize: 15, textDecoration: 'none',
-            }}
-          >
-            Back to TGM →
-          </Link>
-        </div>
-        <p style={{ color: 'rgba(255,255,255,.3)', fontSize: 12, marginTop: 28 }}>
+        <Link
+          to="/"
+          style={{
+            padding: '11px 26px', borderRadius: 9,
+            border: '1px solid rgba(255,255,255,.28)', color: '#fff',
+            fontWeight: 700, fontSize: 14, textDecoration: 'none', display: 'inline-block',
+          }}
+        >
+          Back to TGM →
+        </Link>
+        <p style={{ color: 'rgba(255,255,255,.3)', fontSize: 12, marginTop: 24 }}>
           © {new Date().getFullYear()} The Grants Master. All rights reserved.
         </p>
       </section>
