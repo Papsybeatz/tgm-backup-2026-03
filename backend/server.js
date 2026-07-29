@@ -7,6 +7,10 @@ const { validateUpload } = require('./utils/uploadValidation');
 const https = require('https');
 const app = express();
 
+const CANONICAL_HOST = 'www.thegrantsmaster.com';
+const ROOT_HOST      = 'thegrantsmaster.com';
+
+
 // CORS — allows production frontend and localhost dev; override via CORS_ALLOWED_ORIGINS env var
 const ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '')
   .split(',').map(function(o) { return o.trim(); }).filter(Boolean);
@@ -20,6 +24,17 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'stripe-signature'],
 }));
+
+// Canonical host redirect (non-www -> www) in production.
+app.use(function(req, res, next) {
+  const hostHeader = (req.headers.host || '').toLowerCase();
+  const host = hostHeader.split(':')[0];
+  if (process.env.NODE_ENV === 'production' && host === ROOT_HOST) {
+    const target = `https://${CANONICAL_HOST}${req.originalUrl || '/'}`;
+    return res.redirect(301, target);
+  }
+  return next();
+});
 
 const stripeWebhooksRouter = require('./routes/webhooks/stripe');
 
@@ -220,4 +235,3 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`[STRIPE] Funder Scale:    ${process.env.STRIPE_FUNDER_SCALE_PRICE_ID     || 'MISSING âœ—'}`);
   console.log(`[STRIPE] Funder Ent:      ${process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'MISSING âœ—'}`);
 });
-
