@@ -1,10 +1,25 @@
-const express = require('express');
+﻿const express = require('express');
 require('dotenv').config(); // Railway injects env vars directly; dotenv is a no-op there
+const cors = require('cors');
 const multer = require('multer');
 const cookieParser = require('cookie-parser');
 const { validateUpload } = require('./utils/uploadValidation');
 const https = require('https');
 const app = express();
+
+// CORS — allows production frontend and localhost dev; override via CORS_ALLOWED_ORIGINS env var
+const ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '')
+  .split(',').map(function(o) { return o.trim(); }).filter(Boolean);
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // same-origin, curl, health checks
+    if (ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    return callback(new Error('CORS: origin ' + origin + ' not allowed'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'stripe-signature'],
+}));
 
 const stripeWebhooksRouter = require('./routes/webhooks/stripe');
 
@@ -25,7 +40,7 @@ const { agentLimiter, uploadLimiter } = require('./middleware/rateLimit');
 const requireAuth = require('./middleware/auth');
 const { requireFeature } = require('./middleware/tierAuth');
 
-// Health check endpoint — used by Railway and monitoring systems
+// Health check endpoint â€” used by Railway and monitoring systems
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
@@ -76,7 +91,7 @@ app.get('/api/test-ai', async (req, res) => {
   }
 });
 
-// MongoDB support removed — using Prisma for persistence where applicable
+// MongoDB support removed â€” using Prisma for persistence where applicable
 
 const founderAuditRoutes = require('./routes/founderAudit');
 const adminRoutes = require('./routes/admin');
@@ -135,17 +150,17 @@ app.post('/api/upload', uploadLimiter, upload.single('file'), (req, res) => {
   res.json({ success: true, message: 'File uploaded and validated.' });
 });
 
-// Tier-gated AI agent endpoint — requires ai_rewrite (starter+)
+// Tier-gated AI agent endpoint â€” requires ai_rewrite (starter+)
 app.post('/api/agent/call', agentLimiter, requireAuth, requireFeature('ai_rewrite'), (req, res) => {
   res.json({ success: true, message: 'Agent call processed.' });
 });
 
-// Tier-gated matching endpoint — requires matching_engine (pro+)
+// Tier-gated matching endpoint â€” requires matching_engine (pro+)
 app.post('/api/match', requireAuth, requireFeature('matching_engine'), (req, res) => {
   res.json({ success: true, message: 'Matching engine processed.' });
 });
 
-// Tier-gated scoring endpoint — requires scoring_basic (starter+)
+// Tier-gated scoring endpoint â€” requires scoring_basic (starter+)
 app.post('/api/score', requireAuth, requireFeature('scoring_basic'), (req, res) => {
   const content = String(req.body?.content || '');
   const text = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -167,33 +182,42 @@ app.post('/api/score', requireAuth, requireFeature('scoring_basic'), (req, res) 
   res.json({ success: true, score, label, words, sections, headings, bullets, numbers });
 });
 
-// Tier-gated analytics endpoint — requires analytics_advanced (pro+)
+// Tier-gated analytics endpoint â€” requires analytics_advanced (pro+)
 app.get('/api/analytics', requireAuth, requireFeature('analytics_advanced'), (req, res) => {
   res.json({ success: true, message: 'Analytics data.' });
 });
 
-// Tier-gated agency endpoints — requires client_folders (agency+)
+// Tier-gated agency endpoints â€” requires client_folders (agency+)
 app.use('/api/agency', requireAuth, requireFeature('client_folders'));
 
 // Health check for Railway
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
+
+// Global error handler — ensures every unhandled error returns JSON instead of dropping the connection
+app.use(function(err, req, res, next) {
+  console.error('[SERVER ERROR]', err.message);
+  if (res.headersSent) return next(err);
+  res.status(err.status || 500).json({ success: false, message: err.message || 'Internal server error' });
+});
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend running on port ${PORT}`);
-  console.log(`[BREVO] API key:         ${process.env.BREVO_API_KEY ? 'PRESENT ✓' : 'MISSING ✗'}`);
-  console.log(`[BREVO] From email:      ${process.env.BREVO_FROM_EMAIL || 'MISSING ✗'}`);
-  console.log(`[BREVO] From name:       ${process.env.BREVO_FROM_NAME || 'MISSING ✗'}`);
-  console.log(`[BREVO] Funder list:     ${process.env.BREVO_FUNDER_LIST_ID || 'MISSING ✗'}`);
-  console.log(`[BREVO] Fallback list:   ${process.env.BREVO_LIST_ID || 'MISSING ✗'}`);
-  console.log(`[STRIPE] Secret key:      ${process.env.STRIPE_SECRET_KEY      ? 'PRESENT ✓' : 'MISSING ✗'}`);
-  console.log(`[STRIPE] Webhook secret:  ${process.env.STRIPE_WEBHOOK_SECRET  ? 'PRESENT ✓' : 'MISSING ✗'}`);
-  console.log(`[STRIPE] Starter price:   ${process.env.STRIPE_STARTER_PRICE_ID          || 'MISSING ✗'}`);
-  console.log(`[STRIPE] Pro price:       ${process.env.STRIPE_PRO_PRICE_ID               || 'MISSING ✗'}`);
-  console.log(`[STRIPE] Agency Starter:  ${process.env.STRIPE_AGENCY_STARTER_PRICE_ID   || 'MISSING ✗'}`);
-  console.log(`[STRIPE] Agency Unlim:    ${process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID || 'MISSING ✗'}`);
-  console.log(`[STRIPE] Lifetime price:  ${process.env.STRIPE_LIFETIME_PRICE_ID         || 'MISSING ✗'}`);
-  console.log(`[STRIPE] Funder Pilot:    ${process.env.STRIPE_FUNDER_PILOT_PRICE_ID     || 'MISSING ✗'}`);
-  console.log(`[STRIPE] Funder Scale:    ${process.env.STRIPE_FUNDER_SCALE_PRICE_ID     || 'MISSING ✗'}`);
-  console.log(`[STRIPE] Funder Ent:      ${process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'MISSING ✗'}`);
+  console.log(`[BREVO] API key:         ${process.env.BREVO_API_KEY ? 'PRESENT âœ“' : 'MISSING âœ—'}`);
+  console.log(`[BREVO] From email:      ${process.env.BREVO_FROM_EMAIL || 'MISSING âœ—'}`);
+  console.log(`[BREVO] From name:       ${process.env.BREVO_FROM_NAME || 'MISSING âœ—'}`);
+  console.log(`[BREVO] Funder list:     ${process.env.BREVO_FUNDER_LIST_ID || 'MISSING âœ—'}`);
+  console.log(`[BREVO] Fallback list:   ${process.env.BREVO_LIST_ID || 'MISSING âœ—'}`);
+  console.log(`[STRIPE] Secret key:      ${process.env.STRIPE_SECRET_KEY      ? 'PRESENT âœ“' : 'MISSING âœ—'}`);
+  console.log(`[STRIPE] Webhook secret:  ${process.env.STRIPE_WEBHOOK_SECRET  ? 'PRESENT âœ“' : 'MISSING âœ—'}`);
+  console.log(`[STRIPE] Starter price:   ${process.env.STRIPE_STARTER_PRICE_ID          || 'MISSING âœ—'}`);
+  console.log(`[STRIPE] Pro price:       ${process.env.STRIPE_PRO_PRICE_ID               || 'MISSING âœ—'}`);
+  console.log(`[STRIPE] Agency Starter:  ${process.env.STRIPE_AGENCY_STARTER_PRICE_ID   || 'MISSING âœ—'}`);
+  console.log(`[STRIPE] Agency Unlim:    ${process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID || 'MISSING âœ—'}`);
+  console.log(`[STRIPE] Lifetime price:  ${process.env.STRIPE_LIFETIME_PRICE_ID         || 'MISSING âœ—'}`);
+  console.log(`[STRIPE] Funder Pilot:    ${process.env.STRIPE_FUNDER_PILOT_PRICE_ID     || 'MISSING âœ—'}`);
+  console.log(`[STRIPE] Funder Scale:    ${process.env.STRIPE_FUNDER_SCALE_PRICE_ID     || 'MISSING âœ—'}`);
+  console.log(`[STRIPE] Funder Ent:      ${process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'MISSING âœ—'}`);
 });
+
