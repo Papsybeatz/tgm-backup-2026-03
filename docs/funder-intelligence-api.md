@@ -84,11 +84,45 @@ This subsystem is a standalone sidecar API that runs in parallel with the existi
 
 ## Auth model
 
-- Funder registration mints a dedicated `api_key`.
-- All intelligence endpoints require `x-api-key`.
+- Funder registration is **internal-only** — public form submissions create a `FunderLead` record that goes through admin review.
+- Approved funders receive credentials after completing Stripe checkout for their first grant cycle.
+- All intelligence endpoints require `x-api-key` header.
 - API keys are bound to a single funder and cannot access other funder IDs.
+- Production keys (`tgm_fi_pk_…`) require `cycle_id` in every scoring request.
+- Sandbox keys (`tgm_fi_sb_…`) bypass cycle enforcement — use them during integration testing.
 
-## Deterministic guardrails
+## Per-cycle billing enforcement
+
+Every scoring request (`/application/score`, `/application/funder-fit`, `/batch/score`) must include `cycle_id` when using a production key.
+
+**Required in request body:**
+```json
+{
+  "funder_id": "funder_abc123",
+  "cycle_id": "your-cycle-id-from-activation",
+  "application": { ... }
+}
+```
+
+Error responses:
+- `400` — `cycle_id` missing
+- `402` — No active entitlement for this cycle (checkout not completed)
+- `429` — Cycle quota exhausted (`applications_used >= applications_allowed`)
+
+**`/cycle/intelligence` and `/webhook/config` do not require `cycle_id`** — they are analytics and config endpoints.
+
+## Internal provisioning routes (protected)
+
+These routes are called by the main TGM backend only. They are guarded by `x-internal-secret` header.
+
+- `POST /internal/funders/provision` — provision funder + org API key (idempotent by orgName+email)
+- `POST /internal/cycles/activate` — activate a paid cycle entitlement
+
+## Smoke test
+
+The smoke test now requires `FUNDER_INTELLIGENCE_INTERNAL_SECRET` to be set (or passed as env var). It will activate a test cycle before running scoring tests.
+
+
 
 - Eligibility checks are hard-pass/hard-fail logic.
 - Budget sanity checks flag excessive admin ratio and weak program allocation.
@@ -107,11 +141,22 @@ In your Railway project:
 
 ### Step 2 — Set environment variables in Railway dashboard
 
-| Variable | Value |
-|---|---|
-| `NODE_ENV` | `production` |
+| Variable | Value | Notes |
+|---|---|---|
+| `NODE_ENV` | `production` | |
+| `FUNDER_INTELLIGENCE_INTERNAL_SECRET` | `<32-byte hex>` | **Required** — shared with main backend. Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 
 > Railway injects `PORT` automatically — do NOT set it manually.
+
+**Also set on the main backend service:**
+
+| Variable | Value | Notes |
+|---|---|---|
+| `FUNDER_INTELLIGENCE_BASE_URL` | `https://your-sidecar.up.railway.app` | URL of the sidecar service |
+| `FUNDER_INTELLIGENCE_INTERNAL_SECRET` | `<same 32-byte hex>` | Must match the sidecar |
+| `ADMIN_EMAIL` | `your@email.com` | Receives lead alerts |
+| `FUNDER_PILOT_CYCLE_APPLICATIONS` | `50` | Default quota for pilot plan |
+| `FUNDER_SCALE_CYCLE_APPLICATIONS` | `500` | Default quota for scale plan |
 
 ### Step 3 — Deploy and confirm health check
 
