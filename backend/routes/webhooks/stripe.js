@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { sendBrevoEmail } = require('../../utils/brevo');
 const FUNDER_PILOT_PRICE_ID = process.env.STRIPE_FUNDER_PILOT_PRICE_ID || 'price_1TxLdP64TrQMI3mIwohgkoSa';
 const FUNDER_SCALE_PRICE_ID = process.env.STRIPE_FUNDER_SCALE_PRICE_ID || 'price_1TxLku64TrQMI3mIiFBlby8P';
 const FUNDER_ENTERPRISE_PRICE_ID = process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'price_1TxLrO64TrQMI3mIKMEbGAvL';
@@ -91,6 +92,160 @@ async function getSubscriptionDetails(stripe, subscriptionId) {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Funder cycle activation — called from checkout.session.completed
+// ---------------------------------------------------------------------------
+
+async function activateFunderCycle(session) {
+  const meta = session.metadata || {};
+  const funderLeadId = meta.funder_lead_id;
+  const funderCycleId = meta.funder_cycle_id;
+  const cycleName = meta.cycle_name;
+  const cycleYear = Number(meta.cycle_year);
+  const planKey = meta.plan_key || 'funder_scale';
+  const applicationsAllowed = Number(meta.applications_allowed) || 50;
+  const paymentIntentId = session.payment_intent || null;
+  const stripeCustomerId = session.customer || null;
+
+  if (!funderLeadId || !funderCycleId) {
+    console.error('[STRIPE WEBHOOK] funder_cycle: missing lead/cycle IDs in metadata', meta);
+    return;
+  }
+
+  // Load the lead
+  const lead = await prisma.funderLead.findUnique({ where: { id: funderLeadId } });
+  if (!lead) {
+    console.error('[STRIPE WEBHOOK] funder_cycle: lead not found', funderLeadId);
+    return;
+  }
+
+  // Provision funder on sidecar if not already done
+  let sidecarFunderId = lead.sidecarFunderId;
+  let orgApiKey = lead.orgApiKey;
+
+  const sidecarBase = process.env.FUNDER_INTELLIGENCE_BASE_URL;
+  const internalSecret = process.env.FUNDER_INTELLIGENCE_INTERNAL_SECRET;
+
+  if (sidecarBase && internalSecret && !sidecarFunderId) {
+    try {
+      const provRes = await fetch(`${sidecarBase}/internal/funders/provision`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-internal-secret': internalSecret },
+        body: JSON.stringify({
+          name: lead.name,
+          orgName: lead.orgName,
+          email: lead.email,
+          planTier: planKey.replace('funder_', ''),
+          keyScope: 'production',
+        }),
+      });
+      const provData = await provRes.json();
+      if (provRes.ok && provData.funder_id) {
+        sidecarFunderId = provData.funder_id;
+        orgApiKey = provData.api_key;
+        console.log('[STRIPE WEBHOOK] funder_cycle: sidecar provisioned', sidecarFunderId);
+      } else {
+        console.error('[STRIPE WEBHOOK] funder_cycle: sidecar provision failed', provData);
+      }
+    } catch (err) {
+      console.error('[STRIPE WEBHOOK] funder_cycle: sidecar provision error', err.message);
+    }
+  }
+
+  // Activate cycle entitlement on sidecar
+  const sidecarCycleId = `${funderCycleId}`;
+  if (sidecarBase && internalSecret && sidecarFunderId) {
+    try {
+      const actRes = await fetch(`${sidecarBase}/internal/cycles/activate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-internal-secret': internalSecret },
+        body: JSON.stringify({
+          funderId: sidecarFunderId,
+          cycleId: sidecarCycleId,
+          planKey,
+          applicationsAllowed,
+          stripePaymentIntentId: paymentIntentId,
+        }),
+      });
+      if (!actRes.ok) {
+        const actData = await actRes.json();
+        console.error('[STRIPE WEBHOOK] funder_cycle: cycle activation failed', actData);
+      }
+    } catch (err) {
+      console.error('[STRIPE WEBHOOK] funder_cycle: cycle activation error', err.message);
+    }
+  }
+
+  const now = new Date();
+
+  // Update Prisma: FunderLead + FunderCycle
+  await prisma.funderLead.update({
+    where: { id: funderLeadId },
+    data: {
+      status: 'production_active',
+      sidecarFunderId: sidecarFunderId || lead.sidecarFunderId,
+      orgApiKey: orgApiKey || lead.orgApiKey,
+    },
+  });
+
+  await prisma.funderCycle.update({
+    where: { id: funderCycleId },
+    data: {
+      status: 'active',
+      stripePaymentIntentId: paymentIntentId,
+      stripeCustomerId: stripeCustomerId,
+      sidecarCycleId,
+      activatedAt: now,
+    },
+  });
+
+  console.log('[STRIPE WEBHOOK] funder_cycle: activated', { funderLeadId, funderCycleId, cycleName, cycleYear });
+
+  // Send credentials email to funder
+  const brevoApiKey = process.env.BREVO_API_KEY;
+  if (brevoApiKey && orgApiKey) {
+    const docsUrl = 'https://github.com/Papsybeatz/tgm-backup-2026-03/blob/main/docs/funder-intelligence-api.md';
+    const curlExample = `curl -X POST ${sidecarBase || 'https://your-sidecar-url'}/application/score \\
+  -H "x-api-key: ${orgApiKey}" \\
+  -H "Content-Type: application/json" \\
+  -d '{"funder_id":"${sidecarFunderId}","cycle_id":"${sidecarCycleId}","application":{"id":"app_001","project_summary":"..."}}'`;
+
+    sendBrevoEmail({
+      to: lead.email,
+      toName: lead.name,
+      subject: `TGM Funder Intelligence API — ${cycleName} ${cycleYear} Activated`,
+      htmlContent: `
+        <div style="font-family:Inter,Arial,sans-serif;color:#0A0F1A;line-height:1.6;">
+          <h2>Your cycle is live — Funder Intelligence API</h2>
+          <p>Hi ${lead.name},</p>
+          <p>Payment confirmed. Your <strong>${cycleName} ${cycleYear}</strong> cycle is now active for <strong>${lead.orgName}</strong>.</p>
+          <table style="border-collapse:collapse;margin:16px 0;">
+            <tr><td style="padding:4px 8px;font-weight:bold;">API Key</td><td style="padding:4px 8px;font-family:monospace;">${orgApiKey}</td></tr>
+            <tr><td style="padding:4px 8px;font-weight:bold;">Funder ID</td><td style="padding:4px 8px;font-family:monospace;">${sidecarFunderId}</td></tr>
+            <tr><td style="padding:4px 8px;font-weight:bold;">Cycle ID</td><td style="padding:4px 8px;font-family:monospace;">${sidecarCycleId}</td></tr>
+            <tr><td style="padding:4px 8px;font-weight:bold;">Applications</td><td style="padding:4px 8px;">${applicationsAllowed} included</td></tr>
+          </table>
+          <p><strong>Quick start:</strong></p>
+          <pre style="background:#f4f4f4;padding:12px;border-radius:6px;font-size:12px;overflow:auto;">${curlExample}</pre>
+          <p><a href="${docsUrl}">Full API documentation →</a></p>
+          <p>— TGM Team</p>
+        </div>
+      `,
+    }).then((r) => { if (!r.sent) console.error('[STRIPE WEBHOOK] funder_cycle: creds email failed', r.error); });
+
+    // Admin alert
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.FOUNDER_EMAIL || process.env.CONTACT_TO_EMAIL;
+    if (adminEmail) {
+      sendBrevoEmail({
+        to: adminEmail,
+        toName: 'TGM Admin',
+        subject: `[TGM] Funder cycle activated: ${lead.orgName} / ${cycleName} ${cycleYear}`,
+        htmlContent: `<p>${lead.name} (${lead.email}) — ${lead.orgName}<br>Cycle: ${cycleName} ${cycleYear}<br>Plan: ${planKey}<br>Apps allowed: ${applicationsAllowed}<br>Funder ID: ${sidecarFunderId}<br>Cycle ID: ${sidecarCycleId}</p>`,
+      }).catch(() => {});
+    }
+  }
+}
+
 async function handleStripeEvent(req, res) {
   const stripe = getStripe();
   if (!stripe) {
@@ -116,6 +271,13 @@ async function handleStripeEvent(req, res) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
+
+        // Funder cycle checkout — separate from user subscription flow
+        if (session.metadata?.checkout_context === 'funder_cycle') {
+          await activateFunderCycle(session);
+          return res.status(200).send('ok');
+        }
+
         const priceId = session.metadata?.price_id || null;
         const tier = PRICE_TIER_MAP[priceId] || null;
         const subscriptionId = session.subscription || null;
