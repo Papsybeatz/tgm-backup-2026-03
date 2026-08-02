@@ -149,7 +149,11 @@ function ApiDemoAnimation() {
    Request API Key form
 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function RequestKeyForm() {
-  const [form, setForm] = useState({ name: '', org: '', email: '', role: '', message: '' });
+  const [form, setForm] = useState({
+    name: '', org: '', email: '', role: '', website: '', country: '',
+    planRequested: 'scale', cycleName: '', cycleYear: '', message: '',
+    _hp: '', // honeypot — must stay empty
+  });
   const [state, setState] = useState('idle'); // idle | submitting | success | error
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -190,13 +194,13 @@ function RequestKeyForm() {
         background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`,
         borderRadius: 16, border: '1px solid rgba(255,255,255,.1)',
       }}>
-        <div style={{ fontSize: 52, marginBottom: 16 }}>âœ…</div>
+        <div style={{ fontSize: 52, marginBottom: 16 }}>✅</div>
         <h3 style={{ color: '#fff', fontSize: 22, fontWeight: 800, marginBottom: 12 }}>
-          Request received.
+          Application received.
         </h3>
         <p style={{ color: GOLD_LT, fontSize: 15, lineHeight: 1.7, maxWidth: 420, margin: '0 auto' }}>
-          We'll review your application and send your API key within 24 hours.
-          Pilot funders are onboarded in one session â€” usually under 30 minutes.
+          We're reviewing your application and will respond within 1 business day.
+          Once approved, you'll receive a checkout link to activate your first cycle.
         </p>
       </div>
     );
@@ -210,8 +214,20 @@ function RequestKeyForm() {
 
   const labelStyle = { display: 'block', fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 5 };
 
+  const currentYear = new Date().getFullYear();
+
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Honeypot — hidden from humans, filled by bots */}
+      <input
+        type="text"
+        name="_hp"
+        value={form._hp}
+        onChange={handleChange}
+        style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0 }}
+        tabIndex={-1}
+        autoComplete="off"
+      />
       <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr 1fr' }}>
         <div>
           <label style={labelStyle}>Full Name *</label>
@@ -230,6 +246,34 @@ function RequestKeyForm() {
         <div>
           <label style={labelStyle}>Your Role</label>
           <input style={inputStyle} name="role" value={form.role} onChange={handleChange} placeholder="Program Officer, CTO, etc." />
+        </div>
+      </div>
+      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr 1fr' }}>
+        <div>
+          <label style={labelStyle}>Organization Website</label>
+          <input style={inputStyle} name="website" value={form.website} onChange={handleChange} placeholder="https://foundation.org" />
+        </div>
+        <div>
+          <label style={labelStyle}>Country</label>
+          <input style={inputStyle} name="country" value={form.country} onChange={handleChange} placeholder="United States" />
+        </div>
+      </div>
+      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr 1fr 1fr' }}>
+        <div>
+          <label style={labelStyle}>Plan</label>
+          <select style={inputStyle} name="planRequested" value={form.planRequested} onChange={handleChange}>
+            <option value="pilot">Pilot — 50 apps/cycle</option>
+            <option value="scale">Scale — 500 apps/cycle</option>
+            <option value="enterprise">Enterprise — custom</option>
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Grant Cycle Name</label>
+          <input style={inputStyle} name="cycleName" value={form.cycleName} onChange={handleChange} placeholder="Spring 2026" />
+        </div>
+        <div>
+          <label style={labelStyle}>Cycle Year</label>
+          <input style={inputStyle} type="number" name="cycleYear" value={form.cycleYear} onChange={handleChange} placeholder={String(currentYear)} min={2024} max={2035} />
         </div>
       </div>
       <div>

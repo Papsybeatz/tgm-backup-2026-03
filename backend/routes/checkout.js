@@ -146,30 +146,97 @@ router.post('/create-funder-session', async (req, res) => {
     return res.status(500).json({ error: 'Stripe not configured' });
   }
 
-  const { priceId, successPath, cancelPath, checkoutContext } = req.body;
+  const {
+    leadId,
+    priceId,
+    cycleName,
+    cycleYear,
+    applicationsAllowed,
+    successPath,
+    cancelPath,
+  } = req.body;
+
+  if (!leadId) return res.status(400).json({ error: 'leadId is required' });
   if (!priceId) return res.status(400).json({ error: 'priceId is required' });
+  if (!cycleName) return res.status(400).json({ error: 'cycleName is required' });
+  if (!cycleYear) return res.status(400).json({ error: 'cycleYear is required' });
 
   const PRICE_TIER_MAP = getPriceTierMap();
-  const tier = PRICE_TIER_MAP[priceId];
-  if (!tier) {
+  const planKey = PRICE_TIER_MAP[priceId];
+  if (!planKey) {
     console.error('[CHECKOUT] Unknown funder priceId:', priceId);
     return res.status(400).json({ error: 'Unknown price ID' });
   }
-  if (!tier.startsWith('funder_')) {
+  if (!planKey.startsWith('funder_')) {
     return res.status(400).json({ error: 'Funder checkout only supports funder plan prices' });
   }
 
+  const normalizedYear = Number(cycleYear);
+  const allowedCount = Number(applicationsAllowed) || (planKey === 'funder_pilot' ? 50 : 500);
   const normalizedPaths = normalizeCheckoutPaths(successPath, cancelPath);
 
   try {
-    const sessionParams = buildSessionParams({
-      priceId,
-      checkoutContext: checkoutContext || 'funder_api',
-      successPath: normalizedPaths.successPath,
-      cancelPath: normalizedPaths.cancelPath,
+    // Verify the lead exists and is approved
+    const lead = await prisma.funderLead.findUnique({ where: { id: leadId } });
+    if (!lead) return res.status(404).json({ error: 'Funder lead not found' });
+    if (!['approved', 'sandbox_issued', 'production_active'].includes(lead.status)) {
+      return res.status(403).json({ error: 'Your account is not yet approved. Complete the application first.' });
+    }
+
+    // Prevent duplicate active cycles
+    const existingCycle = await prisma.funderCycle.findUnique({
+      where: { funderLeadId_cycleName_cycleYear: { funderLeadId: leadId, cycleName, cycleYear: normalizedYear } },
     });
+    if (existingCycle && existingCycle.status === 'active') {
+      return res.status(409).json({ error: `Cycle "${cycleName} ${normalizedYear}" is already active.` });
+    }
+
+    // Create or reuse a pending cycle record
+    let cycle;
+    if (existingCycle && existingCycle.status === 'pending_payment') {
+      cycle = existingCycle;
+    } else {
+      cycle = await prisma.funderCycle.create({
+        data: {
+          funderLeadId: leadId,
+          cycleName,
+          cycleYear: normalizedYear,
+          planKey,
+          status: 'pending_payment',
+          applicationsAllowed: allowedCount,
+          stripePriceId: priceId,
+        },
+      });
+    }
+
+    // Build Stripe session with full cycle metadata so the webhook can activate
+    const sessionParams = {
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: [{ price: priceId, quantity: 1 }],
+      metadata: {
+        checkout_context: 'funder_cycle',
+        funder_lead_id: leadId,
+        funder_cycle_id: cycle.id,
+        cycle_name: cycleName,
+        cycle_year: String(normalizedYear),
+        plan_key: planKey,
+        applications_allowed: String(allowedCount),
+      },
+      customer_email: lead.email,
+      success_url: `${APP_URL}${normalizedPaths.successPath}?cycle=${cycle.id}`,
+      cancel_url: `${APP_URL}${normalizedPaths.cancelPath}`,
+    };
+
     const session = await stripe.checkout.sessions.create(sessionParams);
-    return res.json({ url: session.url });
+
+    // Store checkout session ID on the cycle record
+    await prisma.funderCycle.update({
+      where: { id: cycle.id },
+      data: { stripeCheckoutSessionId: session.id },
+    });
+
+    return res.json({ url: session.url, cycleId: cycle.id });
   } catch (err) {
     console.error('[CHECKOUT] create-funder-session error:', err.message);
     return res.status(500).json({ error: 'Failed to create checkout session' });
