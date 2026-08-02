@@ -127,6 +127,8 @@ const clientsRoutes = require('./routes/clients');
 app.use('/api/clients', clientsRoutes);
 app.use('/api/founder', founderAuditRoutes);
 app.use('/api/admin', adminRoutes);
+const adminFundersRoutes = require('./routes/adminFunders');
+app.use('/api/admin/funders', adminFundersRoutes);
 app.use('/api/billing', billingRoutes);
 
 const upload = multer();
