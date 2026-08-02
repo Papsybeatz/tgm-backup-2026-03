@@ -3,8 +3,17 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const http = require('node:http');
 
+// Set internal secret before importing app so requireInternalSecret() works in tests
+const TEST_INTERNAL_SECRET = 'test-internal-secret-do-not-use-in-production';
+process.env.FUNDER_INTELLIGENCE_INTERNAL_SECRET = TEST_INTERNAL_SECRET;
+
 const app = require('../../backend/funder-intelligence-api/app');
 const { databasePath } = require('../../backend/funder-intelligence-api/lib/datastore');
+
+const INTERNAL_HEADERS = {
+  'content-type': 'application/json',
+  'x-internal-secret': TEST_INTERNAL_SECRET,
+};
 
 function resetSidecarDatabase() {
   const emptyDb = {
@@ -19,6 +28,8 @@ function resetSidecarDatabase() {
     metrics: { requests: [], alerts: [] },
     supportTickets: {},
     monthlyReports: {},
+    entitlements: {},
+    cycleUsage: {},
   };
   fs.mkdirSync(require('path').dirname(databasePath), { recursive: true });
   fs.writeFileSync(databasePath, JSON.stringify(emptyDb, null, 2), 'utf8');
@@ -64,7 +75,7 @@ test('Funder Intelligence API v1 workflow', async () => {
   try {
     const register = await request('/funder/register', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: INTERNAL_HEADERS,
       body: JSON.stringify({
         name: 'Impact First Foundation',
         mission: 'Advance youth STEM and workforce readiness.',
@@ -221,7 +232,7 @@ test('Enterprise automation workflow', async () => {
   try {
     const register = await request('/funder/register', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: INTERNAL_HEADERS,
       body: JSON.stringify({
         name: 'Global Impact Enterprise',
         plan_tier: 'enterprise',

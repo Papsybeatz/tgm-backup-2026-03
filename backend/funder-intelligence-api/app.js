@@ -16,12 +16,29 @@ const {
   buildCycleIntelligence,
   upsertWebhookConfig,
   updateEnterpriseConfig,
+  provisionInternalFunder,
+  activateCycleEntitlement,
 } = require('./lib/service');
 const { requireApiKey } = require('./lib/auth');
 
 const app = express();
 app.use(express.json({ limit: '3mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// ---------------------------------------------------------------------------
+// Internal secret middleware — protects provisioning routes from public access
+// ---------------------------------------------------------------------------
+function requireInternalSecret(req, res, next) {
+  const secret = process.env.FUNDER_INTELLIGENCE_INTERNAL_SECRET;
+  if (!secret) {
+    return res.status(503).json({ message: 'Internal provisioning is not configured on this service.' });
+  }
+  const provided = String(req.header('x-internal-secret') || '').trim();
+  if (!provided || provided !== secret) {
+    return res.status(401).json({ message: 'Invalid or missing internal secret.' });
+  }
+  return next();
+}
 
 app.get('/health', (_req, res) => {
   res.status(200).json({
@@ -31,12 +48,33 @@ app.get('/health', (_req, res) => {
   });
 });
 
-app.post('/funder/register', async (req, res) => {
+// POST /funder/register is now internal-only — public registration is disabled
+app.post('/funder/register', requireInternalSecret, async (req, res) => {
   try {
     const result = await registerFunder(req.body || {});
     return res.status(201).json(result);
   } catch (error) {
     return res.status(400).json({ message: error.message || 'Funder registration failed.' });
+  }
+});
+
+// Internal: provision a funder (idempotent by orgName+email)
+app.post('/internal/funders/provision', requireInternalSecret, async (req, res) => {
+  try {
+    const result = await provisionInternalFunder(req.body || {});
+    return res.status(result.already_existed ? 200 : 201).json(result);
+  } catch (error) {
+    return res.status(400).json({ message: error.message || 'Provisioning failed.' });
+  }
+});
+
+// Internal: activate a paid cycle entitlement for a funder
+app.post('/internal/cycles/activate', requireInternalSecret, async (req, res) => {
+  try {
+    const result = await activateCycleEntitlement(req.body || {});
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(400).json({ message: error.message || 'Cycle activation failed.' });
   }
 });
 
