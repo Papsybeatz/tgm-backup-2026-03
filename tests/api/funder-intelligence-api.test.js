@@ -3,8 +3,17 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const http = require('node:http');
 
+// Set internal secret before importing app so requireInternalSecret() works in tests
+const TEST_INTERNAL_SECRET = 'test-internal-secret-do-not-use-in-production';
+process.env.FUNDER_INTELLIGENCE_INTERNAL_SECRET = TEST_INTERNAL_SECRET;
+
 const app = require('../../backend/funder-intelligence-api/app');
 const { databasePath } = require('../../backend/funder-intelligence-api/lib/datastore');
+
+const INTERNAL_HEADERS = {
+  'content-type': 'application/json',
+  'x-internal-secret': TEST_INTERNAL_SECRET,
+};
 
 function resetSidecarDatabase() {
   const emptyDb = {
@@ -19,6 +28,8 @@ function resetSidecarDatabase() {
     metrics: { requests: [], alerts: [] },
     supportTickets: {},
     monthlyReports: {},
+    entitlements: {},
+    cycleUsage: {},
   };
   fs.mkdirSync(require('path').dirname(databasePath), { recursive: true });
   fs.writeFileSync(databasePath, JSON.stringify(emptyDb, null, 2), 'utf8');
@@ -64,7 +75,7 @@ test('Funder Intelligence API v1 workflow', async () => {
   try {
     const register = await request('/funder/register', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: INTERNAL_HEADERS,
       body: JSON.stringify({
         name: 'Impact First Foundation',
         mission: 'Advance youth STEM and workforce readiness.',
@@ -86,6 +97,21 @@ test('Funder Intelligence API v1 workflow', async () => {
     assert.ok(register.body.api_key);
     const apiKey = register.body.api_key;
     const funderId = register.body.funder_id;
+
+    // Activate a test cycle entitlement before scoring
+    const TEST_CYCLE_ID = 'fall-2026';
+    const activateRes = await request('/internal/cycles/activate', {
+      method: 'POST',
+      headers: INTERNAL_HEADERS,
+      body: JSON.stringify({
+        funderId,
+        cycleId: TEST_CYCLE_ID,
+        planKey: 'scale',
+        applicationsAllowed: 500,
+      }),
+    });
+    assert.equal(activateRes.response.status, 200);
+    assert.equal(activateRes.body.status, 'active');
 
     const sampleApplication = {
       id: 'app_001',
@@ -115,6 +141,7 @@ test('Funder Intelligence API v1 workflow', async () => {
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey },
       body: JSON.stringify({
         funder_id: funderId,
+        cycle_id: TEST_CYCLE_ID,
         application: sampleApplication,
       }),
     });
@@ -128,6 +155,7 @@ test('Funder Intelligence API v1 workflow', async () => {
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey },
       body: JSON.stringify({
         funder_id: funderId,
+        cycle_id: TEST_CYCLE_ID,
         application: sampleApplication,
       }),
     });
@@ -191,6 +219,7 @@ test('Funder Intelligence API v1 workflow', async () => {
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey },
       body: JSON.stringify({
         funder_id: funderId,
+        cycle_id: TEST_CYCLE_ID,
         application: { ...sampleApplication, id: 'app_003' },
       }),
     });
@@ -221,7 +250,7 @@ test('Enterprise automation workflow', async () => {
   try {
     const register = await request('/funder/register', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: INTERNAL_HEADERS,
       body: JSON.stringify({
         name: 'Global Impact Enterprise',
         plan_tier: 'enterprise',

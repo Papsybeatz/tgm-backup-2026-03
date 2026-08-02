@@ -30,12 +30,13 @@ app.use(function(req, res, next) {
   const hostHeader = (req.headers.host || '').toLowerCase();
   const host = hostHeader.split(':')[0];
   if (process.env.NODE_ENV === 'production' && host === ROOT_HOST) {
-    const target = `https://${CANONICAL_HOST}${req.originalUrl || '/'}`;
+    const target = https://;
     return res.redirect(301, target);
   }
   return next();
 });
-
+// Trust Railway's reverse proxy so rate limiters use real client IPs
+app.set('trust proxy', 1);
 const stripeWebhooksRouter = require('./routes/webhooks/stripe');
 
 // Mount webhook routes BEFORE express.json() so raw body is preserved for HMAC signature verification
@@ -51,7 +52,7 @@ const teamInvitesRoutes = require('./routes/teamInvites');
 const authRoutes = require('./routes/auth');
 const draftsRoutes = require('./routes/drafts');
 const assistantRoutes = require('./routes/assistant');
-const { agentLimiter, uploadLimiter } = require('./middleware/rateLimit');
+const { agentLimiter, uploadLimiter, funderIntakeLimiter } = require('./middleware/rateLimit');
 const requireAuth = require('./middleware/auth');
 const { requireFeature } = require('./middleware/tierAuth');
 
@@ -140,7 +141,7 @@ app.use('/api/contact', contactRoutes);
 const leadMagnetRoutes = require('./routes/leadMagnet');
 app.use('/api/lead-magnet', leadMagnetRoutes);
 const funderApiRequestRoutes = require('./routes/funderApiRequest');
-app.use('/api/funder-api', funderApiRequestRoutes);
+app.use('/api/funder-api', funderIntakeLimiter, funderApiRequestRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/team', teamInvitesRoutes);
 app.use('/api/auth', authRoutes);
@@ -154,6 +155,8 @@ const clientsRoutes = require('./routes/clients');
 app.use('/api/clients', clientsRoutes);
 app.use('/api/founder', founderAuditRoutes);
 app.use('/api/admin', adminRoutes);
+const adminFundersRoutes = require('./routes/adminFunders');
+app.use('/api/admin/funders', adminFundersRoutes);
 app.use('/api/billing', billingRoutes);
 
 const upload = multer();
@@ -235,3 +238,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`[STRIPE] Funder Scale:    ${process.env.STRIPE_FUNDER_SCALE_PRICE_ID     || 'MISSING âœ—'}`);
   console.log(`[STRIPE] Funder Ent:      ${process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'MISSING âœ—'}`);
 });
+

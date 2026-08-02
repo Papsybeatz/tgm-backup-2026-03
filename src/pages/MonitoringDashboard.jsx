@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
-const BUILD_MARKER = 'build-2026-07-12-60fa483';
+const BUILD_MARKER = 'build-2026-08-02-funder-leads';
 
 
 const s = {
@@ -417,6 +417,226 @@ function UsersTable({ users, page, pageSize, onPageChange }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Funder Leads Panel
+// ---------------------------------------------------------------------------
+
+const RISK_COLOR = (score) => {
+  if (score >= 40) return { background: '#fef2f2', color: '#dc2626' };
+  if (score >= 20) return { background: '#fffbeb', color: '#d97706' };
+  return { background: '#f0fdf4', color: '#16a34a' };
+};
+
+const STATUS_COLOR = {
+  pending_review:    { background: '#f0f9ff', color: '#0284c7' },
+  approved:          { background: '#f0fdf4', color: '#16a34a' },
+  rejected:          { background: '#fef2f2', color: '#dc2626' },
+  sandbox_issued:    { background: '#faf5ff', color: '#7c3aed' },
+  production_active: { background: '#f0fdf4', color: '#15803d' },
+};
+
+function Badge({ label, style }) {
+  return (
+    <span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 700, textTransform: 'capitalize', ...style }}>
+      {label.replace(/_/g, ' ')}
+    </span>
+  );
+}
+
+function FunderLeadsPanel() {
+  const [leads, setLeads] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [acting, setActing] = useState({});
+  const [msg, setMsg] = useState({});
+
+  const token = localStorage.getItem('token');
+
+  const load = async (status) => {
+    setLoading(true);
+    try {
+      const qs = status && status !== 'all' ? `?status=${status}&limit=100` : '?limit=100';
+      const res = await fetch(`/api/admin/funders/leads${qs}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLeads(data.leads || []);
+        setTotal(data.total || 0);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(statusFilter); }, [statusFilter]);
+
+  const action = async (leadId, endpoint, body = {}) => {
+    setActing((prev) => ({ ...prev, [leadId]: endpoint }));
+    setMsg((prev) => ({ ...prev, [leadId]: '' }));
+    try {
+      const res = await fetch(`/api/admin/funders/leads/${leadId}/${endpoint}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMsg((prev) => ({ ...prev, [leadId]: '✓ Done' }));
+        setLeads((prev) => prev.map((l) => l.id === leadId ? { ...l, status: data.lead?.status || l.status } : l));
+      } else {
+        setMsg((prev) => ({ ...prev, [leadId]: data.error || 'Error' }));
+      }
+    } catch {
+      setMsg((prev) => ({ ...prev, [leadId]: 'Network error' }));
+    } finally {
+      setActing((prev) => ({ ...prev, [leadId]: null }));
+    }
+  };
+
+  const btnStyle = (color, disabled) => ({
+    border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: 11, fontWeight: 700,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    background: disabled ? '#f1f5f9' : color,
+    color: disabled ? '#94a3b8' : '#fff',
+    opacity: disabled ? 0.6 : 1,
+  });
+
+  return (
+    <div style={{ ...s.card, ...s.sectionBlock }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <div style={s.sectionTitle}>Funder API Leads</div>
+          <div style={{ fontSize: 13, color: '#64748b' }}>
+            {loading ? 'Loading…' : `${total} total — review, approve, reject, or issue sandbox key`}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {['all', 'pending_review', 'approved', 'sandbox_issued', 'production_active', 'rejected'].map((st) => (
+            <button
+              key={st}
+              type="button"
+              onClick={() => setStatusFilter(st)}
+              style={{
+                border: '1px solid #cbd5e1',
+                background: statusFilter === st ? '#003A8C' : '#fff',
+                color: statusFilter === st ? '#fff' : '#334155',
+                borderRadius: 999, padding: '6px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              {st === 'all' ? 'All' : st.replace(/_/g, ' ')}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8', fontSize: 14 }}>Loading leads…</div>
+      ) : leads.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8', fontSize: 14 }}>No leads found.</div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr>
+                {['Name / Org', 'Email', 'Plan', 'Cycle', 'Risk', 'Status', 'Applied', 'Actions'].map((col, i) => (
+                  <th key={col} style={{ ...s.tableHeader, textAlign: i === 0 ? 'left' : 'center', paddingBottom: 10, whiteSpace: 'nowrap' }}>
+                    {col}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {leads.map((lead) => {
+                const busy = acting[lead.id];
+                return (
+                  <tr key={lead.id} style={{ ...s.tableRow }}>
+                    <td style={{ ...s.tableCell, minWidth: 180 }}>
+                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{lead.name}</div>
+                      <div style={{ fontSize: 12, color: '#64748b' }}>{lead.orgName}</div>
+                      {lead.website && <div style={{ fontSize: 11, color: '#94a3b8' }}>{lead.website}</div>}
+                    </td>
+                    <td style={{ ...s.tableCell, textAlign: 'center', fontSize: 12 }}>{lead.email}</td>
+                    <td style={{ ...s.tableCell, textAlign: 'center' }}>
+                      <Badge label={lead.planRequested || '—'} style={{ background: '#f0f9ff', color: '#0284c7' }} />
+                    </td>
+                    <td style={{ ...s.tableCell, textAlign: 'center', fontSize: 12 }}>
+                      {lead.cycleName ? `${lead.cycleName} ${lead.cycleYear || ''}` : '—'}
+                    </td>
+                    <td style={{ ...s.tableCell, textAlign: 'center' }}>
+                      <Badge
+                        label={String(lead.riskScore ?? '—')}
+                        style={lead.riskScore != null ? RISK_COLOR(lead.riskScore) : { background: '#f1f5f9', color: '#64748b' }}
+                      />
+                    </td>
+                    <td style={{ ...s.tableCell, textAlign: 'center' }}>
+                      <Badge label={lead.status} style={STATUS_COLOR[lead.status] || { background: '#f1f5f9', color: '#64748b' }} />
+                    </td>
+                    <td style={{ ...s.tableCell, textAlign: 'center', fontSize: 12, whiteSpace: 'nowrap' }}>
+                      {formatShortDate(lead.createdAt)}
+                    </td>
+                    <td style={{ ...s.tableCell, textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap' }}>
+                        {lead.status === 'pending_review' && (
+                          <>
+                            <button
+                              disabled={!!busy}
+                              onClick={() => action(lead.id, 'approve')}
+                              style={btnStyle('#16a34a', !!busy)}
+                            >
+                              {busy === 'approve' ? '…' : 'Approve'}
+                            </button>
+                            <button
+                              disabled={!!busy}
+                              onClick={() => action(lead.id, 'reject')}
+                              style={btnStyle('#dc2626', !!busy)}
+                            >
+                              {busy === 'reject' ? '…' : 'Reject'}
+                            </button>
+                          </>
+                        )}
+                        {(lead.status === 'approved' || lead.status === 'pending_review') && !lead.orgApiKey && (
+                          <button
+                            disabled={!!busy}
+                            onClick={() => action(lead.id, 'issue-sandbox')}
+                            style={btnStyle('#7c3aed', !!busy)}
+                          >
+                            {busy === 'issue-sandbox' ? '…' : 'Sandbox Key'}
+                          </button>
+                        )}
+                        {lead.orgApiKey && (
+                          <button
+                            onClick={() => navigator.clipboard?.writeText(lead.orgApiKey)}
+                            style={btnStyle('#0284c7', false)}
+                            title={lead.orgApiKey}
+                          >
+                            Copy Key
+                          </button>
+                        )}
+                        {msg[lead.id] && (
+                          <span style={{ fontSize: 11, color: msg[lead.id].startsWith('✓') ? '#16a34a' : '#dc2626', alignSelf: 'center' }}>
+                            {msg[lead.id]}
+                          </span>
+                        )}
+                      </div>
+                      {lead.cycles?.length > 0 && (
+                        <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>
+                          {lead.cycles.length} cycle{lead.cycles.length > 1 ? 's' : ''}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function paginationButtonStyle(disabled) {
   return {
     border: '1px solid #cbd5e1',
@@ -701,6 +921,8 @@ export default function MonitoringDashboard() {
 
         <UsersTable users={filteredUsers} page={page} pageSize={FREE_PAGE_SIZE} onPageChange={setPage} />
       </div>
+
+      <FunderLeadsPanel />
 
       <style>{`
         @keyframes shimmer {

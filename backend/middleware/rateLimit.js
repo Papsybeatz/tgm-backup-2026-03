@@ -28,8 +28,18 @@ const passwordResetLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Funder API intake: 5 requests per 15 minutes per IP
+const funderIntakeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: 'Too many funder API key requests. Please try again in 15 minutes.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 module.exports = {
   agentLimiter,
+  funderIntakeLimiter,
   uploadLimiter,
   passwordResetLimiter,
 };

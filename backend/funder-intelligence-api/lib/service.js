@@ -386,7 +386,7 @@ async function getFunderById(funderId) {
   return db.funders[funderId] || null;
 }
 
-function validateAndResolveFunder(auth, body, options = {}) {
+async function validateAndResolveFunder(auth, body, options = {}) {
   const funderId = String(body?.funder_id || auth?.funder_id || '').trim();
   if (!funderId) {
     throw new Error('funder_id is required.');
@@ -405,11 +405,27 @@ function validateAndResolveFunder(auth, body, options = {}) {
     throw new Error('application or applications payload is required.');
   }
 
+  // Enforce cycle entitlement for production keys
+  const isSandbox = auth?.key_scope === 'sandbox';
+  const cycleId = body?.cycle_id ? String(body.cycle_id).trim() : null;
+
+  if (!isSandbox && !options.skipCycleCheck) {
+    if (!cycleId) {
+      const err = new Error('cycle_id is required for production API keys. Include cycle_id in your request body.');
+      err.statusCode = 400;
+      throw err;
+    }
+    const db = await readDatabase();
+    assertCycleEntitlement(db, funderId, cycleId);
+  }
+
   return {
     funder,
     body,
     application,
     applicationList: applications,
+    cycleId,
+    isSandbox,
   };
 }
 
@@ -1008,6 +1024,133 @@ async function emitWorkflowWebhook(funder, eventType, payload) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Internal provisioning — called only via /internal/* routes (secret-gated)
+// ---------------------------------------------------------------------------
+
+async function provisionInternalFunder({ name, orgName, email, planTier = 'scale', keyScope = 'production', rubric } = {}) {
+  const db = await readDatabase();
+
+  // Idempotent: find existing funder by org_email or org_name match
+  const existingKeyEntry = Object.entries(db.apiKeys)
+    .find(([, v]) => v.org_email === email || v.org_name === orgName);
+  if (existingKeyEntry) {
+    const [existingKey, existingKeyRecord] = existingKeyEntry;
+    const existingFunder = db.funders[existingKeyRecord.funder_id];
+    if (existingFunder) {
+      return { funder_id: existingFunder.id, api_key: existingKey, plan_tier: existingFunder.plan_tier, already_existed: true };
+    }
+  }
+
+  const criteria = rubric?.criteria?.length
+    ? normalizeRubricCriteria(rubric.criteria)
+    : getDefaultEnterpriseRubric().criteria;
+
+  const funderId = createId('funder');
+  const apiKey = createApiKey(keyScope);
+  const now = nowIso();
+
+  const funderRecord = buildFunderRecord({ funderId, name: name || orgName, payload: {}, criteria, now, tier: planTier });
+  funderRecord.account_status = 'active';
+  funderRecord.org_email = email;
+  funderRecord.org_name = orgName;
+
+  await withDatabase((nextDb) => {
+    nextDb.funders[funderId] = funderRecord;
+    nextDb.apiKeys[apiKey] = {
+      funder_id: funderId,
+      created_at: now,
+      label: 'primary',
+      key_scope: keyScope,
+      org_name: orgName,
+      org_email: email,
+      last_used_at: null,
+      revoked_at: null,
+      expires_at: null,
+    };
+    nextDb.auditLogs.push({ id: createId('log'), type: 'internal_funder_provisioned', funder_id: funderId, created_at: now });
+    return nextDb;
+  });
+
+  return { funder_id: funderId, api_key: apiKey, plan_tier: planTier, already_existed: false };
+}
+
+async function activateCycleEntitlement({ funderId, cycleId, planKey, applicationsAllowed, stripePaymentIntentId, expiresAt } = {}) {
+  if (!funderId || !cycleId) throw new Error('funderId and cycleId are required.');
+  const now = nowIso();
+
+  await withDatabase((db) => {
+    const existing = db.entitlements[cycleId];
+    db.entitlements[cycleId] = {
+      cycle_id: cycleId,
+      funder_id: funderId,
+      plan_key: planKey || 'scale',
+      applications_allowed: Number(applicationsAllowed) || 50,
+      applications_used: existing?.applications_used || 0,
+      status: 'active',
+      stripe_payment_intent_id: stripePaymentIntentId || null,
+      activated_at: existing?.activated_at || now,
+      expires_at: expiresAt || null,
+    };
+    if (!db.cycleUsage[cycleId]) db.cycleUsage[cycleId] = [];
+    db.auditLogs.push({ id: createId('log'), type: 'cycle_entitlement_activated', funder_id: funderId, cycle_id: cycleId, created_at: now });
+    return db;
+  });
+
+  return { cycle_id: cycleId, funder_id: funderId, status: 'active' };
+}
+
+/**
+ * Validates that funderId has an active, non-expired, non-exhausted entitlement for cycleId.
+ * Throws an error with a statusCode property if the check fails.
+ * Must be called with a pre-read db snapshot to avoid extra I/O in hot paths.
+ */
+function assertCycleEntitlement(db, funderId, cycleId) {
+  const entitlement = db.entitlements[cycleId];
+  if (!entitlement) {
+    const err = new Error(`No active cycle entitlement for cycle_id "${cycleId}". Complete checkout to activate this cycle.`);
+    err.statusCode = 402;
+    throw err;
+  }
+  if (entitlement.funder_id !== funderId) {
+    const err = new Error('Cycle entitlement does not belong to this funder.');
+    err.statusCode = 403;
+    throw err;
+  }
+  if (entitlement.status !== 'active') {
+    const err = new Error(`Cycle entitlement status is "${entitlement.status}". An active paid cycle is required.`);
+    err.statusCode = 402;
+    throw err;
+  }
+  if (entitlement.expires_at && new Date(entitlement.expires_at) < new Date()) {
+    const err = new Error('Cycle entitlement has expired. Renew to continue scoring.');
+    err.statusCode = 402;
+    throw err;
+  }
+  if (entitlement.applications_used >= entitlement.applications_allowed) {
+    const err = new Error(
+      `Cycle quota reached (${entitlement.applications_used}/${entitlement.applications_allowed}). Contact TGM to increase your cycle limit.`
+    );
+    err.statusCode = 429;
+    throw err;
+  }
+  return entitlement;
+}
+
+async function recordCycleUsage(cycleId, appId) {
+  if (!cycleId || !appId) return;
+  await withDatabase((db) => {
+    if (!db.cycleUsage[cycleId]) db.cycleUsage[cycleId] = [];
+    if (!db.cycleUsage[cycleId].includes(appId)) {
+      db.cycleUsage[cycleId].push(appId);
+      if (db.entitlements[cycleId]) {
+        db.entitlements[cycleId].applications_used = db.cycleUsage[cycleId].length;
+      }
+    }
+    return db;
+  });
+}
+
 module.exports = {
   buildCycleIntelligence,
   buildEnterpriseMonthlyReport,
@@ -1026,4 +1169,9 @@ module.exports = {
   upsertWebhookConfig,
   updateEnterpriseConfig,
   validateAndResolveFunder,
+  // Cycle entitlement & internal provisioning
+  activateCycleEntitlement,
+  assertCycleEntitlement,
+  provisionInternalFunder,
+  recordCycleUsage,
 };
