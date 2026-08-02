@@ -30,7 +30,7 @@ app.use(function(req, res, next) {
   const hostHeader = (req.headers.host || '').toLowerCase();
   const host = hostHeader.split(':')[0];
   if (process.env.NODE_ENV === 'production' && host === ROOT_HOST) {
-    const target = https://;
+    const target = `https://${CANONICAL_HOST}${req.originalUrl || '/'}`;
     return res.redirect(301, target);
   }
   return next();
@@ -238,4 +238,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`[STRIPE] Funder Scale:    ${process.env.STRIPE_FUNDER_SCALE_PRICE_ID     || 'MISSING âœ—'}`);
   console.log(`[STRIPE] Funder Ent:      ${process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'MISSING âœ—'}`);
 });
+
 
