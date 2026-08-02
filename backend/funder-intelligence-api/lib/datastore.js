@@ -19,6 +19,10 @@ const defaultDatabase = () => ({
   },
   supportTickets: {},
   monthlyReports: {},
+  // Per-cycle entitlements: { [cycleId]: { funder_id, plan_key, applications_allowed, applications_used, status, activated_at, expires_at, stripe_payment_intent_id } }
+  entitlements: {},
+  // Per-cycle app usage: { [cycleId]: Set<appId> } — stored as arrays in JSON
+  cycleUsage: {},
 });
 
 async function ensureDatabase() {

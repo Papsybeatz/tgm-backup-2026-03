@@ -117,3 +117,85 @@ model Profile {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+
+// ---------------------------------------------------------------------------
+// Funder Intelligence API — sidecar intake, identity, and cycle billing
+// ---------------------------------------------------------------------------
+
+enum FunderLeadStatus {
+  pending_review
+  approved
+  rejected
+  sandbox_issued
+  production_active
+}
+
+enum FunderCycleStatus {
+  pending_payment
+  active
+  expired
+  cancelled
+}
+
+model FunderLead {
+  id              String           @id @default(cuid())
+  name            String
+  orgName         String
+  email           String
+  role            String?
+  website         String?
+  country         String?
+  planRequested   String?
+  cycleName       String?
+  cycleYear       Int?
+  expectedVolume  Int?
+  message         String?
+  source          String           @default("funder-api-request")
+  riskScore       Int?
+  riskReasons     String[]
+
+  status          FunderLeadStatus @default(pending_review)
+
+  // Set after sidecar provisioning
+  sidecarFunderId String?
+  orgApiKey       String?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  cycles          FunderCycle[]
+
+  @@index([email])
+  @@index([status])
+}
+
+model FunderCycle {
+  id                     String            @id @default(cuid())
+  funderLeadId           String
+  funderLead             FunderLead        @relation(fields: [funderLeadId], references: [id])
+
+  cycleName              String
+  cycleYear              Int
+  planKey                String
+
+  status                 FunderCycleStatus @default(pending_payment)
+
+  stripeCheckoutSessionId String?
+  stripePaymentIntentId   String?
+  stripeCustomerId        String?
+  stripePriceId           String?
+
+  // Mirrored from sidecar after activation
+  sidecarCycleId          String?
+  applicationsAllowed     Int               @default(50)
+  applicationsUsed        Int               @default(0)
+
+  activatedAt             DateTime?
+  expiresAt               DateTime?
+
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+
+  @@unique([funderLeadId, cycleName, cycleYear])
+  @@index([status])
+}

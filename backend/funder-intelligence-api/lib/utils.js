@@ -41,8 +41,9 @@ function createId(prefix) {
   return `${prefix}_${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`;
 }
 
-function createApiKey() {
-  return `tgm_fi_${crypto.randomBytes(24).toString('hex')}`;
+function createApiKey(scope = 'production') {
+  const prefix = scope === 'sandbox' ? 'tgm_fi_sb' : 'tgm_fi_pk';
+  return `${prefix}_${crypto.randomBytes(24).toString('hex')}`;
 }
 
 function parseNumber(value) {
