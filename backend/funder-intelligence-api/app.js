@@ -18,6 +18,7 @@ const {
   updateEnterpriseConfig,
   provisionInternalFunder,
   activateCycleEntitlement,
+  recordCycleUsage,
 } = require('./lib/service');
 const { requireApiKey } = require('./lib/auth');
 
@@ -101,16 +102,18 @@ app.post('/application/score', async (req, res) => {
   const startedAt = Date.now();
   let funder = null;
   try {
-    const payload = validateAndResolveFunder(req.auth, req.body || {});
+    const payload = await validateAndResolveFunder(req.auth, req.body || {});
     funder = payload.funder;
     const score = scoreApplication(payload.funder, payload.application);
+    await recordCycleUsage(payload.cycleId, payload.application?.id || score.application_id);
     const webhookDelivery = await emitWorkflowWebhook(payload.funder, 'application.score', score);
     const response = { ...score, webhook_delivery: webhookDelivery };
     await monitorRequest(payload.funder, 'application.score', 200, startedAt);
     return res.status(200).json(response);
   } catch (error) {
-    await monitorRequest(funder || req.auth?.funder, 'application.score', 400, startedAt);
-    return res.status(400).json({ message: error.message || 'Application scoring failed.' });
+    const statusCode = error.statusCode || 400;
+    await monitorRequest(funder || req.auth?.funder, 'application.score', statusCode, startedAt);
+    return res.status(statusCode).json({ message: error.message || 'Application scoring failed.' });
   }
 });
 
@@ -118,16 +121,18 @@ app.post('/application/funder-fit', async (req, res) => {
   const startedAt = Date.now();
   let funder = null;
   try {
-    const payload = validateAndResolveFunder(req.auth, req.body || {});
+    const payload = await validateAndResolveFunder(req.auth, req.body || {});
     funder = payload.funder;
     const fit = evaluateFunderFit(payload.funder, payload.application);
+    await recordCycleUsage(payload.cycleId, payload.application?.id || fit.application_id);
     const webhookDelivery = await emitWorkflowWebhook(payload.funder, 'application.funder-fit', fit);
     const response = { ...fit, webhook_delivery: webhookDelivery };
     await monitorRequest(payload.funder, 'application.funder-fit', 200, startedAt);
     return res.status(200).json(response);
   } catch (error) {
-    await monitorRequest(funder || req.auth?.funder, 'application.funder-fit', 400, startedAt);
-    return res.status(400).json({ message: error.message || 'Funder-fit evaluation failed.' });
+    const statusCode = error.statusCode || 400;
+    await monitorRequest(funder || req.auth?.funder, 'application.funder-fit', statusCode, startedAt);
+    return res.status(statusCode).json({ message: error.message || 'Funder-fit evaluation failed.' });
   }
 });
 
@@ -135,16 +140,21 @@ app.post('/batch/score', async (req, res) => {
   const startedAt = Date.now();
   let funder = null;
   try {
-    const payload = validateAndResolveFunder(req.auth, req.body || {});
+    const payload = await validateAndResolveFunder(req.auth, req.body || {});
     funder = payload.funder;
     const result = await scoreBatch(payload.funder, payload.body, payload.applicationList);
+    // Record usage sequentially to avoid concurrent file write collisions
+    for (const a of result.applications || []) {
+      await recordCycleUsage(payload.cycleId, a.application_id);
+    }
     const webhookDelivery = await emitWorkflowWebhook(payload.funder, 'batch.score', result);
     const response = { ...result, webhook_delivery: webhookDelivery };
     await monitorRequest(payload.funder, 'batch.score', 200, startedAt);
     return res.status(200).json(response);
   } catch (error) {
-    await monitorRequest(funder || req.auth?.funder, 'batch.score', 400, startedAt);
-    return res.status(400).json({ message: error.message || 'Batch scoring failed.' });
+    const statusCode = error.statusCode || 400;
+    await monitorRequest(funder || req.auth?.funder, 'batch.score', statusCode, startedAt);
+    return res.status(statusCode).json({ message: error.message || 'Batch scoring failed.' });
   }
 });
 
@@ -152,7 +162,7 @@ app.post('/cycle/intelligence', async (req, res) => {
   const startedAt = Date.now();
   let funder = null;
   try {
-    const payload = validateAndResolveFunder(req.auth, req.body || {});
+    const payload = await validateAndResolveFunder(req.auth, req.body || {}, { skipCycleCheck: true });
     funder = payload.funder;
     const result = await buildCycleIntelligence(payload.funder, payload.body, payload.applicationList);
     const webhookDelivery = await emitWorkflowWebhook(payload.funder, 'cycle.intelligence', result);
@@ -160,18 +170,19 @@ app.post('/cycle/intelligence', async (req, res) => {
     await monitorRequest(payload.funder, 'cycle.intelligence', 200, startedAt);
     return res.status(200).json(response);
   } catch (error) {
-    await monitorRequest(funder || req.auth?.funder, 'cycle.intelligence', 400, startedAt);
-    return res.status(400).json({ message: error.message || 'Cycle intelligence failed.' });
+    const statusCode = error.statusCode || 400;
+    await monitorRequest(funder || req.auth?.funder, 'cycle.intelligence', statusCode, startedAt);
+    return res.status(statusCode).json({ message: error.message || 'Cycle intelligence failed.' });
   }
 });
 
 app.post('/webhook/config', async (req, res) => {
   try {
-    const payload = validateAndResolveFunder(req.auth, req.body || {}, { allowMissingApplications: true });
+    const payload = await validateAndResolveFunder(req.auth, req.body || {}, { allowMissingApplications: true, skipCycleCheck: true });
     const result = await upsertWebhookConfig(payload.funder, payload.body);
     return res.status(200).json(result);
   } catch (error) {
-    return res.status(400).json({ message: error.message || 'Webhook configuration failed.' });
+    return res.status(error.statusCode || 400).json({ message: error.message || 'Webhook configuration failed.' });
   }
 });
 

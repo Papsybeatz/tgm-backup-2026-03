@@ -386,7 +386,7 @@ async function getFunderById(funderId) {
   return db.funders[funderId] || null;
 }
 
-function validateAndResolveFunder(auth, body, options = {}) {
+async function validateAndResolveFunder(auth, body, options = {}) {
   const funderId = String(body?.funder_id || auth?.funder_id || '').trim();
   if (!funderId) {
     throw new Error('funder_id is required.');
@@ -405,11 +405,27 @@ function validateAndResolveFunder(auth, body, options = {}) {
     throw new Error('application or applications payload is required.');
   }
 
+  // Enforce cycle entitlement for production keys
+  const isSandbox = auth?.key_scope === 'sandbox';
+  const cycleId = body?.cycle_id ? String(body.cycle_id).trim() : null;
+
+  if (!isSandbox && !options.skipCycleCheck) {
+    if (!cycleId) {
+      const err = new Error('cycle_id is required for production API keys. Include cycle_id in your request body.');
+      err.statusCode = 400;
+      throw err;
+    }
+    const db = await readDatabase();
+    assertCycleEntitlement(db, funderId, cycleId);
+  }
+
   return {
     funder,
     body,
     application,
     applicationList: applications,
+    cycleId,
+    isSandbox,
   };
 }
 

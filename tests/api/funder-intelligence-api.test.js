@@ -98,6 +98,21 @@ test('Funder Intelligence API v1 workflow', async () => {
     const apiKey = register.body.api_key;
     const funderId = register.body.funder_id;
 
+    // Activate a test cycle entitlement before scoring
+    const TEST_CYCLE_ID = 'fall-2026';
+    const activateRes = await request('/internal/cycles/activate', {
+      method: 'POST',
+      headers: INTERNAL_HEADERS,
+      body: JSON.stringify({
+        funderId,
+        cycleId: TEST_CYCLE_ID,
+        planKey: 'scale',
+        applicationsAllowed: 500,
+      }),
+    });
+    assert.equal(activateRes.response.status, 200);
+    assert.equal(activateRes.body.status, 'active');
+
     const sampleApplication = {
       id: 'app_001',
       org_profile: {
@@ -126,6 +141,7 @@ test('Funder Intelligence API v1 workflow', async () => {
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey },
       body: JSON.stringify({
         funder_id: funderId,
+        cycle_id: TEST_CYCLE_ID,
         application: sampleApplication,
       }),
     });
@@ -139,6 +155,7 @@ test('Funder Intelligence API v1 workflow', async () => {
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey },
       body: JSON.stringify({
         funder_id: funderId,
+        cycle_id: TEST_CYCLE_ID,
         application: sampleApplication,
       }),
     });
@@ -202,6 +219,7 @@ test('Funder Intelligence API v1 workflow', async () => {
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey },
       body: JSON.stringify({
         funder_id: funderId,
+        cycle_id: TEST_CYCLE_ID,
         application: { ...sampleApplication, id: 'app_003' },
       }),
     });
