@@ -147,3 +147,8 @@ dev-server.mjs
 backend/prisma/prisma/
 backend/node_modules/
 backend/prisma/dev.db
+
+# local test artifacts and sidecar data
+test-results/
+backend/funder-intelligence-api/data/*.json
+backend/tmp_*.js
