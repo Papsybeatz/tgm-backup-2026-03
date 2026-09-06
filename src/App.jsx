@@ -41,6 +41,8 @@ import BlueprintHTML from './pages/lead-magnet/grant-workflow-blueprint/Blueprin
 // Layout + guards
 import AppLayout from './components/AppLayout';
 import { RequireAuth, RequireOnboarding, AdminGuard, FounderGuard } from './components/ProtectedRoute';
+import StudyBuddyDashboard from './components/StudyBuddyDashboard';
+import StudyBuddySettings from './components/StudyBuddySettings';
 
 function App() {
   return (
@@ -81,6 +83,8 @@ function App() {
                 <Route path="/terms"   element={<TermsPage />} />
                 <Route path="/onboarding" element={<RequireAuth><OnboardingPage /></RequireAuth>} />
                 <Route path="/dashboard"  element={<RequireOnboarding><UnifiedDashboard /></RequireOnboarding>} />
+                <Route path="/studybuddy" element={<StudyBuddyDashboard />} />
+                <Route path="/studybuddy/settings" element={<StudyBuddySettings />} />
                 <Route path="/clients" element={<RequireOnboarding><ClientsPage /></RequireOnboarding>} />
                 <Route path="/clients/:id" element={<RequireOnboarding><ClientWorkspacePage /></RequireOnboarding>} />
                 <Route path="/scott" element={<RequireOnboarding><FounderGuard><ScottDistributionPage /></FounderGuard></RequireOnboarding>} />
