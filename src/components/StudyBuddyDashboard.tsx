@@ -1,116 +1,69 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const timetable = [
-  { time: "08:00", subject: "Chemistry", topic: "Electrochemistry", status: "Priority", tone: "gold" },
-  { time: "10:30", subject: "Mathematics", topic: "Algebraic manipulation", status: "Up next", tone: "blue" },
-  { time: "15:00", subject: "Physics", topic: "Mechanics practice", status: "Planned", tone: "purple" },
-];
-
-const contextItems = [
-  { label: "Report card", detail: "Grades and strengths", complete: true },
-  { label: "Syllabus", detail: "Topics and competencies", complete: true },
-  { label: "School calendar", detail: "Exams and deadlines", complete: false },
+const subjects = ["Biology", "Chemistry", "Physics", "Elective Math", "Core Math"];
+const weakAreas = ["Physics Mechanics", "Organic Chemistry"];
+const tests = [
+  { subject: "Physics", date: "Feb 14", fullDate: "Feb 14, 2025" },
+  { subject: "Chemistry", date: "Feb 19", fullDate: "Feb 19, 2025" },
 ];
 
 export default function StudyBuddyDashboard() {
-  const [activeTab, setActiveTab] = useState("Overview");
-  const [uploaded, setUploaded] = useState(false);
-
   return (
-    <main className="studybuddy-shell">
-      <aside className="studybuddy-sidebar">
-        <div className="studybuddy-brand">
-          <span className="studybuddy-brand-mark">S</span>
-          <span>StudyBuddy</span>
+    <main className="studybuddy-original-shell">
+      <aside className="studybuddy-original-sidebar">
+        <div className="studybuddy-original-logo">
+          <span className="studybuddy-original-mark">SB</span>
+          <strong>StudyBuddy</strong>
+          <small>Pope John SHS</small>
+          <em>Student learning portal</em>
         </div>
-        <p className="studybuddy-sidebar-label">Your workspace</p>
-        {["Overview", "Timetable", "Study sessions", "Documents", "NSMQ training"].map((item) => (
-          <button
-            className={`studybuddy-nav-item ${activeTab === item ? "is-active" : ""}`}
-            key={item}
-            onClick={() => setActiveTab(item)}
-          >
-            <span className="studybuddy-nav-dot" />
-            {item}
-          </button>
-        ))}
-        <div className="studybuddy-sidebar-footer">
-          <Link to="/studybuddy/settings" className="studybuddy-nav-item">
-            <span className="studybuddy-nav-dot" />
-            Settings
-          </Link>
-          <div className="studybuddy-profile">
-            <span className="studybuddy-avatar">AM</span>
-            <span><strong>Alex Morgan</strong><small>Senior student</small></span>
-          </div>
-        </div>
+        <nav className="studybuddy-original-nav" aria-label="StudyBuddy navigation">
+          {[
+            ["Dashboard", "/studybuddy"],
+            ["Study MVP", "/studybuddy"],
+            ["Learn", "/studybuddy"],
+            ["Past Papers", "/studybuddy"],
+            ["Progress", "/studybuddy"],
+            ["Revision Plan", "/studybuddy"],
+            ["Settings", "/studybuddy/settings"],
+          ].map(([label, path], index) => (
+            <Link className={index === 0 ? "is-active" : ""} key={label} to={path}>
+              <span className="studybuddy-nav-icon">{["⌂", "✦", "▣", "▤", "◒", "▦", "⚙"][index]}</span>
+              {label}
+            </Link>
+          ))}
+        </nav>
+        <div className="studybuddy-original-user"><span>K</span><div><strong>Kwadwo Asare</strong><small>Science</small></div></div>
       </aside>
 
-      <section className="studybuddy-content">
-        <header className="studybuddy-topbar">
-          <div>
-            <p className="studybuddy-eyebrow">Sunday, 6 September 2026</p>
-            <h1>Good morning, Alex.</h1>
-            <p className="studybuddy-subtitle">Your plan is ready. Small, focused steps add up.</p>
-          </div>
-          <div className="studybuddy-top-actions">
-            <button className="studybuddy-icon-button" aria-label="Notifications">!</button>
-            <button className="btn btn-primary" onClick={() => setActiveTab("Study sessions")}>Start a session</button>
-          </div>
+      <section className="studybuddy-original-main">
+        <header className="studybuddy-original-header">
+          <div><strong>Pope John Senior High School</strong><small>StudyBuddy Portal · Welcome back, <b>Kwadwo Asare</b></small></div>
+          <div className="studybuddy-original-header-actions"><span>◷ 0 days</span><span className="studybuddy-difficulty">easy difficulty</span><Link to="/">Sign out</Link></div>
         </header>
-
-        <div className="studybuddy-tabs">
-          {["Overview", "Timetable", "Study sessions", "Documents", "NSMQ training"].map((item) => (
-            <button key={item} className={activeTab === item ? "is-active" : ""} onClick={() => setActiveTab(item)}>
-              {item}
-            </button>
-          ))}
-        </div>
-
-        <div className="studybuddy-hero">
-          <div>
-            <span className="studybuddy-pill">TODAY'S FOCUS</span>
-            <h2>Build momentum in your weakest topics.</h2>
-            <p>Your timetable has prioritized Electrochemistry before your midterm in 12 days.</p>
-            <button className="btn btn-primary" onClick={() => setActiveTab("Study sessions")}>Continue learning</button>
-          </div>
-          <div className="studybuddy-countdown">
-            <span>Midterms</span>
-            <strong>12</strong>
-            <small>days left</small>
-          </div>
-        </div>
-
-        <div className="studybuddy-stat-grid">
-          <div className="studybuddy-stat-card"><span>Weekly progress</span><strong>68%</strong><small className="is-positive">+12% this week</small></div>
-          <div className="studybuddy-stat-card"><span>Topics mastered</span><strong>24<span className="muted">/36</span></strong><small>12 topics to revisit</small></div>
-          <div className="studybuddy-stat-card"><span>Study streak</span><strong>7 days</strong><small className="is-positive">Best: 14 days</small></div>
-          <div className="studybuddy-stat-card"><span>Next session</span><strong>08:00</strong><small>Chemistry · 45 min</small></div>
-        </div>
-
-        <div className="studybuddy-dashboard-grid">
-          <section className="studybuddy-panel">
-            <div className="studybuddy-panel-heading"><div><span className="studybuddy-section-kicker">PERSONALIZED PLAN</span><h3>Today's timetable</h3></div><button className="studybuddy-text-button" onClick={() => setActiveTab("Timetable")}>View full plan</button></div>
-            <div className="studybuddy-timetable">
-              {timetable.map((item) => <div className="studybuddy-time-row" key={item.time}><time>{item.time}</time><span className={`studybuddy-subject-icon ${item.tone}`} /> <div><strong>{item.subject}</strong><p>{item.topic}</p></div><span className={`studybuddy-status ${item.tone}`}>{item.status}</span></div>)}
-            </div>
+        <div className="studybuddy-original-content">
+          <section className="studybuddy-welcome">
+            <div><p>Sunday, September 6</p><h1>Good morning, Kwadwo!</h1><span>I know Physics Mechanics has been tricky. Want to tackle it today?</span><div className="studybuddy-checkin"><b>Daily Check-In</b><span>How did your Physics test go today?</span></div></div>
+            <div className="studybuddy-streak"><strong>◔</strong><b>0 days streak</b><small>Come back tomorrow to start your streak.</small></div>
           </section>
+          <nav className="studybuddy-content-tabs"><button className="is-active">Overview</button><button>Subjects</button><button>Progress</button><button>Settings</button></nav>
 
-          <section className="studybuddy-panel">
-            <div className="studybuddy-panel-heading"><div><span className="studybuddy-section-kicker">ACADEMIC CONTEXT</span><h3>Complete your profile</h3></div><span className="studybuddy-progress-label">2 of 3</span></div>
-            <div className="studybuddy-context-list">
-              {contextItems.map((item) => <div className="studybuddy-context-row" key={item.label}><span className={`studybuddy-check ${item.complete ? "complete" : ""}`}>{item.complete ? "✓" : ""}</span><div><strong>{item.label}</strong><p>{item.detail}</p></div>{!item.complete && <button className="studybuddy-upload-button" onClick={() => setUploaded(true)}>{uploaded ? "Added" : "Add"}</button>}</div>)}
-            </div>
-            <p className="studybuddy-context-note">Adding your calendar lets StudyBuddy plan around exams and deadlines.</p>
-          </section>
+          <div className="studybuddy-original-grid">
+            <section className="studybuddy-original-card"><h2>✦ <span>Your Subjects</span></h2>{subjects.map((subject) => <div className="studybuddy-subject-row" key={subject}><span>◉</span><strong>{subject}</strong><small>Active</small></div>)}</section>
+            <section className="studybuddy-original-card"><h2>◒ <span>Weak Areas</span></h2><p className="studybuddy-card-note">Recommended next steps are prioritized from your recent study signals.</p>{weakAreas.map((area) => <Link className="studybuddy-weak-row" to="/studybuddy" key={area}>◈ <b>{area}</b><span>→</span></Link>)}<p className="studybuddy-card-note">Based on your disliked subjects: <b>Physics</b></p></section>
+            <section className="studybuddy-original-card"><h2>▦ <span>Upcoming Tests</span></h2>{tests.map((test) => <div className="studybuddy-test-row" key={test.subject}><div><b>{test.subject}</b><small>{test.fullDate}</small></div><strong>{test.date}</strong></div>)}</section>
+            <section className="studybuddy-original-card"><h2>▣ <span>Continue Learning</span></h2><b>Review weak topics</b><p className="studybuddy-card-note">Focus on: Physics Mechanics, Organic Chemistry</p><small>How you'll learn:</small><p className="studybuddy-card-note">View diagrams and infographics · Watch video explanations · See illustrated examples</p><Link className="studybuddy-gold-link" to="/studybuddy">Resume session history →</Link></section>
+          </div>
+
+          <div className="studybuddy-original-lower-grid">
+            <section className="studybuddy-original-card"><h2>♧ <span>Career Hints</span></h2><div className="studybuddy-careers"><b>Doctor</b><b>Engineer</b><b>Data Scientist</b></div></section>
+            <Link className="studybuddy-upload-card" to="/studybuddy"><strong>▤ <span>Upload Past Paper</span></strong><small>Upload a PDF or image to extract questions and detect weak areas</small></Link>
+          </div>
+
+          <section className="studybuddy-revision-card"><div><h2>▦ <span>Revision Plan</span></h2><p>2 weak areas prioritized for today</p><p>0 topics completed — reinforcement scheduled next week</p><small>Plan adapts to your streak, difficulty &amp; quiz performance</small></div><Link to="/studybuddy">View Plan →</Link></section>
+
+          <section className="studybuddy-upgrade-strip"><div><b>New: Academic Context</b><span>Connect your report card, syllabus, and school calendar for a more precise timetable.</span></div><Link to="/studybuddy/settings">Complete profile →</Link><div><b>NSMQ Training Hub</b><span>Timed drills and team mastery for science students.</span></div><Link to="/studybuddy">Enter hub →</Link></section>
         </div>
-
-        <section className="studybuddy-nsmq-card">
-          <div><span className="studybuddy-pill studybuddy-pill-dark">SCIENCE TEAM</span><h3>Train for the NSMQ</h3><p>Timed drills, high-difficulty questions, and team performance in one focused space.</p><button className="studybuddy-link-button" onClick={() => setActiveTab("NSMQ training")}>Enter training hub <span>→</span></button></div>
-          <div className="studybuddy-nsmq-metric"><strong>82%</strong><span>team mastery</span><div className="studybuddy-progress"><i /></div><small>+8% this month</small></div>
-          <div className="studybuddy-nsmq-metric"><strong>04:32</strong><span>average response</span><small>Top 20% this week</small></div>
-        </section>
       </section>
     </main>
   );
