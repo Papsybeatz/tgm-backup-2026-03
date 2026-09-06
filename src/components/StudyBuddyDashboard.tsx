@@ -21,10 +21,10 @@ export default function StudyBuddyDashboard() {
           {[
             ["Dashboard", "/studybuddy"],
             ["Study MVP", "/studybuddy"],
-            ["Learn", "/studybuddy"],
+            ["Learn", "/learn"],
             ["Past Papers", "/studybuddy"],
             ["Progress", "/studybuddy"],
-            ["Revision Plan", "/studybuddy"],
+            ["Revision Plan", "/timetable"],
             ["Settings", "/studybuddy/settings"],
           ].map(([label, path], index) => (
             <Link className={index === 0 ? "is-active" : ""} key={label} to={path}>
@@ -60,7 +60,7 @@ export default function StudyBuddyDashboard() {
             <Link className="studybuddy-upload-card" to="/studybuddy"><strong>▤ <span>Upload Past Paper</span></strong><small>Upload a PDF or image to extract questions and detect weak areas</small></Link>
           </div>
 
-          <section className="studybuddy-revision-card"><div><h2>▦ <span>Revision Plan</span></h2><p>2 weak areas prioritized for today</p><p>0 topics completed — reinforcement scheduled next week</p><small>Plan adapts to your streak, difficulty &amp; quiz performance</small></div><Link to="/studybuddy">View Plan →</Link></section>
+          <section className="studybuddy-revision-card"><div><h2>▦ <span>Revision Plan</span></h2><p>2 weak areas prioritized for today</p><p>0 topics completed — reinforcement scheduled next week</p><small>Plan adapts to your streak, difficulty &amp; quiz performance</small></div><Link to="/timetable">View Plan →</Link></section>
 
           <section className="studybuddy-upgrade-strip"><div><b>New: Academic Context</b><span>Connect your report card, syllabus, and school calendar for a more precise timetable.</span></div><Link to="/studybuddy/settings">Complete profile →</Link><div><b>NSMQ Training Hub</b><span>Timed drills and team mastery for science students.</span></div><Link to="/studybuddy">Enter hub →</Link></section>
         </div>

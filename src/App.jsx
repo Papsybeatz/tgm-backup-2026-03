@@ -43,6 +43,8 @@ import AppLayout from './components/AppLayout';
 import { RequireAuth, RequireOnboarding, AdminGuard, FounderGuard } from './components/ProtectedRoute';
 import StudyBuddyDashboard from './components/StudyBuddyDashboard';
 import StudyBuddySettings from './components/StudyBuddySettings';
+import StudyBuddyLearn from './components/StudyBuddyLearn';
+import StudyBuddyTimetable from './components/StudyBuddyTimetable';
 
 function App() {
   return (
@@ -85,6 +87,8 @@ function App() {
                 <Route path="/dashboard"  element={<RequireOnboarding><UnifiedDashboard /></RequireOnboarding>} />
                 <Route path="/studybuddy" element={<StudyBuddyDashboard />} />
                 <Route path="/studybuddy/settings" element={<StudyBuddySettings />} />
+                <Route path="/learn" element={<StudyBuddyLearn />} />
+                <Route path="/timetable" element={<StudyBuddyTimetable />} />
                 <Route path="/clients" element={<RequireOnboarding><ClientsPage /></RequireOnboarding>} />
                 <Route path="/clients/:id" element={<RequireOnboarding><ClientWorkspacePage /></RequireOnboarding>} />
                 <Route path="/scott" element={<RequireOnboarding><FounderGuard><ScottDistributionPage /></FounderGuard></RequireOnboarding>} />
