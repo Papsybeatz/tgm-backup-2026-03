@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import UpgradeButton from './UpgradeButton';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
 
@@ -187,13 +187,27 @@ function cellValue(value) {
 export default function PricingPage() {
   const { startCheckout, loading: checkoutLoading, error: checkoutError } = useStripeCheckout();
   const [priceIds, setPriceIds] = useState({});
+  const [searchParams] = useSearchParams();
+  const checkoutStarted = useRef(false);
 
   useEffect(() => {
     fetch('/api/checkout/prices')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Pricing is temporarily unavailable');
+        return res.json();
+      })
       .then((data) => setPriceIds(data.prices || {}))
       .catch(() => setPriceIds({}));
   }, []);
+
+  useEffect(() => {
+    const priceId = searchParams.get('checkout');
+    const token = localStorage.getItem('token');
+    if (priceId && token && !checkoutStarted.current) {
+      checkoutStarted.current = true;
+      startCheckout(priceId, { cancelPath: '/pricing' });
+    }
+  }, [priceIds, searchParams, startCheckout]);
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--tgm-bg)', color: 'var(--tgm-text)' }}>
@@ -292,7 +306,9 @@ export default function PricingPage() {
                   tierKey={plan.key}
                   href={plan.href}
                   priceId={priceId}
-                  onCheckout={priceId ? () => startCheckout(priceId) : undefined}
+                  onCheckout={priceId ? () => startCheckout(priceId, {
+                    loginRedirectPath: `/pricing?checkout=${encodeURIComponent(priceId)}`,
+                  }) : undefined}
                   loading={checkoutLoading}
                 >
                   {plan.cta}
@@ -341,7 +357,9 @@ export default function PricingPage() {
             <UpgradeButton
               tierKey="lifetime"
               priceId={priceIds.lifetime}
-              onCheckout={priceIds.lifetime ? () => startCheckout(priceIds.lifetime) : undefined}
+              onCheckout={priceIds.lifetime ? () => startCheckout(priceIds.lifetime, {
+                loginRedirectPath: `/pricing?checkout=${encodeURIComponent(priceIds.lifetime)}`,
+              }) : undefined}
               loading={checkoutLoading}
             >
               Unlock Lifetime Access
