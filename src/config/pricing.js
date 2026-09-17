@@ -95,9 +95,11 @@ const TIERS = {
       'Unlimited team seats',
       'Unlimited client folders',
       'Full white-label branding',
-      'API access (future)',
-      'Dedicated success manager',
-      'Quarterly strategy reviews',
+      'Priority support',
+      'Dedicated workspace setup',
+      'Multi-client dashboard',
+      'White-label reports',
+      'Quarterly strategy review',
       'Early access to new features'
     ]
   },

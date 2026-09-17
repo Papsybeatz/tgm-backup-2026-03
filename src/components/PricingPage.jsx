@@ -104,9 +104,11 @@ const PLAN_COPY = [
       'Unlimited team seats',
       'Unlimited client folders',
       'Full white-label branding',
-      'API access (future)',
-      'Dedicated success manager',
-      'Quarterly strategy reviews',
+      'Priority support',
+      'Dedicated workspace setup',
+      'Multi-client dashboard',
+      'White-label reports',
+      'Quarterly strategy review',
       'Early access to new features',
     ],
     cta: 'Upgrade to Agency+',
@@ -342,14 +344,14 @@ export default function PricingPage() {
               Founder&apos;s Offer
             </p>
             <h2 style={{ margin: '0 0 10px', fontSize: 30, fontWeight: 900, color: 'var(--tgm-navy)' }}>
-              Lifetime Access — Early Supporter Deal
+              Early Adopter Lifetime Access
             </h2>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 12 }}>
               <span style={{ fontSize: 44, fontWeight: 900, color: 'var(--tgm-navy)' }}>$149</span>
               <span style={{ fontSize: 15, color: 'var(--tgm-muted)', fontWeight: 800 }}>one-time</span>
             </div>
             <p style={{ margin: '0 0 14px', fontSize: 15, lineHeight: 1.7, color: 'var(--tgm-muted)' }}>
-              Limited to the first 200 users. Built for early adopters who want long-term access without a subscription.
+              Limited to 200 seats. Supports development of the NY Intelligence Module.
             </p>
             <p style={{ margin: '0 0 22px', fontSize: 14, fontWeight: 900, color: 'var(--tgm-navy)' }}>
               Includes everything in Pro, forever.

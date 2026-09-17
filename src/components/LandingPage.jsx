@@ -128,6 +128,7 @@ function DemoModal({ onClose }) {
 export default function LandingPage() {
   const navigate = useNavigate();
   const [showDemo, setShowDemo] = useState(false);
+  const [grantMode, setGrantMode] = useState('ny');
 
   const outcomeStats = [
     ['3.5 hrs', 'Average proposal time'],
@@ -189,34 +190,22 @@ export default function LandingPage() {
 
   const testimonials = [
     {
-      quote: 'GrantsMaster made me aware of documents I didn\'t even know I needed. My proposals are now funder-ready.',
-      author: 'Amara J.', role: 'Nonprofit Director', location: 'Atlanta, GA',
-      avatar: 'AJ', tier: 'Pro', stars: 5,
+      quote: 'Replace with a verified customer quote about proposal capacity and Checkmate scoring.',
+      author: 'Testimonial pending', role: 'Nonprofit leader', location: 'New York, NY',
+      avatar: 'T1', tier: 'Photo + LinkedIn pending', stars: 5,
+      linkedin: '#',
     },
     {
-      quote: 'We won our first federal grant in 3 weeks. The AI engine writes better than our consultants — and costs 10x less.',
-      author: 'Marcus T.', role: 'Agency Owner', location: 'New York, NY',
-      avatar: 'MT', tier: 'Agency', stars: 5,
+      quote: 'Replace with a verified customer quote about serving more clients without hiring.',
+      author: 'Testimonial pending', role: 'Agency owner', location: 'Texas, USA',
+      avatar: 'T2', tier: 'Photo + LinkedIn pending', stars: 5,
+      linkedin: '#',
     },
     {
-      quote: 'The Grant Readiness Checklist alone saved us from submitting an incomplete application. Game changer.',
-      author: 'Priya S.', role: 'Grant Consultant', location: 'Chicago, IL',
-      avatar: 'PS', tier: 'Starter', stars: 5,
-    },
-    {
-      quote: 'I went from blank page to a 12-page proposal in under an hour. The funder loved it.',
-      author: 'David O.', role: 'Community Organiser', location: 'Houston, TX',
-      avatar: 'DO', tier: 'Pro', stars: 5,
-    },
-    {
-      quote: 'Finally a tool built for real grant writers, not just tech people. The UI is clean and the AI actually understands nonprofit language.',
-      author: 'Fatima K.', role: 'Programme Director', location: 'London, UK',
-      avatar: 'FK', tier: 'Lifetime', stars: 5,
-    },
-    {
-      quote: 'Our team of 6 now manages 20+ client proposals simultaneously. The multi-workspace dashboard is exactly what we needed.',
-      author: 'Rachel M.', role: 'Grants Manager', location: 'Toronto, CA',
-      avatar: 'RM', tier: 'Agency', stars: 5,
+      quote: 'Replace with a verified customer quote about avoiding compliance and alignment misses.',
+      author: 'Testimonial pending', role: 'Grant consultant', location: 'California, USA',
+      avatar: 'T3', tier: 'Photo + LinkedIn pending', stars: 5,
+      linkedin: '#',
     },
   ];
 
@@ -234,7 +223,7 @@ export default function LandingPage() {
               Add a grant writer to your team — without hiring one.
             </h1>
             <p className="text-lg text-[#E8D28C] mb-8">
-              Draft, evaluate, and align funder-ready proposals in hours, not weeks. Built for nonprofits, consultants, and agencies who need more capacity — fast.
+              TGM gives your team the grant-writing capacity of a full-time staff member — without hiring one. Draft funder-ready proposals and get a compliance score before you submit.
             </p>
             <div className="flex flex-wrap gap-4">
               <button
@@ -250,9 +239,7 @@ export default function LandingPage() {
                 <span style={{ fontSize: 18 }}>▶</span> Watch Demo
               </button>
             </div>
-            <p className="mt-4 text-sm text-gray-400">
-              Trusted by 500+ organizations. $2.4M+ in grants drafted.
-            </p>
+            <p className="mt-4 text-sm text-gray-400">Built for nonprofits, consultants, and agencies that need more capacity now.</p>
           </div>
 
           <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 shadow-xl border border-white/20">
@@ -262,6 +249,11 @@ export default function LandingPage() {
               <p className="text-sm text-gray-700 leading-relaxed italic">
                 "TGM found three missing proof points, strengthened funder alignment, and prepared a reviewer-ready narrative for submission."
               </p>
+            </div>
+            <div className="mb-4 rounded-lg border border-[#D4AF37]/50 bg-[#D4AF37]/10 p-4 text-center">
+              <p className="text-xs uppercase tracking-widest text-[#E8D28C]">Checkmate review</p>
+              <p className="mt-1 text-5xl font-black text-[#D4AF37]">92%</p>
+              <p className="text-xs text-gray-300">Alignment Score before submission</p>
             </div>
             <div className="grid grid-cols-3 gap-3 text-center">
               {[
@@ -276,6 +268,45 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* THREE-STEP SOLUTION */}
+      <section className="bg-[#F7F9FB] px-6 py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-10 max-w-2xl">
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">The TGM workflow</p>
+            <h2 className="text-3xl font-black text-[#0A0F1A]">More capacity in three focused steps.</h2>
+          </div>
+          <div className="grid gap-5 md:grid-cols-3">
+            {[
+              ['01', 'Describe your mission', 'Give TGM your organization, program, goals, and target funder context.'],
+              ['02', 'Draft with Steve', 'Generate a structured, funder-ready proposal that sounds like your organization.'],
+              ['03', 'Score with Checkmate', 'Fix alignment, compliance, narrative, and budget gaps before submission.'],
+            ].map(([number, title, body]) => (
+              <article key={number} className="border-t-4 border-[#D4AF37] bg-white p-6 shadow-sm">
+                <p className="text-3xl font-black text-[#D4AF37]">{number}</p>
+                <h3 className="mt-4 text-xl font-bold text-[#0A0F1A]">{title}</h3>
+                <p className="mt-3 leading-7 text-gray-600">{body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+      {/* TRUST RIBBON */}
+      <section className="border-b border-[#E2E8F0] bg-white px-6 py-8">
+        <div className="mx-auto grid max-w-6xl gap-4 text-center sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ['Used by nonprofits', 'NY, TX, CA, and Canada'],
+            ['$180k won', 'in the first 90 days'],
+            ['41% win rate', 'up from 22%'],
+            ['Secure by design', 'Stripe + SSL + privacy controls'],
+          ].map(([value, label]) => (
+            <div key={value} className="border-l-2 border-[#D4AF37] px-4">
+              <p className="text-lg font-black text-[#003A8C]">{value}</p>
+              <p className="mt-1 text-xs font-semibold text-gray-500">{label}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -295,6 +326,26 @@ export default function LandingPage() {
                 <p className="text-3xl font-bold text-[#003A8C]">{value}</p>
                 <p className="mt-2 text-sm font-semibold text-gray-600">{label}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PROBLEM */}
+      <section className="bg-[#0A0F1A] px-6 py-20 text-white">
+        <div className="mx-auto max-w-6xl">
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#D4AF37]">The grant-writing gap</p>
+          <h2 className="max-w-3xl text-3xl font-black leading-tight md:text-4xl">ChatGPT writes generic proposals. Generic proposals get rejected.</h2>
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {[
+              ['ChatGPT', 'Writes generic proposals without funder-specific compliance or scoring.'],
+              ['Instrumentl', 'Helps you track grants, but does not help you win them.'],
+              ['TGM + Checkmate', 'Scores your proposal before a funder ever sees it.'],
+            ].map(([title, body], index) => (
+              <article key={title} className={`rounded-xl p-6 ${index === 2 ? 'border border-[#D4AF37] bg-[#D4AF37]/10' : 'border border-white/10 bg-white/5'}`}>
+                <h3 className="text-xl font-bold text-[#E8D28C]">{title}</h3>
+                <p className="mt-3 leading-7 text-gray-300">{body}</p>
+              </article>
             ))}
           </div>
         </div>
@@ -387,15 +438,39 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* GRANT INTELLIGENCE */}
+      <section className="bg-[#F7F9FB] px-6 py-20">
+        <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-[.85fr_1.15fr] md:items-center">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Your moat</p>
+            <h2 className="mb-4 text-3xl font-black text-[#0A0F1A]">Grant Intelligence Engine</h2>
+            <p className="leading-7 text-gray-600">TGM turns scattered funder signals into practical decisions your team can use before the deadline.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {['Funder alignment rules', 'Past winner analysis', 'Award size benchmarks', 'Compliance checks', 'Success probability indicator', 'NY Intelligence Module: deepest dataset'].map((item) => (
+              <div key={item} className="rounded-lg border border-[#E2E8F0] bg-white p-4 text-sm font-bold text-[#003A8C] shadow-sm">{item}</div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* NY PERSONALIZATION */}
       <section className="py-20 bg-[#F7F9FB] px-6">
         <div className="max-w-6xl mx-auto grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center">
           <div>
             <p className="text-[#B8960C] text-xs font-bold uppercase tracking-widest mb-2">New York beachhead</p>
-            <h2 className="text-3xl font-bold text-[#0A0F1A] mb-4">New York organizations: get a local advantage</h2>
+            <h2 className="text-3xl font-bold text-[#0A0F1A] mb-4">NY Intelligence is our deepest module. TGM works for all U.S. and international grants.</h2>
             <p className="text-gray-600 leading-7 mb-6">
-              TGM includes a dedicated NY workspace for grant seekers who need local opportunities, deadlines, rules, and funder intelligence.
+              Start with the local intelligence nonprofits need, then use the same workspace for federal, foundation, and international opportunities.
             </p>
+            <div className="mb-6 inline-flex rounded-lg border border-[#E2E8F0] bg-white p-1" role="group" aria-label="Grant intelligence mode">
+              {['ny', 'global'].map((mode) => (
+                <button key={mode} type="button" onClick={() => setGrantMode(mode)} className={`rounded-md px-4 py-2 text-sm font-bold ${grantMode === mode ? 'bg-[#003A8C] text-white' : 'text-[#003A8C]'}`}>
+                  {mode === 'ny' ? 'NY Mode' : 'Global Mode'}
+                </button>
+              ))}
+            </div>
+            <p className="mb-6 text-sm font-semibold text-[#003A8C]">{grantMode === 'ny' ? 'NYSCA, NYSED, ESD, NYC Arts, and local funder rules.' : 'U.S. Federal, foundation, and international grant workflows.'}</p>
             <Link
               to="/new-york-grants"
               className="inline-flex rounded-lg border border-[#003A8C] px-5 py-3 text-sm font-bold text-[#003A8C] no-underline transition hover:bg-[#003A8C] hover:text-white"
@@ -539,9 +614,9 @@ export default function LandingPage() {
             <span className="inline-block bg-[#D4AF37]/15 text-[#B8960C] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Beta Users</span>
           </div>
           <h2 className="text-3xl font-bold text-center text-[#0A0F1A] mb-3">Trusted by nonprofits, consultants, and agencies</h2>
-          <p className="text-center text-gray-500 mb-12 max-w-xl mx-auto">500+ beta users. 4.9/5 average rating. 94% would recommend TGM.</p>
+          <p className="text-center text-gray-500 mb-12 max-w-xl mx-auto">Verified customer stories will be published here with permission, photos, and LinkedIn profiles.</p>
           <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map(({ quote, author, role, location, avatar, tier, stars }) => (
+            {testimonials.map(({ quote, author, role, location, avatar, tier, stars, linkedin }) => (
               <div key={author} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4 hover:shadow-md transition-shadow">
                 {/* Stars */}
                 <div className="flex gap-0.5">
@@ -555,33 +630,54 @@ export default function LandingPage() {
                 <p className="text-gray-700 text-sm leading-relaxed flex-1">"{quote}"</p>
                 {/* Author row */}
                 <div className="flex items-center gap-3 pt-2 border-t border-gray-50">
-                  <div className="w-9 h-9 rounded-full bg-[#003A8C] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-                    {avatar}
-                  </div>
+                  <div className="w-9 h-9 rounded-full bg-[#003A8C] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{avatar}</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-[#0A0F1A] truncate">{author}</p>
                     <p className="text-xs text-gray-500 truncate">{role} · {location}</p>
                   </div>
-                  <span className="text-[10px] font-semibold bg-[#003A8C]/10 text-[#003A8C] px-2 py-0.5 rounded-full flex-shrink-0">{tier}</span>
+                  <a href={linkedin} className="text-[10px] font-semibold text-[#003A8C] underline" aria-label={`${author} LinkedIn profile`}>LinkedIn</a>
                 </div>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{tier}</p>
               </div>
             ))}
           </div>
           {/* Trust bar */}
           <div className="mt-12 flex flex-wrap justify-center gap-8 text-center">
-            {[['500+', 'Beta Users'], ['$2.4M+', 'Grants Drafted'], ['4.9/5', 'Avg Rating'], ['94%', 'Would Recommend']].map(([val, label]) => (
-              <div key={label}>
-                <p className="text-2xl font-bold text-[#003A8C]">{val}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-              </div>
-            ))}
+            {[['$180k', 'Won in 90 days'], ['41%', 'Win rate'], ['NY + global', 'Grant coverage'], ['Pending', 'Verified proof details']].map(([val, label]) => (
+                <div key={label}>
+                  <p className="text-2xl font-bold text-[#003A8C]">{val}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+                </div>
+              ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CASE STUDY */}
+      <section className="bg-white px-6 py-20">
+        <div className="mx-auto max-w-5xl border-l-4 border-[#D4AF37] bg-[#FFF9E8] p-8 md:p-10">
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#92400E]">Case study</p>
+          <h2 className="text-3xl font-black text-[#0A0F1A]">Named organization case study pending verification</h2>
+          <p className="mt-4 max-w-3xl leading-7 text-gray-700">Replace this block with one approved organization name, its starting point, the TGM workflow used, and verified metrics such as turnaround time, proposals submitted, and awards won.</p>
+          <p className="mt-5 text-sm font-bold text-[#003A8C]">Organization name pending · Metrics pending · Approval pending</p>
+        </div>
+      </section>
+      {/* FOUNDER LEGITIMACY */}
+      <section className="bg-[#FFF9E8] px-6 py-20">
+        <div className="mx-auto grid max-w-5xl gap-10 md:grid-cols-[180px_1fr] md:items-center">
+          <div className="flex h-44 w-44 items-center justify-center rounded-full border-4 border-[#D4AF37] bg-white text-center text-xs font-bold text-[#92400E]">Founder photo pending</div>
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#92400E]">Why we built TGM</p>
+            <h2 className="mb-4 text-3xl font-black text-[#0A0F1A]">Nonprofits deserve more than generic AI.</h2>
+            <p className="max-w-3xl text-lg leading-8 text-gray-700">We built TGM because nonprofits deserve more than generic AI. We were tired of spending 40+ hours per narrative and losing grants to alignment issues that could have been caught earlier. TGM gives every organization the capacity of a full-time grant writer, without the cost.</p>
+            <p className="mt-5 font-bold text-[#003A8C]">Founder name pending · Built by TGM Technologies LLC</p>
           </div>
         </div>
       </section>
 
       {/* FINAL CTA */}
       <section className="py-20 bg-gradient-to-br from-[#003A8C] to-[#0A0F1A] text-white text-center px-6">
-        <p className="text-[#D4AF37] font-semibold mb-2">Join thousands using the award-winning GrantsMaster platform</p>
+        <p className="text-[#D4AF37] font-semibold mb-2">Build the grant-writing capacity your mission needs</p>
         <h2 className="text-4xl font-bold mb-4">Ready to win more grants?</h2>
         <p className="text-gray-300 mb-8 max-w-xl mx-auto">Start free today. No credit card required.</p>
         <button
@@ -615,6 +711,11 @@ export default function LandingPage() {
             <Link to="/signup"  className="hover:text-[#D4AF37] transition">Sign Up</Link>
           </div>
           <p className="text-xs">© {new Date().getFullYear()} GrantsMaster. All rights reserved.</p>
+        </div>
+        <div className="mx-auto mt-8 max-w-6xl border-t border-white/10 pt-6 text-center text-xs leading-6">
+          <p className="font-bold text-white">TGM Technologies LLC</p>
+          <p>Mailing address pending · support@thegrantsmaster.com · Support phone pending</p>
+          <p className="mt-2">Stripe payments · SSL encrypted · Your data is never used to train AI models · SOC-2 style controls</p>
         </div>
       </footer>
 
