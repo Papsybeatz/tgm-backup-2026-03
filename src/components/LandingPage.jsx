@@ -335,11 +335,11 @@ export default function LandingPage() {
       <section className="bg-[#0A0F1A] px-6 py-20 text-white">
         <div className="mx-auto max-w-6xl">
           <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#D4AF37]">The grant-writing gap</p>
-          <h2 className="max-w-3xl text-3xl font-black leading-tight md:text-4xl">ChatGPT writes generic proposals. Generic proposals get rejected.</h2>
+          <h2 className="max-w-3xl text-3xl font-black leading-tight md:text-4xl">Generic tools produce generic proposals. Generic proposals get rejected.</h2>
           <div className="mt-10 grid gap-5 md:grid-cols-3">
             {[
-              ['ChatGPT', 'Writes generic proposals without funder-specific compliance or scoring.'],
-              ['Instrumentl', 'Helps you track grants, but does not help you win them.'],
+              ['Generic writing tools', 'Can help create a first draft, but usually lack funder-specific compliance and scoring.'],
+              ['Grant tracking tools', 'Can help organize opportunities, but do not strengthen the proposal itself.'],
               ['TGM + Checkmate', 'Scores your proposal before a funder ever sees it.'],
             ].map(([title, body], index) => (
               <article key={title} className={`rounded-xl p-6 ${index === 2 ? 'border border-[#D4AF37] bg-[#D4AF37]/10' : 'border border-white/10 bg-white/5'}`}>
@@ -519,23 +519,23 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="mb-8 text-center">
             <p className="text-[#B8960C] text-xs font-bold uppercase tracking-widest mb-2">Built for grants</p>
-            <h2 className="text-3xl font-bold text-[#0A0F1A]">Why teams choose TGM over generic AI tools</h2>
-            <p className="text-gray-600 mt-3">TGM is built specifically for grants — not general writing.</p>
+            <h2 className="text-3xl font-bold text-[#0A0F1A]">One workflow for grant capacity and intelligence</h2>
+            <p className="text-gray-600 mt-3">TGM combines drafting, funder intelligence, compliance checks, and pre-submission scoring in one workspace.</p>
           </div>
           <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
             <table className="min-w-full border-collapse text-left text-sm">
               <thead className="bg-[#0A0F1A] text-white">
                 <tr>
-                  {['Feature', 'TGM', 'ChatGPT', 'Instrumentl'].map((heading) => (
+                  {['Feature', 'TGM', 'Generic writing tools', 'Grant tracking tools'].map((heading) => (
                     <th key={heading} className="px-5 py-4 font-bold">{heading}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {comparisonRows.map(([feature, tgm, chatgpt, instrumentl]) => (
+                {comparisonRows.map(([feature, tgm, genericWriting, grantTracking]) => (
                   <tr key={feature} className="border-t border-[#E2E8F0]">
                     <td className="px-5 py-4 font-semibold text-gray-800">{feature}</td>
-                    {[tgm, chatgpt, instrumentl].map((enabled, index) => (
+                    {[tgm, genericWriting, grantTracking].map((enabled, index) => (
                       <td key={`${feature}-${index}`} className="px-5 py-4">
                         <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${enabled ? 'bg-[#D4AF37] text-[#0A0F1A]' : 'bg-gray-100 text-gray-400'}`}>
                           {enabled ? '✓' : '—'}

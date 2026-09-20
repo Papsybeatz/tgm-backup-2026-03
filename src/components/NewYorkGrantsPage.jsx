@@ -281,16 +281,16 @@ export default function NewYorkGrantsPage() {
             <table className="min-w-full border-collapse text-left text-sm">
               <thead className="bg-[#0A0F1A] text-white">
                 <tr>
-                  {['Feature', 'TGM', 'ChatGPT', 'Instrumentl'].map((heading) => (
+                  {['Feature', 'TGM', 'Generic writing tools', 'Grant tracking tools'].map((heading) => (
                     <th key={heading} className="px-5 py-4 font-bold">{heading}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {comparisonRows.map(([feature, tgm, chatgpt, instrumentl]) => (
+                {comparisonRows.map(([feature, tgm, genericWriting, grantTracking]) => (
                   <tr key={feature} className="border-t border-[#E2E8F0]">
                     <td className="px-5 py-4 font-semibold text-gray-800">{feature}</td>
-                    {[tgm, chatgpt, instrumentl].map((enabled, index) => (
+                    {[tgm, genericWriting, grantTracking].map((enabled, index) => (
                       <td key={`${feature}-${index}`} className="px-5 py-4">
                         <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${enabled ? 'bg-[#D4AF37] text-[#0A0F1A]' : 'bg-gray-100 text-gray-400'}`}>
                           {enabled ? '✓' : '—'}

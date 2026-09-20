@@ -271,25 +271,25 @@ export default function ConsultantLandingPage() {
         <div className="mx-auto max-w-6xl">
           <div className="mb-8 text-center">
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Consultant differentiation</p>
-            <h2 className="text-3xl font-bold text-[#0A0F1A]">Why consultants choose TGM over generic AI tools</h2>
+            <h2 className="text-3xl font-bold text-[#0A0F1A]">Why consultants choose TGM over disconnected tools</h2>
             <p className="mt-3 text-gray-600">
-              Generic AI tools can’t manage clients, evaluate drafts, or maintain compliance. TGM is built for professional grant writers.
+              Separate writing and tracking tools leave gaps between client context, draft quality, and submission readiness. TGM brings the full workflow together for professional grant writers.
             </p>
           </div>
           <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
             <table className="min-w-full border-collapse text-left text-sm">
               <thead className="bg-[#0A0F1A] text-white">
                 <tr>
-                  {['Feature', 'TGM', 'ChatGPT', 'Instrumentl'].map((heading) => (
+                  {['Feature', 'TGM', 'Generic writing tools', 'Grant tracking tools'].map((heading) => (
                     <th key={heading} className="px-5 py-4 font-bold">{heading}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {comparisonRows.map(([feature, tgm, chatgpt, instrumentl]) => (
+                {comparisonRows.map(([feature, tgm, genericWriting, grantTracking]) => (
                   <tr key={feature} className="border-t border-[#E2E8F0]">
                     <td className="px-5 py-4 font-semibold text-gray-800">{feature}</td>
-                    {[tgm, chatgpt, instrumentl].map((enabled, index) => (
+                    {[tgm, genericWriting, grantTracking].map((enabled, index) => (
                       <td key={`${feature}-${index}`} className="px-5 py-4">
                         <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${enabled ? 'bg-[#D4AF37] text-[#0A0F1A]' : 'bg-gray-100 text-gray-400'}`}>
                           {enabled ? '✓' : '—'}
