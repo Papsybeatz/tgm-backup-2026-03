@@ -665,12 +665,31 @@ export default function LandingPage() {
       {/* FOUNDER LEGITIMACY */}
       <section className="bg-[#FFF9E8] px-6 py-20">
         <div className="mx-auto grid max-w-5xl gap-10 md:grid-cols-[180px_1fr] md:items-center">
-          <div className="flex h-44 w-44 items-center justify-center rounded-full border-4 border-[#D4AF37] bg-white text-center text-xs font-bold text-[#92400E]">Founder photo pending</div>
+          <div className="flex h-44 w-44 items-center justify-center overflow-hidden rounded-full border-4 border-[#D4AF37] bg-white shadow-sm ring-1 ring-[#D4AF37]/30">
+            <img
+              src="/founder-headshot.jpg"
+              alt="Thomas Clottey"
+              className="h-full w-full object-cover"
+            />
+          </div>
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#92400E]">Why we built TGM</p>
-            <h2 className="mb-4 text-3xl font-black text-[#0A0F1A]">Nonprofits deserve more than generic AI.</h2>
-            <p className="max-w-3xl text-lg leading-8 text-gray-700">We built TGM because nonprofits deserve more than generic AI. We were tired of spending 40+ hours per narrative and losing grants to alignment issues that could have been caught earlier. TGM gives every organization the capacity of a full-time grant writer, without the cost.</p>
-            <p className="mt-5 font-bold text-[#003A8C]">Founder name pending · Built by TGM Technologies LLC</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#92400E]">Founder&apos;s note</p>
+            <h2 className="mb-4 text-3xl font-black text-[#0A0F1A]">Our mission is simple: help nonprofits win more grants with less stress.</h2>
+            <p className="max-w-3xl text-lg leading-8 text-gray-700">
+              As part of my passion to build AI-powered web applications and software that solve real pain points, I built The Grants Master because nonprofits deserve more than generic AI. After years of watching teams spend 40+ hours on a single narrative—and still lose funding due to avoidable alignment issues—I knew there had to be a better way.
+            </p>
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-gray-700">
+              TGM gives every organization the grant-writing capacity of a full-time staff member, without the cost. With Steve drafting funder-ready narratives and Checkmate scoring proposals before submission, you finally get clarity, speed, and confidence in one place.
+            </p>
+            <div className="mt-7 space-y-2 text-[#003A8C]">
+              <p className="font-bold">Thomas Clottey</p>
+              <p className="font-medium">Full Stack / AI Software Developer</p>
+              <p className="font-medium">Founder, The Grants Master</p>
+              <p className="mt-4 text-sm font-medium text-gray-800">Legal Entity: Gee Oh Dee (Tech) LLC</p>
+              <p className="text-sm text-gray-800">4210 Electric Road #1038</p>
+              <p className="text-sm text-gray-800">Roanoke, VA 24018</p>
+              <p className="text-sm text-gray-800">United States</p>
+            </div>
           </div>
         </div>
       </section>
