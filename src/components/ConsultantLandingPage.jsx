@@ -59,9 +59,9 @@ const collaborationFeatures = [
 ];
 
 const caseStudies = [
-  'A solo consultant in Manhattan increased throughput from 4 to 12 clients using TGM’s multi-client folders and Checkmate scoring.',
-  'A Brooklyn agency reduced proposal turnaround time from 10 hours to 3.5 hours using Steve + Checkmate.',
-  'A Queens consultant added $300k in client wins by using TGM’s funder alignment tools.',
+  'A solo consultant in Manhattan manages multiple clients with TGM multi-client folders and Checkmate scoring.',
+  'A Brooklyn agency uses Steve and Checkmate to speed up proposal drafts and reviews.',
+  'A Queens consultant uses TGM funder alignment tools to strengthen client proposals before submission.',
 ];
 
 const comparisonRows = [
@@ -253,13 +253,13 @@ export default function ConsultantLandingPage() {
       <section className="bg-[#F7F9FB] px-6 py-20">
         <div className="mx-auto max-w-6xl">
           <div className="mb-8 max-w-3xl">
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Consultant success stories</p>
-            <h2 className="text-3xl font-bold text-[#0A0F1A]">How consultants grow with TGM</h2>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">How consultants use TGM</p>
+            <h2 className="text-3xl font-bold text-[#0A0F1A]">How consultants work with TGM</h2>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {caseStudies.map((story, index) => (
               <div key={story} className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
-                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Case Study {index + 1}</p>
+                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Workflow {index + 1}</p>
                 <p className="text-sm leading-7 text-gray-700">{story}</p>
               </div>
             ))}
