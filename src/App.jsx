@@ -14,6 +14,8 @@ import BillingProcessingPage from './components/BillingProcessingPage';
 import ContactPage from './components/ContactPage';
 import PrivacyPage from './components/PrivacyPage';
 import TermsPage from './components/TermsPage';
+import TrustPage from './components/TrustPage';
+import AboutPage from './components/AboutPage';
 import NewYorkGrantsPage from './components/NewYorkGrantsPage';
 import NewYorkChecklistPage from './components/NewYorkChecklistPage';
 import ConsultantLandingPage from './components/ConsultantLandingPage';
@@ -79,6 +81,8 @@ function App() {
                 <Route path="/new-york-grants/checklist" element={<NewYorkChecklistPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/terms"   element={<TermsPage />} />
+                <Route path="/trust"   element={<TrustPage />} />
+                <Route path="/about"   element={<AboutPage />} />
                 <Route path="/onboarding" element={<RequireAuth><OnboardingPage /></RequireAuth>} />
                 <Route path="/dashboard"  element={<RequireOnboarding><UnifiedDashboard /></RequireOnboarding>} />
                 <Route path="/clients" element={<RequireOnboarding><ClientsPage /></RequireOnboarding>} />
