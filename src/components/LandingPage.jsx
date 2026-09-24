@@ -703,7 +703,9 @@ export default function LandingPage() {
             <span className="text-white font-semibold">GrantsMaster</span>
           </div>
           <div className="flex gap-6 text-sm">
+            <Link to="/features" className="hover:text-[#D4AF37] transition">Features</Link>
             <Link to="/pricing" className="hover:text-[#D4AF37] transition">Pricing</Link>
+            <Link to="/customers" className="hover:text-[#D4AF37] transition">Customers</Link>
             <Link to="/new-york-grants" className="hover:text-[#D4AF37] transition">NY Grants</Link>
             <Link to="/consultants" className="hover:text-[#D4AF37] transition">Consultants</Link>
             <Link to="/trust" className="hover:text-[#D4AF37] transition">Trust</Link>
