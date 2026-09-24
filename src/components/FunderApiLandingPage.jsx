@@ -333,10 +333,10 @@ export default function FunderApiLandingPage() {
   }, []);
 
   const trustStats = [
-    ['500+', 'Organizations on TGM'],
-    ['$2.4M+', 'In grants drafted'],
-    ['98%', 'Scoring accuracy target'],
+    ['Rubric-based', 'Your criteria, your weights'],
     ['< 500ms', 'Avg API response time'],
+    ['Stripe', 'Secured payments'],
+    ['U.S. company', 'Gee Oh Dee (Tech) LLC'],
   ];
 
   const capabilities = [
