@@ -147,11 +147,11 @@ export default function GrantWorkflowBlueprintPage() {
                 borderRadius: 12,
               }}>
                 <p style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: '#D4AF37' }}>
-                  $180k
+                  6 steps
                 </p>
                 <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,.7)', lineHeight: 1.5 }}>
-                  in new grants won in 90 days by a 3-person team using this workflow.
-                  Win rate: 22% → 41%.
+                  that turn scattered grant research into a funder-ready workflow you can
+                  run with the team you already have.
                 </p>
               </div>
             </div>

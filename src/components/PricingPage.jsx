@@ -142,7 +142,7 @@ const SECURITY_POINTS = [
   'Your data is never used to train AI models',
   'Encrypted at rest and in transit',
   'Human-in-the-loop workflows',
-  'SOC-2 style security practices',
+  'Security practices designed around SOC 2 principles',
   'GDPR/CCPA aligned',
   'Secure document storage',
 ];

@@ -102,8 +102,10 @@ export default function ContactPage() {
 
             {[
               { icon: '✉️', label: 'Email', value: 'support@thegrantsmaster.com' },
+              { icon: '📞', label: 'Phone', value: '(540) 566-9760' },
               { icon: '⏱️', label: 'Response time', value: 'Within 24 hours' },
               { icon: '🌍', label: 'Available', value: 'Mon – Fri, 9am – 6pm EST' },
+              { icon: '🇺🇸', label: 'Company', value: 'Gee Oh Dee (Tech) LLC · 4210 Electric Road #1038, Roanoke, VA 24018' },
             ].map(({ icon, label, value }) => (
               <div key={label} style={{
                 display: 'flex', alignItems: 'flex-start', gap: 16,

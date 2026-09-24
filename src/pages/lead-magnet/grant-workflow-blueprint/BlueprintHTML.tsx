@@ -123,14 +123,14 @@ export default function BlueprintHTML() {
           Grant Workflow Blueprint
         </h1>
         <p style={{ margin: '0 0 24px', fontSize: 16, color: 'rgba(255,255,255,.75)' }}>
-          The 6-step system that cuts proposal time from 12 hours to 3.5 hours
-          and improves win rates by 40%+
+          The 6-step system for turning scattered grant research into a
+          funder-ready workflow your team can run
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 32 }}>
           {[
-            { value: '3.5 hrs', label: 'Per proposal' },
-            { value: '41%',     label: 'Win rate' },
-            { value: '$180k',   label: 'In 90 days' },
+            { value: '6 steps', label: 'End to end' },
+            { value: 'Checkmate', label: 'Pre-submission scoring' },
+            { value: 'Free',    label: 'No credit card' },
           ].map(({ value, label }) => (
             <div key={label} style={{ textAlign: 'center' }}>
               <p style={{ margin: 0, fontSize: 24, fontWeight: 800, color: '#D4AF37' }}>{value}</p>

@@ -131,10 +131,10 @@ export default function LandingPage() {
   const [grantMode, setGrantMode] = useState('ny');
 
   const outcomeStats = [
-    ['3.5 hrs', 'Average proposal time'],
-    ['41%', 'Win rate, up from 22%'],
-    ['$180k', 'Won in the first 90 days'],
-    ['40%', 'Cost reduction for teams'],
+    ['Checkmate', 'Pre-submission scoring engine'],
+    ['Steve', 'In-app drafting assistant'],
+    ['NY Intelligence', 'Our deepest funder module'],
+    ['< 24 hrs', 'Support response, Mon–Fri'],
   ];
 
   const capacityBullets = [
@@ -149,7 +149,7 @@ export default function LandingPage() {
     'Encrypted at rest and in transit',
     'Human-in-the-loop workflows',
     'Transparent AI governance for nonprofits',
-    'SOC-2 style security practices',
+    'Security practices designed around SOC 2 principles',
   ];
 
   const alignmentBullets = [
@@ -186,27 +186,6 @@ export default function LandingPage() {
     ['NY personalization', true, false, false],
     ['Grant readiness score', true, false, false],
     ['Consultant mode', true, false, false],
-  ];
-
-  const testimonials = [
-    {
-      quote: 'Replace with a verified customer quote about proposal capacity and Checkmate scoring.',
-      author: 'Testimonial pending', role: 'Nonprofit leader', location: 'New York, NY',
-      avatar: 'T1', tier: 'Photo + LinkedIn pending', stars: 5,
-      linkedin: '#',
-    },
-    {
-      quote: 'Replace with a verified customer quote about serving more clients without hiring.',
-      author: 'Testimonial pending', role: 'Agency owner', location: 'Texas, USA',
-      avatar: 'T2', tier: 'Photo + LinkedIn pending', stars: 5,
-      linkedin: '#',
-    },
-    {
-      quote: 'Replace with a verified customer quote about avoiding compliance and alignment misses.',
-      author: 'Testimonial pending', role: 'Grant consultant', location: 'California, USA',
-      avatar: 'T3', tier: 'Photo + LinkedIn pending', stars: 5,
-      linkedin: '#',
-    },
   ];
 
   return (
@@ -258,7 +237,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-3 gap-3 text-center">
               {[
                 ['Draft', 'Ready'],
-                ['Checkmate', '94%'],
+                ['Checkmate', '92%'],
                 ['Deadline', 'On track'],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-lg bg-white/10 px-3 py-3">
@@ -297,10 +276,10 @@ export default function LandingPage() {
       <section className="border-b border-[#E2E8F0] bg-white px-6 py-8">
         <div className="mx-auto grid max-w-6xl gap-4 text-center sm:grid-cols-2 lg:grid-cols-4">
           {[
-            ['Used by nonprofits', 'NY, TX, CA, and Canada'],
-            ['$180k won', 'in the first 90 days'],
-            ['41% win rate', 'up from 22%'],
-            ['Secure by design', 'Stripe + SSL + privacy controls'],
+            ['Used by nonprofits', 'NY, TX, CA, VA & Canada'],
+            ['Real founder', 'Gee Oh Dee (Tech) LLC'],
+            ['Secure by design', 'Stripe + SSL + encryption at rest'],
+            ['Free to start', 'No credit card required'],
           ].map(([value, label]) => (
             <div key={value} className="border-l-2 border-[#D4AF37] px-4">
               <p className="text-lg font-black text-[#003A8C]">{value}</p>
@@ -314,10 +293,10 @@ export default function LandingPage() {
       <section className="py-16 bg-[#F7F9FB] border-t-4 border-[#D4AF37] px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
-            <p className="text-[#B8960C] text-xs font-bold uppercase tracking-widest mb-2">Outcome proof</p>
-            <h2 className="text-3xl font-bold text-[#0A0F1A]">Grant writers win more with TGM</h2>
+            <p className="text-[#B8960C] text-xs font-bold uppercase tracking-widest mb-2">What TGM does</p>
+            <h2 className="text-3xl font-bold text-[#0A0F1A]">Capability, not hype</h2>
             <p className="text-gray-600 mt-3 max-w-3xl mx-auto">
-              TGM turns your ideas into funder-aligned proposals with the accuracy, structure, and compliance reviewers expect.
+              TGM turns your ideas into funder-aligned proposals with the structure and compliance checks reviewers expect. Try it free and judge the output yourself.
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-4">
@@ -607,59 +586,57 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
+      {/* HONEST PROOF */}
       <section id="testimonials" className="py-20 bg-[#F8F9FC] px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-4">
-            <span className="inline-block bg-[#D4AF37]/15 text-[#B8960C] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Beta Users</span>
+            <span className="inline-block bg-[#D4AF37]/15 text-[#B8960C] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">Honest by default</span>
           </div>
-          <h2 className="text-3xl font-bold text-center text-[#0A0F1A] mb-3">Trusted by nonprofits, consultants, and agencies</h2>
-          <p className="text-center text-gray-500 mb-12 max-w-xl mx-auto">Verified customer stories will be published here with permission, photos, and LinkedIn profiles.</p>
+          <h2 className="text-3xl font-bold text-center text-[#0A0F1A] mb-3">We&apos;re early. We&apos;d rather earn proof than fake it.</h2>
+          <p className="text-center text-gray-500 mb-12 max-w-2xl mx-auto">We don&apos;t publish placeholder quotes or invented reviews. Here is what we can show you today.</p>
           <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map(({ quote, author, role, location, avatar, tier, stars, linkedin }) => (
-              <div key={author} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4 hover:shadow-md transition-shadow">
-                {/* Stars */}
-                <div className="flex gap-0.5">
-                  {Array.from({ length: stars }).map((_, i) => (
-                    <svg key={i} className="w-4 h-4 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                {/* Quote */}
-                <p className="text-gray-700 text-sm leading-relaxed flex-1">"{quote}"</p>
-                {/* Author row */}
-                <div className="flex items-center gap-3 pt-2 border-t border-gray-50">
-                  <div className="w-9 h-9 rounded-full bg-[#003A8C] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{avatar}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#0A0F1A] truncate">{author}</p>
-                    <p className="text-xs text-gray-500 truncate">{role} · {location}</p>
-                  </div>
-                  <a href={linkedin} className="text-[10px] font-semibold text-[#003A8C] underline" aria-label={`${author} LinkedIn profile`}>LinkedIn</a>
-                </div>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{tier}</p>
+            {[
+              ["Real users, real places", "Nonprofits and agencies in New York, Texas, California, Virginia, and Canada use TGM today."],
+              ["A named founder and a real company", "Gee Oh Dee (Tech) LLC — reachable by phone and email. No anonymous AI wrapper."],
+              ["A product you can judge yourself", "Run your own draft through Checkmate, free, with no credit card. Test the output, not the marketing."],
+            ].map(([title, body]) => (
+              <div key={title} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 className="text-lg font-bold text-[#0A0F1A] mb-2">{title}</h3>
+                <p className="text-sm leading-relaxed text-gray-600">{body}</p>
               </div>
             ))}
           </div>
-          {/* Trust bar */}
-          <div className="mt-12 flex flex-wrap justify-center gap-8 text-center">
-            {[['$180k', 'Won in 90 days'], ['41%', 'Win rate'], ['NY + global', 'Grant coverage'], ['Pending', 'Verified proof details']].map(([val, label]) => (
-                <div key={label}>
-                  <p className="text-2xl font-bold text-[#003A8C]">{val}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-                </div>
-              ))}
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <button onClick={() => navigate('/signup')} className="rounded-lg bg-[#D4AF37] px-6 py-3 text-sm font-bold text-[#0A0F1A]">Run your own draft free →</button>
+            <a href="mailto:support@thegrantsmaster.com?subject=My%20TGM%20story" className="rounded-lg border border-[#003A8C] px-6 py-3 text-sm font-bold text-[#003A8C] no-underline">Using TGM? Tell us your story →</a>
           </div>
         </div>
       </section>
 
-      {/* CASE STUDY */}
-      <section className="bg-white px-6 py-20">
-        <div className="mx-auto max-w-5xl border-l-4 border-[#D4AF37] bg-[#FFF9E8] p-8 md:p-10">
-          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#92400E]">Case study</p>
-          <h2 className="text-3xl font-black text-[#0A0F1A]">Named organization case study pending verification</h2>
-          <p className="mt-4 max-w-3xl leading-7 text-gray-700">Replace this block with one approved organization name, its starting point, the TGM workflow used, and verified metrics such as turnaround time, proposals submitted, and awards won.</p>
-          <p className="mt-5 text-sm font-bold text-[#003A8C]">Organization name pending · Metrics pending · Approval pending</p>
+      {/* TRUST & TRANSPARENCY */}
+      <section id="trust" className="bg-[#0A0F1A] px-6 py-20 text-white">
+        <div className="mx-auto max-w-6xl">
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#D4AF37]">Trust &amp; Transparency</p>
+          <h2 className="max-w-3xl text-3xl font-black leading-tight md:text-4xl">Built by real people. Secured like it matters.</h2>
+          <p className="mt-4 max-w-3xl text-lg leading-8 text-gray-300">
+            Nonprofits handle sensitive budgets, board strategy, and compliance data. We treat that trust as the foundation — not a marketing line.
+          </p>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2">
+            {[
+              ["A real founder and a real company", "The Grants Master is built and run by Thomas Clottey, founder of Gee Oh Dee (Tech) LLC in Roanoke, Virginia. Named, reachable, and accountable."],
+              ["Used across the U.S. and Canada", "Nonprofits and agencies in New York, Texas, California, Virginia, and Canada use TGM today. We'd rather show real adoption than inflate numbers."],
+              ["Enterprise-grade data practices", "Payments secured by Stripe. SSL-encrypted sessions. Drafts encrypted at rest. GDPR & CCPA aligned. Your data is never used to train AI models."],
+              ["Pricing with no surprises", "The Free plan is forever free. No credit card to start. Cancel anytime. Transparent pricing with no hidden fees."],
+            ].map(([title, body]) => (
+              <div key={title} className="rounded-xl border border-white/10 bg-white/5 p-6">
+                <h3 className="font-semibold text-[#E8D28C]">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-gray-300">{body}</p>
+              </div>
+            ))}
+          </div>
+          <Link to="/trust" className="mt-10 inline-flex items-center gap-2 font-semibold text-[#D4AF37] no-underline hover:text-[#E8D28C]">
+            Read our full Trust &amp; Transparency commitment →
+          </Link>
         </div>
       </section>
       {/* FOUNDER LEGITIMACY */}
@@ -689,6 +666,13 @@ export default function LandingPage() {
               <p className="text-sm text-gray-800">4210 Electric Road #1038</p>
               <p className="text-sm text-gray-800">Roanoke, VA 24018</p>
               <p className="text-sm text-gray-800">United States</p>
+              <p className="mt-2 text-sm font-semibold">
+                <a className="text-[#003A8C] underline" href="https://www.linkedin.com/in/thomas-clottey" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                {' · '}
+                <a className="text-[#003A8C] underline" href="https://www.facebook.com/TheGrantsMaster" target="_blank" rel="noopener noreferrer">Facebook</a>
+                {' · '}
+                <a className="text-[#003A8C] underline" href="tel:+15405669760">(540) 566-9760</a>
+              </p>
             </div>
           </div>
         </div>
@@ -722,6 +706,8 @@ export default function LandingPage() {
             <Link to="/pricing" className="hover:text-[#D4AF37] transition">Pricing</Link>
             <Link to="/new-york-grants" className="hover:text-[#D4AF37] transition">NY Grants</Link>
             <Link to="/consultants" className="hover:text-[#D4AF37] transition">Consultants</Link>
+            <Link to="/trust" className="hover:text-[#D4AF37] transition">Trust</Link>
+            <Link to="/about" className="hover:text-[#D4AF37] transition">About</Link>
             <Link to="/lead-magnet/grant-workflow-blueprint" className="hover:text-[#D4AF37] transition">Free Blueprint</Link>
             <Link to="/contact" className="hover:text-[#D4AF37] transition">Contact</Link>
             <Link to="/privacy" className="hover:text-[#D4AF37] transition">Privacy</Link>
@@ -729,12 +715,21 @@ export default function LandingPage() {
             <Link to="/login"   className="hover:text-[#D4AF37] transition">Login</Link>
             <Link to="/signup"  className="hover:text-[#D4AF37] transition">Sign Up</Link>
           </div>
-          <p className="text-xs">© {new Date().getFullYear()} GrantsMaster. All rights reserved.</p>
+          <p className="text-xs">© {new Date().getFullYear()} Gee Oh Dee (Tech) LLC. All rights reserved.</p>
         </div>
         <div className="mx-auto mt-8 max-w-6xl border-t border-white/10 pt-6 text-center text-xs leading-6">
-          <p className="font-bold text-white">TGM Technologies LLC</p>
-          <p>Mailing address pending · support@thegrantsmaster.com · Support phone pending</p>
-          <p className="mt-2">Stripe payments · SSL encrypted · Your data is never used to train AI models · SOC-2 style controls</p>
+          <p className="font-bold text-white">The Grants Master is a product of Gee Oh Dee (Tech) LLC.</p>
+          <p>4210 Electric Road #1038, Roanoke, VA 24018, United States</p>
+          <p>
+            <a className="hover:text-[#D4AF37]" href="mailto:support@thegrantsmaster.com">support@thegrantsmaster.com</a>
+            {' · '}
+            <a className="hover:text-[#D4AF37]" href="tel:+15405669760">(540) 566-9760</a>
+            {' · '}
+            <a className="hover:text-[#D4AF37]" href="https://www.linkedin.com/in/thomas-clottey" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            {' · '}
+            <a className="hover:text-[#D4AF37]" href="https://www.facebook.com/TheGrantsMaster" target="_blank" rel="noopener noreferrer">Facebook</a>
+          </p>
+          <p className="mt-2">Payments processed by Stripe · SSL-encrypted sessions · Drafts encrypted at rest · Your data is never used to train AI models</p>
         </div>
       </footer>
 

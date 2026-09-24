@@ -64,9 +64,9 @@ const checkmateSignals = [
 ];
 
 const caseStudies = [
-  'A Brooklyn youth nonprofit increased its win rate from 18% to 43% in 90 days using TGM’s NY funder alignment tools.',
-  'A Queens arts organization cut proposal time from 12 hours to 3.5 hours using Checkmate + Steve.',
-  'A Manhattan consultant scaled from 4 to 12 clients using TGM’s multi-client folders and white-label reports.',
+  'A Brooklyn youth nonprofit uses TGM to align proposals with NY funder priorities before submission.',
+  'A Queens arts organization uses Checkmate to catch missing components and narrative gaps before deadlines.',
+  'A Manhattan consultant manages multiple client workspaces with TGM multi-client folders and white-label reports.',
 ];
 
 const comparisonRows = [
@@ -256,13 +256,13 @@ export default function NewYorkGrantsPage() {
       <section className="bg-[#F7F9FB] px-6 py-20">
         <div className="mx-auto max-w-6xl">
           <div className="mb-8 max-w-3xl">
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">NY success stories</p>
-            <h2 className="text-3xl font-bold text-[#0A0F1A]">How NY organizations use TGM to win more grants</h2>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">How teams use TGM</p>
+            <h2 className="text-3xl font-bold text-[#0A0F1A]">How NY organizations use TGM</h2>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {caseStudies.map((story, index) => (
               <div key={story} className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
-                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Case Study {index + 1}</p>
+                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Workflow {index + 1}</p>
                 <p className="text-sm leading-7 text-gray-700">{story}</p>
               </div>
             ))}
