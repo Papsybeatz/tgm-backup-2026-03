@@ -681,13 +681,13 @@ export default function UnifiedDashboard() {
         <p className="text-[#D4AF37] font-semibold mb-2 text-sm uppercase tracking-widest">Powered by the GrantsMaster AI Engine</p>
         <h2 className="text-3xl font-bold text-[#D4AF37] mb-4">Your Smartest Grant Writing Partner</h2>
         <p className="text-gray-300 max-w-2xl mx-auto mb-10">
-          Generate drafts, refine clarity, and align with funder requirements using our award-winning AI.
+          Generate drafts, refine clarity, and align with funder requirements using our grant-tuned AI.
         </p>
         <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-6 text-left">
           {[
-            { stat: '10x', label: 'Faster than manual drafting' },
-            { stat: '94%', label: 'Funder alignment score' },
-            { stat: '$2M+', label: 'Grants won by users' },
+            { stat: 'Free', label: 'Plan to start — no card' },
+            { stat: 'Stripe', label: 'Secured payments' },
+            { stat: '< 24 hrs', label: 'Support response, Mon–Fri' },
           ].map(({ stat, label }) => (
             <div key={stat} className="bg-white/10 rounded-xl p-6 border border-white/10">
               <p className="text-3xl font-bold text-[#D4AF37] mb-1">{stat}</p>
