@@ -5,12 +5,21 @@ const fs = require('fs');
 const router = express.Router();
 const requireAuth = require('../middleware/auth');
 const { extractDocumentText } = require('../utils/extractDocumentText');
+const { userUploadDir, listUserUploads } = require('../utils/uploadStorage');
 
-const UPLOAD_DIR = path.join(__dirname, '../uploads');
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+const UPLOAD_ROOT = path.join(__dirname, '../uploads');
+if (!fs.existsSync(UPLOAD_ROOT)) fs.mkdirSync(UPLOAD_ROOT, { recursive: true });
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+  // requireAuth runs before multer on this route, so req.user is always set.
+  // Files land in a per-user directory so no user can enumerate another's.
+  destination: (req, file, cb) => {
+    try {
+      cb(null, userUploadDir(UPLOAD_ROOT, req.user && req.user.id));
+    } catch (error) {
+      cb(error);
+    }
+  },
   filename: (req, file, cb) => {
     const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
     cb(null, `${Date.now()}-${safe}`);
@@ -61,17 +70,9 @@ router.post('/upload', requireAuth, upload.single('file'), async (req, res) => {
   }
 });
 
-// GET /api/documents — list uploaded files for user session (in-memory for now)
+// GET /api/documents — the authenticated user's own uploads only
 router.get('/', requireAuth, (req, res) => {
-  try {
-    const files = fs.readdirSync(UPLOAD_DIR).map(f => {
-      const stat = fs.statSync(path.join(UPLOAD_DIR, f));
-      return { filename: f, name: f.replace(/^\d+-/, ''), size: stat.size, uploadedAt: stat.mtime };
-    }).sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
-    res.json({ success: true, files });
-  } catch {
-    res.json({ success: true, files: [] });
-  }
+  res.json({ success: true, files: listUserUploads(UPLOAD_ROOT, req.user && req.user.id) });
 });
 
 module.exports = router;
