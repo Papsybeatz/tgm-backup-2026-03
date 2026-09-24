@@ -133,13 +133,14 @@ const COMPARISON_ROWS = [
 const FAQS = [
   ['Do I need a credit card to start?', 'No — the Free plan is forever free.'],
   ['Can I switch plans anytime?', 'Yes — upgrades and downgrades are instant.'],
-  ['Is my data private?', 'Yes. Your data is never used to train AI models.'],
+  ['Is my data private?', 'Yes. Client folders are isolated — you only reach a folder you own or have been granted access to. Your data is never used to train AI models.'],
   ['Does TGM work outside New York?', 'Yes — NY is our first localized workspace, with more states coming soon.'],
   ['Is TGM for consultants?', 'Yes — Agency and Agency+ are built specifically for multi-client workflows.'],
 ];
 
 const SECURITY_POINTS = [
   'Your data is never used to train AI models',
+  'Client folders are isolated — access requires ownership or an explicit per-client permission',
   'Encrypted at rest and in transit',
   'Human-in-the-loop workflows',
   'Security practices designed around SOC 2 principles',

@@ -5,8 +5,8 @@ const PILLARS = [
   {
     kicker: 'Steve',
     title: 'Drafting assistant',
-    body: 'Describe your program and Steve produces a funder-ready first draft \u2014 narrative, need statement, goals, outcomes, and budget narrative \u2014 in one pass. You edit; you never start from a blank page.',
-    points: ['Full proposal structure', 'Funder-responsive sections', 'Editable output, not a black box'],
+    body: 'Describe your program and Steve produces a funder-ready first draft \u2014 narrative, need statement, goals, outcomes, and budget narrative \u2014 in one pass. Steve writes from the details you enter in the workspace: it does not silently lift claims out of files you upload, so nothing is asserted on your behalf and you stay the author of record. Save your mission statement, organizational background, and program descriptions as reusable client templates to bring your own language into every draft.',
+    points: ['Writes from the details you provide', 'Full proposal structure', 'Reusable client templates for your own language', 'Editable output, not a black box'],
   },
   {
     kicker: 'Checkmate',

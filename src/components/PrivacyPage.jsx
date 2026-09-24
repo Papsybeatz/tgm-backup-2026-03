@@ -19,11 +19,15 @@ export default function PrivacyPage() {
         },
         {
           title: '3. Data Storage',
-          body: `Your data is stored securely on Supabase (PostgreSQL) hosted on AWS infrastructure in the US East region. Draft content is encrypted at rest. We retain your data for as long as your account is active or as needed to provide services.`,
+          body: `Your data is stored securely on Supabase (PostgreSQL) hosted on AWS infrastructure in the US East region. Draft content is encrypted at rest. We retain your data for as long as your account is active or as needed to provide services. Client folder data is isolated: a folder and its drafts, templates, Checkmate reports, and documents are accessible only to the folder owner or to users granted explicit per-client access (owner, editor, or viewer).`,
+        },
+        {
+          title: '3b. AI Training',
+          body: `Drafts and prompts you submit are sent to our AI provider, Groq, to generate outputs for you. Groq does not use API customer data to train AI models, and does not retain inference data by default — see the Groq Services Agreement (section 8.2) at console.groq.com/docs/legal/services-agreement and Groq's "Your Data in GroqCloud" documentation at console.groq.com/docs/your-data. We do not use your drafts to train any model, ours or a third party's.`,
         },
         {
           title: '4. Third-Party Services',
-          body: `We use the following third-party services: Stripe for payment processing, SendGrid or Brevo for transactional email, Groq for AI draft generation, and Vercel/Railway for hosting. Each service has its own privacy policy governing data they process.`,
+          body: `We use the following third-party services: Stripe for payment processing, SendGrid or Brevo for transactional email, Groq for AI draft generation, and Vercel/Railway for hosting. Each service has its own privacy policy governing data they process. AI draft generation is processed by Groq under its Cloud Services Agreement; drafts and prompts are used only to return your output and are not used to train AI models.`,
         },
         {
           title: '5. Cookies',

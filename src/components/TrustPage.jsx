@@ -17,7 +17,8 @@ const SECURITY = [
   'Draft content encrypted at rest (Supabase / PostgreSQL on AWS, US-East)',
   'GDPR & CCPA aligned — deletion on request within 30 days',
   'No advertising trackers or third-party tracking cookies',
-  'Your drafts are never used to train AI models',
+  'Your drafts are never used to train AI models — our AI provider (Groq) does not train on API data (Groq Services Agreement §8.2)',
+  'Client folders are isolated — a folder and its drafts, templates, Checkmate reports, and documents are reachable only by the owner or users granted explicit per-client access (owner / editor / viewer)',
   'Security practices designed around SOC 2 principles',
 ];
 
