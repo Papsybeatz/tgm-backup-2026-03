@@ -96,7 +96,7 @@ export default function SignupPage() {
           <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-.3px' }}>GrantsMaster</span>
         </div>
         <p style={{ color: 'var(--tgm-gold-light)', fontWeight: 600, marginBottom: 8, fontSize: 14 }}>
-          🏆 Award-Winning Grant Writing Platform
+          🇺🇸 U.S. Registered Company · Gee Oh Dee (Tech) LLC
         </p>
         <h1 style={{ fontSize: 36, fontWeight: 800, margin: '0 0 10px', lineHeight: 1.2 }}>
           Create Your Account

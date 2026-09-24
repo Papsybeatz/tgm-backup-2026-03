@@ -20,9 +20,9 @@ const EyeIcon = ({ open }) => open ? (
 );
 
 const STATS = [
-  { value: '10x', label: 'Faster than manual drafting' },
-  { value: '94%', label: 'Funder alignment score' },
-  { value: '$2M+', label: 'Grants won by users' },
+  { value: 'Free', label: 'Plan to start — no card' },
+  { value: 'Stripe', label: 'Secured payments' },
+  { value: '< 24 hrs', label: 'Support response, Mon–Fri' },
 ];
 
 const FEATURES = [
@@ -118,7 +118,7 @@ const LoginPage = () => {
         {/* Main copy */}
         <div>
           <p style={{ color: 'var(--tgm-gold-light)', fontWeight: 600, fontSize: 13, marginBottom: 16, letterSpacing: '.5px', textTransform: 'uppercase' }}>
-            🏆 Award-Winning Platform
+            🇺🇸 U.S. Registered Company
           </p>
           <h2 style={{ fontSize: 36, fontWeight: 800, lineHeight: 1.2, margin: '0 0 20px' }}>
             Win more grants with AI-powered writing
@@ -157,17 +157,17 @@ const LoginPage = () => {
           </div>
         </div>
 
-        {/* Testimonial */}
+        {/* Trust note */}
         <div style={{
           background: 'rgba(255,255,255,.07)',
           border: '1px solid rgba(255,255,255,.12)',
           borderRadius: 14, padding: '20px 24px',
         }}>
-          <p style={{ fontSize: 14, fontStyle: 'italic', opacity: .85, margin: '0 0 10px', lineHeight: 1.6 }}>
-            "We won our first grant in 3 weeks using GrantsMaster. The AI engine writes better than our consultants."
+          <p style={{ fontSize: 14, opacity: .85, margin: '0 0 10px', lineHeight: 1.6 }}>
+            The Grants Master is built and run by Thomas Clottey, founder of Gee Oh Dee (Tech) LLC in Roanoke, Virginia. Named, reachable, and accountable — no anonymous AI wrapper.
           </p>
           <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--tgm-gold)', margin: 0 }}>
-            — Nonprofit Director, Atlanta
+            support@thegrantsmaster.com · (540) 566-9760
           </p>
         </div>
       </div>
@@ -275,9 +275,9 @@ const LoginPage = () => {
         }}>
           {[
             { icon: '🔒', title: 'Secure login', desc: 'SSL encrypted' },
-            { icon: '🏆', title: 'Award-winning', desc: 'Trusted platform' },
+            { icon: '🇺🇸', title: 'U.S. company', desc: 'Gee Oh Dee (Tech) LLC' },
             { icon: '⚡', title: 'Instant access', desc: 'No waiting' },
-            { icon: '🌍', title: '24/7 support', desc: 'Always available' },
+            { icon: '✉️', title: 'Real support', desc: 'Mon–Fri, 9–5 EST' },
           ].map(({ icon, title, desc }) => (
             <div key={title} style={{
               display: 'flex', alignItems: 'center', gap: 10,
