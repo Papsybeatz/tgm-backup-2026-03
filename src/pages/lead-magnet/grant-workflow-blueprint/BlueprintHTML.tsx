@@ -149,8 +149,9 @@ export default function BlueprintHTML() {
           (mission statement, program descriptions, financials) already documented.
         </p>
         <p style={{ margin: 0, fontSize: 14, color: '#374151' }}>
-          Total time per proposal: <strong>~4.5 hours</strong> (vs. the industry average of 12 hours).
-          After your first 3 proposals, expect this to drop to under 3 hours as your reuse library grows.
+          Plan your time around the work that decides the outcome: research the funder, agree the
+          structure, draft, then review the draft against funder criteria before submitting.
+          Your time per proposal falls as your reusable content library grows.
         </p>
       </div>
 

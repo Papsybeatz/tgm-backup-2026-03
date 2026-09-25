@@ -5,18 +5,18 @@ import LeadMagnetForm from './components/LeadMagnetForm';
 const BENEFITS = [
   {
     icon: '⏱',
-    title: '12 hrs → 3.5 hrs per proposal',
-    desc: 'The exact workflow that cuts grant writing time without cutting quality.',
+    title: 'One repeatable proposal workflow',
+    desc: 'The same steps on every application, so you stop rebuilding your process from scratch.',
   },
   {
     icon: '🎯',
     title: 'Funder alignment before you write a word',
-    desc: 'The 4-step research framework that separates 20% win rates from 40%+.',
+    desc: 'A 4-step research framework that aligns your draft with the funder before you write.',
   },
   {
     icon: '📋',
     title: '8 ready-to-use proposal templates',
-    desc: 'Federal, foundation, corporate, community — structured from 10,000+ winning proposals.',
+    desc: 'Federal, foundation, corporate, and community formats you can adapt to any funder.',
   },
   {
     icon: '🔁',
@@ -38,7 +38,7 @@ export default function GrantWorkflowBlueprintPage() {
         <title>Grant Workflow Blueprint — Free Download | TGM</title>
         <meta
           name="description"
-          content="Download the free Grant Workflow Blueprint: the exact system grant writers use to cut proposal time from 12 hours to 3.5 hours and improve win rates by 40%+."
+          content="Download the free Grant Workflow Blueprint: a repeatable, step-by-step process for researching funders, drafting, and reviewing funder-ready grant proposals."
         />
         <meta property="og:title" content="Grant Workflow Blueprint — Free Download | TGM" />
         <meta
@@ -92,9 +92,8 @@ export default function GrantWorkflowBlueprintPage() {
             fontSize: 18, color: 'rgba(255,255,255,.75)',
             maxWidth: 560, margin: '0 auto 12px', lineHeight: 1.6,
           }}>
-            The exact system grant writers use to cut proposal time from{' '}
-            <strong style={{ color: '#D4AF37' }}>12 hours to 3.5 hours</strong>{' '}
-            and improve win rates by <strong style={{ color: '#D4AF37' }}>40%+</strong>.
+            A repeatable, step-by-step process for researching funders, drafting your
+            narrative, and reviewing it against funder criteria before you submit.
           </p>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,.4)', marginTop: 8 }}>
             No credit card. No spam. Instant download.
@@ -115,8 +114,7 @@ export default function GrantWorkflowBlueprintPage() {
                 What's inside
               </h2>
               <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 32, lineHeight: 1.6 }}>
-                Built from 10,000+ grant proposals and the workflows of development teams
-                winning at 40%+ rates.
+                Built around how development teams actually work when a deadline is close.
               </p>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 24 }}>
                 {BENEFITS.map(({ icon, title, desc }) => (
