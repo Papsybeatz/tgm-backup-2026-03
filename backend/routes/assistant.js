@@ -81,6 +81,7 @@ router.post('/', softAuth, async (req, res) => {
       score: result.score ?? null,
       scoreReport: result.scoreReport || null,
       hasDraft: Boolean(result.hasDraft),
+      editedSections: Array.isArray(result.editedSections) ? result.editedSections : [],
       download: result.download || null,
       suggestions: result.suggestions || [],
       engine: result.engine || 'agent',
