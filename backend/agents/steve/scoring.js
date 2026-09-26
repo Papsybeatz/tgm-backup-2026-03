@@ -55,11 +55,16 @@ function guidelineTerms(order) {
 
 /* ─────────────────────────── deterministic rubric ─────────────────────────── */
 
-function heuristicScore(order, html) {
+function heuristicScore(order, html, style = 'letter') {
   const text = plainText(html);
   const lower = text.toLowerCase();
   const words = text ? text.split(/\s+/).length : 0;
   const headings = headingCount(html);
+  // A letter is legitimately shorter and has fewer sections than a proposal.
+  // Judging both by the proposal's shape is what drove letters into the 50s.
+  const isLetter = style === 'letter';
+  const expectedHeadings = isLetter ? 5 : 10;
+  const minWords = isLetter ? 180 : 400;
 
   const criteria = {};
 
@@ -68,7 +73,7 @@ function heuristicScore(order, html) {
   need += words > 250 ? 15 : Math.min(15, Math.floor(words / 20));
   need += hasNumbers(lower) ? 15 : 0;
   need += /because|due to|as a result|without|urgent|gap|barrier/.test(lower) ? 15 : 0;
-  need += headings >= 4 ? 15 : headings * 3;
+  need += headings >= expectedHeadings - 1 ? 15 : headings * 3;
   criteria.need = Math.max(1, Math.min(100, Math.round(need)));
 
   // Alignment: overlap with the funder's own language.
@@ -121,7 +126,7 @@ function heuristicScore(order, html) {
   compliance += !isBlank(order?.service_area) ? 15 : 0;
   criteria.compliance = Math.max(1, Math.min(100, compliance));
 
-  const { overall, missing, fixes } = finalize(criteria, order, html);
+  const { overall, missing, fixes } = finalize(criteria, order, html, style);
   return {
     score: overall,
     criteria,
@@ -138,7 +143,9 @@ function buildStrengths(criteria) {
   return strong.length ? strong : ['The draft covers the core sections a reviewer expects'];
 }
 
-function finalize(criteria, order, html) {
+function finalize(criteria, order, html, style = 'letter') {
+  const isLetter = style === 'letter';
+  const minWords = isLetter ? 180 : 400;
   const total = Object.keys(WEIGHTS).reduce((sum, key) => sum + (criteria[key] || 0) * WEIGHTS[key], 0);
   const weightSum = Object.values(WEIGHTS).reduce((a, b) => a + b, 0);
   const overall = Math.max(1, Math.min(100, Math.round(total / weightSum)));
@@ -168,7 +175,7 @@ function finalize(criteria, order, html) {
     missing.push('Organization address missing from the letterhead');
     fixes.push('Provide the organization address for the proposal letterhead.');
   }
-  if (plainText(html).split(/\s+/).length < 300) {
+  if (isLetter && plainText(html).split(/\s+/).length < minWords) {
     fixes.push('Expand the Statement of Need with local data and who is affected.');
   }
 
@@ -177,11 +184,19 @@ function finalize(criteria, order, html) {
 
 /* ─────────────────────────────── LLM rubric ─────────────────────────────── */
 
-async function llmScore(order, html) {
+async function llmScore(order, html, style = 'letter') {
   const criteriaKeys = CRITERIA.map((c) => `"${c.key}"`).join(', ');
+  const isLetter = style === 'letter';
+  const deliverable = isLetter ? 'one-page grant letter' : 'full grant proposal';
+  const sections = isLetter
+    ? 'Opening, Statement of Need, Project Description, Budget Request, Conclusion'
+    : 'Executive Summary, Statement of Need, Organization Background, Project Description, Goals & Objectives, Outcomes & Evaluation, Budget Narrative, Sustainability, Timeline, Conclusion';
 
   const prompt = [
-    'You are Checkmate, a grant reviewer. Grade the proposal below against this anchored rubric.',
+    `You are Checkmate, a grant reviewer. Grade the ${deliverable} below against this anchored rubric.`,
+    `This deliverable has exactly these sections: ${sections}.`, isLetter
+      ? 'Do NOT penalise a letter for lacking proposal sections such as Executive Summary, Organization Background, Sustainability or Timeline — they are not part of this deliverable, and a letter is expected to be short.'
+      : '',
     '',
     'BANDS — use the whole range, do not cluster at one value:',
     '- 90-100 exceptional: quantified local data, documented evidence or partners, a budget tied line-by-line to activities, and language mirroring the funder\u2019s stated priorities.',
@@ -191,7 +206,9 @@ async function llmScore(order, html) {
     '- Below 50: not submission-ready.',
     '',
     'CALIBRATION RULES:',
-    '- A proposal with all core sections, a stated need, named beneficiaries, an amount, and measurable outcomes should land 76-86.',
+    isLetter
+      ? '- A complete, competent letter with a clear ask, a stated need, named beneficiaries, what the money does, and a closing should land 78-88. Length is not a virtue; do not reward padding.'
+      : '- A proposal with all core sections, a stated need, named beneficiaries, an amount, and measurable outcomes should land 76-86.',
     '- Do NOT deduct for information the applicant was never asked to provide.',
     '- Reserve 90+ for drafts with quantified local data AND documented proof.',
     '- Do not reward length or padding, and do not penalise brevity.',
@@ -228,7 +245,7 @@ async function llmScore(order, html) {
     criteria[key] = Number.isFinite(value) ? Math.max(1, Math.min(100, Math.round(value))) : 60;
   });
 
-  const { overall } = finalize(criteria, order, html);
+  const { overall } = finalize(criteria, order, html, style);
   return {
     score: overall,
     criteria,
@@ -248,17 +265,18 @@ function labelFor(score) {
 }
 
 /** Score a draft. Always resolves to a real rubric result. */
-async function scoreDraft(order, html) {
+async function scoreDraft(order, html, options = {}) {
+  const style = options.style || order?.style || 'letter';
   let result;
   if (isEnabled()) {
     try {
-      result = await llmScore(order, html);
+      result = await llmScore(order, html, style);
     } catch (error) {
       result = null;
     }
   }
-  if (!result) result = heuristicScore(order, html);
-  return { ...result, label: labelFor(result.score), criteriaDefs: CRITERIA };
+  if (!result) result = heuristicScore(order, html, style);
+  return { ...result, label: labelFor(result.score), style, criteriaDefs: CRITERIA };
 }
 
 module.exports = { CRITERIA, scoreDraft, labelFor, heuristicScore };

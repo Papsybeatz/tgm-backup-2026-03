@@ -249,6 +249,38 @@ test('the letter and the full proposal each produce their own sections', async (
   assert.equal([...proposal.html.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)].map((m) => m[1]).length, 10);
 });
 
+test('a complete letter is not penalised for being a letter', async () => {
+  const { heuristicScore } = require('../agents/steve/scoring');
+  const { generateGrant } = require('../agents/steve/drafting');
+
+  const order = {
+    applicant_name: 'Hope Soccer Academy',
+    applicant_type: '501(c)(3) nonprofit',
+    need_statement: 'Street kids lack structured pathways',
+    program_activities: 'Training and equipment',
+    target_population: 'street kids',
+    people_served: '120',
+    service_area: 'Greater Accra, Ghana',
+    address: 'Dansoman',
+    request_amount: '75000',
+    outcomes: 'Serve 120 kids with 90% retention',
+  };
+
+  const letter = await generateGrant(order, { style: 'letter' });
+  const proposal = await generateGrant(order, { style: 'full_proposal' });
+
+  const letterScore = heuristicScore(order, letter.html, 'letter').score;
+  const proposalScore = heuristicScore(order, proposal.html, 'full_proposal').score;
+
+  // Regression: making the letter the default dropped it to the 50s, because the
+  // rubric was written for a 10-section proposal and counted sections.
+  assert.ok(letterScore >= 75, `a complete letter should score well, got ${letterScore}`);
+  assert.ok(
+    Math.abs(letterScore - proposalScore) <= 15,
+    `letter (${letterScore}) and proposal (${proposalScore}) should be comparable`,
+  );
+});
+
 test('asking for a letter to apply for support is not a style change', () => {
   const { parseAmendment } = require('../agents/steve/amend');
   const order = { style: 'letter' };

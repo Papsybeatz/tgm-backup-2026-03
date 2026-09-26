@@ -245,7 +245,7 @@ function createToolkit(ctx) {
       state.docHtml = draft.html;
       state.usedLLM = draft.usedLLM;
 
-      const report = await scoreDraft(state.order, draft.html);
+      const report = await scoreDraft(state.order, draft.html, { style });
       state.score = report.score;
       state.scoreReport = report;
 
@@ -288,7 +288,7 @@ function createToolkit(ctx) {
     async score_draft() {
       const missing = requireDraft();
       if (missing) return missing;
-      const report = await scoreDraft(state.order, state.docHtml);
+      const report = await scoreDraft(state.order, state.docHtml, { style: state.style || state.order.style });
       state.score = report.score;
       state.scoreReport = report;
       return base({ scoreReport: report });
@@ -317,7 +317,7 @@ function createToolkit(ctx) {
       state.docHtml = renderDocument(state.docTitle, nextSections);
       state.status = 'ready_for_review';
 
-      const report = await scoreDraft(state.order, state.docHtml);
+      const report = await scoreDraft(state.order, state.docHtml, { style: state.style || state.order.style });
       state.score = report.score;
       state.scoreReport = report;
 
@@ -347,7 +347,7 @@ function createToolkit(ctx) {
       const nextSections = { ...sections, [target]: revised.html };
       state.docHtml = renderDocument(state.docTitle, nextSections);
 
-      const report = await scoreDraft(state.order, state.docHtml);
+      const report = await scoreDraft(state.order, state.docHtml, { style: state.style || state.order.style });
       state.score = report.score;
       state.scoreReport = report;
 
