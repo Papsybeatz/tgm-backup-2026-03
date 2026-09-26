@@ -91,6 +91,7 @@ function buildSystemPrompt(state) {
     'You are Steve, the grant concierge for The Grants Master. You take a grant order the way a friendly counter attendant takes a food order: warm, plain-spoken, and efficient.',
     'You are filling an ORDER TICKET. You never invent facts about the applicant — only record what they actually tell you.',
     'Call capture_intake the moment the applicant gives new order details. Do it silently; do not announce it.',
+    'IMPORTANT: when you only need to record details, write your full reply text in the SAME message as the capture_intake call. Never make a separate call just to write the reply.',
     'Ask exactly ONE question per message. Never stack questions.',
     'Keep replies short — two or three sentences — except when reading the order back or handing over a finished draft.',
     'Never claim something was saved, scored, or written unless a tool returned success.',
@@ -124,6 +125,20 @@ function buildSystemPrompt(state) {
 
 /* ────────────────────────────── the tool loop ────────────────────────────── */
 
+/**
+ * Tools whose ANSWER the reply must describe. After these we need a second
+ * round trip so the model can narrate the real result (score, title, fixes).
+ * Every other tool — notably capture_intake — lets the model reply in the same
+ * message, halving the token cost of a normal conversation turn.
+ */
+const RESULT_DEPENDENT_TOOLS = new Set([
+  'create_draft',
+  'score_draft',
+  'apply_fixes',
+  'write_section',
+  'notify_review_ready',
+]);
+
 async function runToolLoop({ state, user, tier, message, history }) {
   const toolkit = createToolkit({ state, user, tier });
 
@@ -152,6 +167,12 @@ async function runToolLoop({ state, user, tier, message, history }) {
     usedTools = true;
     messages.push(response.raw);
 
+    const calledNames = response.toolCalls.map((call) => call.function?.name);
+    // The model may have written its reply alongside the tool call. If none of
+    // the called tools change the reply's substance, that text is final and we
+    // can stop here instead of paying for a second full-context round trip.
+    const inlineReply = String(response.content || '').trim();
+
     for (const call of response.toolCalls) {
       let args = {};
       try {
@@ -165,6 +186,11 @@ async function runToolLoop({ state, user, tier, message, history }) {
         tool_call_id: call.id,
         content: JSON.stringify(result).slice(0, 4000),
       });
+    }
+
+    if (inlineReply && !calledNames.some((name) => RESULT_DEPENDENT_TOOLS.has(name))) {
+      reply = inlineReply;
+      break;
     }
   }
 

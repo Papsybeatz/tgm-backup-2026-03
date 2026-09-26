@@ -10,7 +10,7 @@
  * The user watches their order being made — that is what makes this feel like
  * a counter instead of a form.
  */
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import type { Progress, ScoreReport, Download, SteveStatus } from './useSteveConcierge';
 
 type OrderTicketProps = {
@@ -32,11 +32,24 @@ type OrderTicketProps = {
  * viewed by someone other than its author (e.g. a consultant reviewing a
  * client's draft), so never trust it as markup.
  */
+function slugify(text: string): string {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
 function sanitizeHtml(html: string): string {
   if (typeof window === 'undefined') return '';
   try {
     const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
     doc.querySelectorAll('script,iframe,object,embed,link,style,form,meta,base').forEach((node) => node.remove());
+    // Stable ids on the headings so the section rail can jump to them.
+    doc.querySelectorAll('h2').forEach((heading) => {
+      const id = slugify(heading.textContent || '');
+      if (id && !heading.id) heading.id = `section-${id}`;
+    });
     doc.querySelectorAll('*').forEach((el) => {
       Array.from(el.attributes).forEach((attr) => {
         const name = attr.name.toLowerCase();
@@ -83,6 +96,23 @@ export default function OrderTicket({
 
   const safeHtml = useMemo(() => sanitizeHtml(docHtml || ''), [docHtml]);
   const isReady = Boolean(scoreReport && (docHtml || status === 'ready_for_review'));
+  const previewRef = useRef<HTMLDivElement | null>(null);
+
+  /**
+   * Jump the document pane to a section.
+   *
+   * Scrolls the pane itself rather than using scrollIntoView, which would also
+   * scroll the whole dashboard and leave the heading under the fixed header.
+   */
+  const jumpToSection = useCallback((name: string) => {
+    const container = previewRef.current;
+    if (!container) return;
+    const target = container.querySelector<HTMLElement>(`#section-${slugify(name)}`);
+    if (!target) return;
+    const containerTop = container.getBoundingClientRect().top;
+    const offset = target.getBoundingClientRect().top - containerTop;
+    container.scrollTo({ top: container.scrollTop + offset - 8, behavior: 'smooth' });
+  }, []);
   const isMaking = !isReady && (loading || status === 'drafting') && Boolean(progress?.complete);
   const required = progress?.lines.filter((line) => line.required) ?? [];
 
@@ -191,22 +221,58 @@ export default function OrderTicket({
       {/* ── Stage 3: the finished grant ── */}
       {isReady && (
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-y-auto border-b border-[#E2E8F0] bg-[#FBFCFD] px-4 py-3">
-            {draftTitle && <p className="mb-2 text-sm font-bold text-[#0A0F1A]">{draftTitle}</p>}
-            {safeHtml ? (
-              <div
-                className="prose-sm [&_h1]:mb-2 [&_h1]:text-base [&_h1]:font-black [&_h2]:mt-3 [&_h2]:text-[13px] [&_h2]:font-bold [&_h2]:text-[#003A8C] [&_li]:ml-4 [&_li]:list-disc [&_p]:mb-2 [&_p]:text-[13px] [&_p]:leading-6 [&_p]:text-[#334155]"
-                dangerouslySetInnerHTML={{ __html: safeHtml }}
-              />
-            ) : (
-              <ul className="grid gap-1">
+          <div className="flex min-h-0 flex-1 border-b border-[#E2E8F0] bg-[#FBFCFD]">
+            {/* Section rail — click a section and the letter slides to it. */}
+            {sections.length > 1 && (
+              <nav
+                aria-label="Jump to section"
+                className="hidden w-[124px] shrink-0 overflow-y-auto border-r border-[#E2E8F0] bg-white py-2 sm:block"
+              >
                 {sections.map((name) => (
-                  <li key={name} className="text-[13px] text-[#334155]">
-                    ✓ {name}
-                  </li>
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => jumpToSection(name)}
+                    className="block w-full truncate px-3 py-1.5 text-left text-[11px] leading-5 text-[#475569] transition hover:bg-[#F1F5F9] hover:text-[#003A8C]"
+                    title={name}
+                  >
+                    {name}
+                  </button>
                 ))}
-              </ul>
+              </nav>
             )}
+
+            <div ref={previewRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+              {draftTitle && <p className="mb-2 text-sm font-bold text-[#0A0F1A]">{draftTitle}</p>}
+              {sections.length > 1 && (
+                <div className="mb-2 flex flex-wrap gap-1 sm:hidden">
+                  {sections.map((name) => (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => jumpToSection(name)}
+                      className="rounded-full border border-[#E2E8F0] bg-white px-2 py-0.5 text-[10px] text-[#475569]"
+                    >
+                      {name}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {safeHtml ? (
+                <div
+                  className="prose-sm [&_h1]:mb-2 [&_h1]:text-base [&_h1]:font-black [&_h2]:mt-3 [&_h2]:text-[13px] [&_h2]:font-bold [&_h2]:text-[#003A8C] [&_li]:ml-4 [&_li]:list-disc [&_p]:mb-2 [&_p]:text-[13px] [&_p]:leading-6 [&_p]:text-[#334155]"
+                  dangerouslySetInnerHTML={{ __html: safeHtml }}
+                />
+              ) : (
+                <ul className="grid gap-1">
+                  {sections.map((name) => (
+                    <li key={name} className="text-[13px] text-[#334155]">
+                      ✓ {name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
 
           <div className="shrink-0 px-4 py-3">

@@ -608,6 +608,11 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
 
   const handleSectionClick = (section) => {
     dispatchWorkspace({ type: 'SET_ACTIVE_SECTION', payload: { section } });
+    // Scroll and focus directly rather than relying only on the activeSection
+    // effect: clicking the section you are already on changes no state, so the
+    // effect never re-runs and the page would not move. Focus places the caret
+    // so the applicant can start editing immediately.
+    window.setTimeout(() => scrollToSection(section, true), 30);
   };
 
   const undoSection = (section) => {
