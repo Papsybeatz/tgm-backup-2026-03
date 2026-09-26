@@ -203,7 +203,7 @@ router.post('/:id/email', requireAuth, async (req, res) => {
     });
 
     const escapedTitle = String(draft.title || 'Your grant letter').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
-    const { sent, error } = await sendBrevoEmail({
+    const payload = {
       to,
       toName: req.user.name || '',
       subject: escapedTitle,
@@ -213,15 +213,46 @@ router.post('/:id/email', requireAuth, async (req, res) => {
           <h1 style="margin:0 0 16px;font-size:20px">${escapedTitle}</h1>
           <div>${draft.content || ''}</div>
         </div>`,
+    };
+
+    let { sent, error } = await sendBrevoEmail({
+      ...payload,
       attachments: [{ content: pdf.toString('base64'), name: `${safeFilename(draft.title)}.pdf` }],
     });
 
+    let attachmentDropped = false;
+    let attachmentError = null;
+
     if (!sent) {
-      console.error('[DRAFTS] email failed:', error);
-      return res.status(502).json({ success: false, message: 'The email provider rejected the message.', error });
+      // The document is already in the email body, so losing the PDF attachment
+      // is far better than the applicant getting nothing. Retry without it, and
+      // record why the first attempt failed so the cause is never invisible.
+      console.warn('[DRAFTS] send with attachment failed, retrying without:', error);
+      attachmentError = error || null;
+      const retry = await sendBrevoEmail(payload);
+      if (retry.sent) {
+        sent = true;
+        attachmentDropped = true;
+      } else {
+        error = `with attachment -> ${attachmentError} || without attachment -> ${retry.error}`;
+      }
     }
 
-    return res.json({ success: true, sentTo: to });
+    if (!sent) {
+      console.error('[DRAFTS] email failed:', error);
+      return res.status(502).json({
+        success: false,
+        message: 'The email provider rejected the message.',
+        error,
+      });
+    }
+
+    return res.json({
+      success: true,
+      sentTo: to,
+      attachmentDropped,
+      attachmentError: attachmentDropped ? attachmentError : null,
+    });
   } catch (e) {
     console.error('[DRAFTS] email error', e?.message || e);
     return res.status(500).json({ success: false, message: 'Could not send the email.' });

@@ -69,7 +69,9 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [engine, setEngine] = useState<string>('agent');
   const [llmError, setLlmError] = useState<string | null>(null);
-  const [emailState, setEmailState] = useState<{ sending: boolean; sentTo?: string; error?: string }>({ sending: false });
+  const [emailState, setEmailState] = useState<{ sending: boolean; sentTo?: string; error?: string; note?: string }>({
+    sending: false,
+  });
   const [listening, setListening] = useState(false);
   const [speakReplies, setSpeakReplies] = useState(false);
 
@@ -219,9 +221,17 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data?.success) {
-        setEmailState({ sending: false, sentTo: data.sentTo });
+        setEmailState({
+          sending: false,
+          sentTo: data.sentTo,
+          note: data.attachmentDropped
+            ? 'Sent without the PDF attachment — the provider rejected it.'
+            : undefined,
+        });
       } else {
-        setEmailState({ sending: false, error: data?.message || 'Could not send the email.' });
+        // Show the provider's own words: a generic message just hides the cause.
+        const detail = [data?.message, data?.error].filter(Boolean).join(' ');
+        setEmailState({ sending: false, error: (detail || 'Could not send the email.').slice(0, 240) });
       }
     } catch {
       setEmailState({ sending: false, error: 'Could not send the email.' });

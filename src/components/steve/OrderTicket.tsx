@@ -359,7 +359,10 @@ export default function OrderTicket({
                 Make it stronger
               </button>
               {emailState.sentTo && (
-                <p className="w-full text-[11px] font-semibold text-emerald-700">Sent to {emailState.sentTo}</p>
+                <p className="w-full text-[11px] font-semibold text-emerald-700">
+                  Sent to {emailState.sentTo}
+                  {emailState.note ? ` — ${emailState.note}` : ''}
+                </p>
               )}
               {emailState.error && (
                 <p className="w-full text-[11px] font-semibold text-amber-700">{emailState.error}</p>

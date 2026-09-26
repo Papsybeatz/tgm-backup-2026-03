@@ -787,9 +787,13 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data?.success) {
-        setEmailStatus({ sentTo: data.sentTo });
+        setEmailStatus({
+          sentTo: data.sentTo,
+          note: data.attachmentDropped ? 'Sent without the PDF attachment — the provider rejected it.' : '',
+        });
       } else {
-        setEmailStatus({ error: data?.message || 'Could not send the email.' });
+        const detail = [data?.message, data?.error].filter(Boolean).join(' ');
+        setEmailStatus({ error: (detail || 'Could not send the email.').slice(0, 240) });
       }
     } catch {
       setEmailStatus({ error: 'Could not send the email.' });
@@ -939,7 +943,10 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 </button>
               )}
               {emailStatus.sentTo && (
-                <span className="text-[11px] font-semibold text-emerald-700">Sent to {emailStatus.sentTo}</span>
+                <span className="text-[11px] font-semibold text-emerald-700">
+                  Sent to {emailStatus.sentTo}
+                  {emailStatus.note ? ` — ${emailStatus.note}` : ''}
+                </span>
               )}
               {emailStatus.error && (
                 <span className="text-[11px] font-semibold text-amber-700">{emailStatus.error}</span>
