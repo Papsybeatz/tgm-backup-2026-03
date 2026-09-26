@@ -3,7 +3,8 @@
   "scripts": {
     "start": "node server.js",
     "postinstall": "prisma generate",
-    "test:steve": "node --test tests/steve-agent.test.js"
+    "test:steve": "node --test tests/steve-agent.test.js",
+    "smoke:steve": "node scripts/smoke-steve.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
