@@ -178,17 +178,33 @@ function finalize(criteria, order, html) {
 /* ─────────────────────────────── LLM rubric ─────────────────────────────── */
 
 async function llmScore(order, html) {
+  const criteriaKeys = CRITERIA.map((c) => `"${c.key}"`).join(', ');
+
   const prompt = [
-    'You are Checkmate, a grant reviewer. Score this proposal the way a real program officer would.',
-    `Funder: ${order?.funder_name || 'a general funder'}.`,
-    order?.funder_guidelines ? `Funder guidelines/priorities:\n${order.funder_guidelines}` : 'No funder guidelines supplied — grade against standard reviewer expectations.',
+    'You are Checkmate, a grant reviewer. Grade the proposal below against this anchored rubric.',
     '',
-    'Return ONLY JSON:',
-    '{',
-    '  "criteria": { "need": 0-100, "alignment": 0-100, "completeness": 0-100, "evidence": 0-100, "outcomes": 0-100, "budget": 0-100, "compliance": 0-100 },',
-    '  "strengths": ["..."], "weaknesses": ["..."], "missingComponents": ["..."], "fixes": ["..."]',
-    '}',
-    'Be strict and specific. Do not invent facts about the applicant.',
+    'BANDS — use the whole range, do not cluster at one value:',
+    '- 90-100 exceptional: quantified local data, documented evidence or partners, a budget tied line-by-line to activities, and language mirroring the funder\u2019s stated priorities.',
+    '- 78-89 strong and funder-ready: complete and specific, well structured, only minor gaps in data or evidence. THIS IS THE NORMAL BAND FOR A COMPLETE, COMPETENT PROPOSAL.',
+    '- 65-77 adequate but thin: the structure is there, but specifics, data or evidence are missing.',
+    '- 50-64 weak: generic claims, important components absent.',
+    '- Below 50: not submission-ready.',
+    '',
+    'CALIBRATION RULES:',
+    '- A proposal with all core sections, a stated need, named beneficiaries, an amount, and measurable outcomes should land 76-86.',
+    '- Do NOT deduct for information the applicant was never asked to provide.',
+    '- Reserve 90+ for drafts with quantified local data AND documented proof.',
+    '- Do not reward length or padding, and do not penalise brevity.',
+    '- Judge only what is on the page.',
+    '',
+    `Funder: ${order?.funder_name || 'a general funder'}.`,
+    order?.funder_guidelines
+      ? `Funder guidelines/priorities to grade alignment against:\n${order.funder_guidelines}`
+      : 'No funder guidelines supplied — grade against standard reviewer expectations.',
+    '',
+    'Return ONLY JSON of this shape:',
+    `{"criteria": {${criteriaKeys}}, "strengths": ["..."], "weaknesses": ["..."], "missingComponents": ["..."], "fixes": ["..."]}`,
+    'Every criterion is 0-100. Be specific. Never invent facts about the applicant.',
     '',
     'PROPOSAL:',
     plainText(html).slice(0, 12000),
@@ -196,10 +212,11 @@ async function llmScore(order, html) {
 
   const response = await chat(
     [
-      { role: 'system', content: 'You are a rigorous, fair grant reviewer. You output JSON only.' },
+      { role: 'system', content: 'You are a fair, calibrated grant reviewer. You output JSON only.' },
       { role: 'user', content: prompt },
     ],
-    { json: true, temperature: 0.2, maxTokens: 1200 },
+    // temperature 0: scoring must be reproducible, not a lottery.
+    { json: true, temperature: 0, maxTokens: 1200, label: 'score' },
   );
 
   const parsed = extractJson(response.content);

@@ -14,6 +14,7 @@ const { PrismaClient } = require('@prisma/client');
 
 const { runSteveTurn, getSessionView } = require('../agents/steve');
 const { resetSession } = require('../agents/steve/store');
+const llm = require('../agents/steve/llm');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -58,11 +59,19 @@ router.post('/', softAuth, async (req, res) => {
     : null;
 
   try {
-    const result = await runSteveTurn({
-      user,
-      userId,
-      message,
-      context,
+    // Wrap the whole turn so every provider call it makes — tool loop, drafting,
+    // scoring — is attributed to this request and to no other.
+    const result = await llm.withUsage(async (usage) => {
+      const turnResult = await runSteveTurn({ user, userId, message, context });
+      turnResult.tokens = {
+        requests: usage.requests,
+        prompt: usage.prompt,
+        completion: usage.completion,
+        total: usage.total,
+        models: usage.models,
+        calls: usage.calls,
+      };
+      return turnResult;
     });
 
     return res.json({
@@ -86,6 +95,7 @@ router.post('/', softAuth, async (req, res) => {
       suggestions: result.suggestions || [],
       engine: result.engine || 'agent',
       llmError: result.llmError || null,
+      tokens: result.tokens || null,
       signedIn: Boolean(user),
     });
   } catch (error) {

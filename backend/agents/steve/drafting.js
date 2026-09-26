@@ -154,7 +154,7 @@ async function writeWithLLM(order, style) {
       { role: 'system', content: 'You write precise, professional grant proposals as strict HTML. You never fabricate facts. You output JSON only.' },
       { role: 'user', content: prompt },
     ],
-    { json: true, temperature: 0.5, maxTokens: 3000 },
+    { json: true, temperature: 0.5, maxTokens: 3000, label: 'draft' },
   );
 
   const parsed = extractJson(response.content);
@@ -192,7 +192,7 @@ async function reviseWithLLM(order, sectionName, currentHtml, instruction) {
         ].join('\n'),
       },
     ],
-    { temperature: 0.5, maxTokens: 1400 },
+    { temperature: 0.5, maxTokens: 1400, label: 'revise' },
   );
   const html = String(response.content || '').trim();
   if (!html) throw new Error('LLM returned an empty revision');

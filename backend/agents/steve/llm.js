@@ -10,6 +10,41 @@
  * polish.
  */
 const https = require('https');
+const { AsyncLocalStorage } = require('async_hooks');
+
+/**
+ * Per-request token accounting.
+ *
+ * AsyncLocalStorage keeps this correct when many conversations are in flight at
+ * once — a module-level counter would silently mix them together, which would
+ * make the very capacity numbers we are trying to measure wrong.
+ */
+const usageStorage = new AsyncLocalStorage();
+
+function withUsage(fn) {
+  const acc = { requests: 0, prompt: 0, completion: 0, total: 0, models: [], calls: [] };
+  return usageStorage.run(acc, () => fn(acc));
+}
+
+function trackUsage(usage, model, label) {
+  const acc = usageStorage.getStore();
+  if (!acc) return;
+  acc.requests += 1;
+  acc.prompt += usage?.prompt_tokens || 0;
+  acc.completion += usage?.completion_tokens || 0;
+  acc.total += usage?.total_tokens || 0;
+  if (model && !acc.models.includes(model)) acc.models.push(model);
+  acc.calls.push({
+    label: label || 'chat',
+    model: model || null,
+    prompt: usage?.prompt_tokens || 0,
+    completion: usage?.completion_tokens || 0,
+  });
+}
+
+function currentUsage() {
+  return usageStorage.getStore() || null;
+}
 
 // Groq's Llama models moved to Enterprise/contact-sales; the self-serve
 // production models with tool calling are the GPT-OSS pair.
@@ -161,6 +196,7 @@ async function chat(messages, options = {}) {
       workingModel = model;
       const choice = parsed?.choices?.[0];
       const message = choice?.message || {};
+      trackUsage(parsed?.usage, model, options.label);
 
       return {
         content: typeof message.content === 'string' ? message.content : '',
@@ -226,4 +262,7 @@ module.exports = {
   chat,
   extractJson,
   providerConfig,
+  withUsage,
+  currentUsage,
+  trackUsage,
 };

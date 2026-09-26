@@ -142,7 +142,7 @@ async function runToolLoop({ state, user, tier, message, history }) {
   let usedTools = false;
 
   for (let step = 0; step < MAX_STEPS; step += 1) {
-    const response = await llm.chat(messages, { tools: toolkit.schemas, temperature: 0.5, maxTokens: 1400 });
+    const response = await llm.chat(messages, { tools: toolkit.schemas, temperature: 0.5, maxTokens: 1400, label: 'agent' });
 
     if (response.toolCalls.length === 0) {
       reply = String(response.content || '').trim();
