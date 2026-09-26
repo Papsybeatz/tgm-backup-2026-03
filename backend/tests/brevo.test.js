@@ -14,7 +14,18 @@ const assert = require('node:assert/strict');
 process.env.BREVO_API_KEY = 'test-key';
 process.env.BREVO_FROM_EMAIL = 'support@thegrantsmaster.com';
 
-const { sendBrevoEmail } = require('../utils/brevo');
+const { sendBrevoEmail, buildRecipient } = require('../utils/brevo');
+
+test('buildRecipient is the single source of the recipient rule', () => {
+  // Used by the invite and password-reset senders, which previously built the
+  // recipient by hand and omitted the name entirely.
+  assert.deepEqual(buildRecipient('A@B.com', ''), { email: 'a@b.com', name: 'a' });
+  assert.deepEqual(buildRecipient('A@B.com', '  '), { email: 'a@b.com', name: 'a' });
+  assert.deepEqual(buildRecipient('x@y.com', 'Hope Orphanage'), { email: 'x@y.com', name: 'Hope Orphanage' });
+  assert.equal(buildRecipient('', 'x'), null);
+  assert.equal(buildRecipient(null, 'x'), null);
+  assert.equal(buildRecipient('   ', 'x'), null);
+});
 
 /** Capture the exact payload handed to the Brevo API. */
 function captureFetch() {

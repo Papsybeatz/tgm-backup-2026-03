@@ -20,6 +20,23 @@ const BREVO_SMTP_API_URL = 'https://api.brevo.com/v3/smtp/email';
  * @param {Array<{content: string, name: string}>} [opts.attachments] - base64 attachments
  * @returns {{ sent: boolean, error?: string }}
  */
+/**
+ * Build a Brevo recipient object.
+ *
+ * Brevo rejects the whole send with "name is missing in to" when the name is
+ * blank, and an account whose user has no display name hits that every time.
+ * Every sender in the app must go through this so the rule cannot drift — two
+ * of them used to build the recipient by hand and omitted the name entirely.
+ *
+ * @returns {{email: string, name: string}|null} null when there is no address
+ */
+function buildRecipient(email, name) {
+  const recipientEmail = String(email || '').trim().toLowerCase();
+  if (!recipientEmail) return null;
+  const recipientName = String(name || '').trim() || recipientEmail.split('@')[0] || 'there';
+  return { email: recipientEmail, name: recipientName };
+}
+
 async function sendBrevoEmail({ to, toName = '', subject, htmlContent, apiKey, attachments }) {
   const key = apiKey || process.env.BREVO_API_KEY;
   if (!key) {
@@ -29,15 +46,10 @@ async function sendBrevoEmail({ to, toName = '', subject, htmlContent, apiKey, a
   const fromEmail = process.env.BREVO_FROM_EMAIL || 'noreply@thegrantsmaster.com';
   const fromName = process.env.BREVO_FROM_NAME || 'The Grants Master';
 
-  const recipientEmail = String(to || '').trim().toLowerCase();
-  if (!recipientEmail) {
+  const recipient = buildRecipient(to, toName);
+  if (!recipient) {
     return { sent: false, error: 'No recipient email address supplied' };
   }
-
-  // Brevo rejects the whole send with "name is missing in to" when the
-  // recipient name is blank, and an account without a display name hits that
-  // every time. Fall back to the address's local part so a name is always sent.
-  const recipientName = String(toName || '').trim() || recipientEmail.split('@')[0] || 'there';
 
   try {
     const res = await fetch(BREVO_SMTP_API_URL, {
@@ -45,7 +57,7 @@ async function sendBrevoEmail({ to, toName = '', subject, htmlContent, apiKey, a
       headers: { 'Content-Type': 'application/json', 'api-key': key },
       body: JSON.stringify({
         sender: { email: fromEmail, name: fromName || 'The Grants Master' },
-        to: [{ email: recipientEmail, name: recipientName }],
+        to: [recipient],
         subject,
         htmlContent,
         ...(Array.isArray(attachments) && attachments.length ? { attachment: attachments } : {}),
@@ -56,10 +68,15 @@ async function sendBrevoEmail({ to, toName = '', subject, htmlContent, apiKey, a
       return { sent: true };
     }
     const body = await res.text();
-    return { sent: false, error: `Brevo SMTP ${res.status}: ${body.slice(0, 300)}` };
+    const error = `Brevo SMTP ${res.status}: ${body.slice(0, 300)}`;
+    // Log centrally. Most callers fire-and-forget with .catch(() => {}), which
+    // is how a broken sender went unnoticed across invites and billing email.
+    console.error('[brevo] send failed:', error);
+    return { sent: false, error };
   } catch (err) {
+    console.error('[brevo] send error:', err?.message || err);
     return { sent: false, error: err.message || 'Network error' };
   }
 }
 
-module.exports = { sendBrevoEmail };
+module.exports = { sendBrevoEmail, buildRecipient };

@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const https = require('https');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
+const { buildRecipient } = require('../utils/brevo');
 const { generateSessionToken, getSessionExpiry } = require('../utils/session');
 const { sanitizeInput, validateEmail } = require('../utils/sanitize');
 const { passwordResetLimiter } = require('../middleware/rateLimit');
@@ -97,7 +98,7 @@ async function findUserByEmail(email) {
   }
 }
 
-async function sendPasswordResetEmail(email, resetLink) {
+async function sendPasswordResetEmail(email, resetLink, user = null) {
   const apiKey = process.env.BREVO_API_KEY;
   const from = process.env.BREVO_FROM_EMAIL || 'noreply@thegrantsmaster.com';
   const fromName = process.env.BREVO_FROM_NAME || 'The Grants Master';
@@ -107,9 +108,18 @@ async function sendPasswordResetEmail(email, resetLink) {
     return true;
   }
 
+  // Built via the shared rule: Brevo rejects an email whose recipient has no
+  // name, and this used to send no name field at all.
+  const recipient = buildRecipient(email, user?.name);
+  if (!recipient) {
+    // Throw, as the Brevo error path does: returning quietly would let the
+    // caller report success while nothing was sent.
+    throw new Error('Password reset has no valid recipient address');
+  }
+
   const payload = JSON.stringify({
     sender: { name: fromName, email: from },
-    to: [{ email }],
+    to: [recipient],
     subject: 'Reset your TGM password',
     htmlContent: `
       <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;background:#F7F9FB;padding:32px 24px;">
@@ -450,7 +460,7 @@ router.post('/request-password-reset', passwordResetLimiter, async (req, res) =>
     const token = await createPasswordResetSession(user);
     const resetLink = `${APP_URL.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
 
-    await sendPasswordResetEmail(user.email, resetLink);
+    await sendPasswordResetEmail(user.email, resetLink, user);
     return res.json(generic);
   } catch (error) {
     handleAuthError(res, error);

@@ -24,7 +24,7 @@ router.post('/add', async (req, res) => {
 
   team.pendingInvites.push({ email, status: 'pending' });
 
-  const inviteLink = `${process.env.APP_URL || 'https://grantsmaster.com'}/signup?invite=${encodeURIComponent(email)}`;
+  const inviteLink = `${process.env.APP_URL || 'https://www.thegrantsmaster.com'}/signup?invite=${encodeURIComponent(email)}`;
   try {
     await sendInviteEmail(email, inviterName, inviteLink);
     res.json({ success: true, message: `Invite sent to ${email}` });

@@ -1,5 +1,6 @@
 const express = require('express');
 const https = require('https');
+const { buildRecipient } = require('../utils/brevo');
 const router = express.Router();
 
 const DEFAULT_CONTACT_TO_EMAIL = 'support@thegrantsmaster.com';
@@ -81,7 +82,9 @@ router.post('/', async (req, res) => {
       {
         sender:  { name: 'GrantsMaster Contact Form', email: fromEmail },
         to:      [{ email: toEmail, name: 'GrantsMaster Support' }],
-        replyTo: { email, name },
+        // replyTo.name came straight from the form; a whitespace-only name would
+        // pass the `!name` check and then be rejected by Brevo.
+        replyTo: buildRecipient(email, name),
         subject: subject ? '[Contact] ' + subject : '[Contact] Message from ' + name,
         htmlContent: `
           <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;background:#F7F9FB;">

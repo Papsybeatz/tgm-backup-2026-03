@@ -8,6 +8,29 @@ function isValidEmail(email) {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
 }
 
+/** The inviter's display name, so the email does not show a raw user id. */
+async function resolveInviterName(inviterId) {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: inviterId } });
+    return user?.name || user?.email?.split('@')[0] || 'A GrantsMaster user';
+  } catch {
+    return 'A GrantsMaster user';
+  }
+}
+
+/**
+ * The invite link.
+ *
+ * This used to be a hardcoded `https://grantsmaster.app/invite/accept` — a
+different domain from the product (thegrantsmaster.com) and a route that does
+ * not exist in the frontend, so the link led nowhere. It now uses the same
+ * signup entry point the working team route uses.
+ */
+function buildInviteLink(inviteToken) {
+  const base = process.env.APP_URL || 'https://www.thegrantsmaster.com';
+  return `${base.replace(/\/+$/, '')}/signup?invite=${encodeURIComponent(inviteToken)}`;
+}
+
 // Helper: get seat usage for inviterId (stub, replace with real logic)
 async function getSeatUsage(inviterId) {
   // Count accepted + pending invites for this inviter
@@ -42,7 +65,11 @@ router.post('/invite', requireAuth, async (req, res) => {
       acceptedAt: null
     }
   });
-  await sendInviteEmail(email, inviterId, `https://grantsmaster.app/invite/accept?token=${invite.id}`);
+  // Two bugs fixed here: the inviter's UUID was being passed as their NAME, so
+  // the email read "<uuid> invited you"; and the link pointed at a different
+  // domain with a route that does not exist in the app.
+  const inviterName = await resolveInviterName(inviterId);
+  await sendInviteEmail(email, inviterName, buildInviteLink(invite.id));
   res.json({ success: true, invite });
 });
 
@@ -67,7 +94,8 @@ router.post('/resend-invite', requireAuth, async (req, res) => {
   const invite = await prisma.invite.findFirst({ where: { email, inviterId, status: 'pending' } });
   if (!invite) return res.status(404).json({ success: false, message: 'Invite not found.' });
   await prisma.invite.update({ where: { id: invite.id }, data: { sentAt: new Date() } });
-  await sendInviteEmail(email, inviterId, `https://grantsmaster.app/invite/accept?token=${invite.id}`);
+  const inviterName = await resolveInviterName(inviterId);
+  await sendInviteEmail(email, inviterName, buildInviteLink(invite.id));
   res.json({ success: true });
 });
 

@@ -1,6 +1,7 @@
 const https = require('https');
+const { buildRecipient } = require('./brevo');
 
-async function sendInviteEmail(email, inviterName, inviteLink) {
+async function sendInviteEmail(email, inviterName, inviteLink, inviteeName) {
   const apiKey = process.env.BREVO_API_KEY;
   const from = process.env.BREVO_FROM_EMAIL || 'noreply@thegrantsmaster.com';
   const fromName = process.env.BREVO_FROM_NAME || 'GrantsMaster';
@@ -10,9 +11,17 @@ async function sendInviteEmail(email, inviterName, inviteLink) {
     return true;
   }
 
+  // Built via the shared rule: Brevo rejects an email whose recipient has no
+  // name, and this used to send no name field at all.
+  const recipient = buildRecipient(email, inviteeName);
+  if (!recipient) {
+    console.error('[EMAIL] Invite has no valid recipient address');
+    return false;
+  }
+
   const payload = JSON.stringify({
     sender: { name: fromName, email: from },
-    to: [{ email }],
+    to: [recipient],
     subject: `${inviterName} invited you to GrantsMaster`,
     htmlContent: `
       <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#F7F9FB;padding:40px 24px;">
