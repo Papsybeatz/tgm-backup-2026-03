@@ -25,12 +25,21 @@ const { saveDraftForUser, notifyReadyForReview } = require('./persist');
 
 /* ───────────────────────────── JSON schemas ───────────────────────────── */
 
-const orderFieldProperties = () => {
-  const properties = {};
-  Object.keys(SLOTS).forEach((key) => {
-    properties[key] = { type: 'string', description: `${SLOTS[key].label}. ${SLOTS[key].hint}` };
-  });
-  return properties;
+/**
+ * A compact description of the order fields.
+ *
+ * The previous version declared all 18 fields as full JSON-Schema properties
+ * with hints. That is ~800 tokens sent on EVERY request, which on Groq's 8k
+ * tokens-per-minute tier is a meaningful slice of the entire budget for one
+ * line of schema the model rarely needs in detail.
+ */
+const ORDER_FIELD_KEYS = Object.keys(SLOTS);
+const ORDER_FIELDS_SCHEMA = {
+  type: 'object',
+  description: `Order fields, keyed by name. Valid keys: ${ORDER_FIELD_KEYS.map(
+    (key) => `${key} (${SLOTS[key].label})`,
+  ).join(', ')}. Omit anything the applicant did not state.`,
+  additionalProperties: { type: 'string' },
 };
 
 const TOOL_SCHEMAS = [
@@ -42,7 +51,7 @@ const TOOL_SCHEMAS = [
         'Record order-ticket details the applicant just provided. Pass ONLY fields they actually stated. Omit anything unknown. Never invent values.',
       parameters: {
         type: 'object',
-        properties: { fields: { type: 'object', properties: orderFieldProperties() } },
+        properties: { fields: ORDER_FIELDS_SCHEMA },
         required: ['fields'],
       },
     },

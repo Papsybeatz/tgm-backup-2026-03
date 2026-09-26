@@ -129,9 +129,12 @@ async function runToolLoop({ state, user, tier, message, history }) {
 
   const messages = [
     { role: 'system', content: buildSystemPrompt(state) },
+    // Only recent turns, and truncated. On an 8k tokens-per-minute tier, sending
+    // the full transcript every turn is what exhausts the budget mid-conversation.
     ...history
       .filter((item) => item.role === 'user' || item.role === 'assistant')
-      .map((item) => ({ role: item.role, content: item.content })),
+      .slice(-8)
+      .map((item) => ({ role: item.role, content: String(item.content || '').slice(0, 600) })),
     { role: 'user', content: String(message || '') },
   ];
 

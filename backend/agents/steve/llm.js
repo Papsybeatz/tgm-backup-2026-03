@@ -31,6 +31,19 @@ const MODEL_ERROR = /model|decommission|deprecat|not\s*found|does\s*not\s*exist|
 
 let workingModel = null; // remembered across turns once one succeeds
 
+/** A 429 tells us exactly how long to wait; honour it rather than giving up. */
+const MAX_RATE_LIMIT_RETRIES = 2;
+const MAX_WAIT_MS = 15000;
+
+function parseRetryAfterMs(message) {
+  const match = String(message || '').match(/try again in ([\d.]+)\s*s/i);
+  if (!match) return null;
+  const seconds = Number(match[1]);
+  return Number.isFinite(seconds) ? Math.ceil(seconds * 1000) + 400 : null;
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 function providerConfig() {
   if (process.env.GROQ_API_KEY) {
     return {
@@ -140,6 +153,9 @@ async function chat(messages, options = {}) {
 
   const failures = [];
   for (const model of models) {
+    let rateLimitRetries = 0;
+    // Inner loop retries the same model when the provider tells us how long to wait.
+    for (;;) {
     try {
       const parsed = await requestJson(config, buildBody(model), options.timeoutMs);
       workingModel = model;
@@ -156,11 +172,25 @@ async function chat(messages, options = {}) {
       };
     } catch (error) {
       const message = String(error?.message || error);
+      const retryAfterMs = parseRetryAfterMs(message);
+
+      // Rate limited: wait the requested time and try the SAME model again. The
+      // free tier is only 8k TPM, so a long conversation will hit this often.
+      if (retryAfterMs !== null && rateLimitRetries < MAX_RATE_LIMIT_RETRIES) {
+        rateLimitRetries += 1;
+        const waitMs = Math.min(retryAfterMs, MAX_WAIT_MS);
+        console.warn(`[STEVE] rate limited on ${model}, retrying in ${waitMs}ms`);
+        await sleep(waitMs);
+        continue;
+      }
+
       failures.push(`${model}: ${message}`);
       // Only a model problem is worth trying the next candidate. A bad key or a
       // rejected tool schema will fail identically on every model.
       if (!MODEL_ERROR.test(message)) break;
       console.warn(`[STEVE] model "${model}" unavailable, trying next: ${message}`);
+      break;
+    }
     }
   }
 
