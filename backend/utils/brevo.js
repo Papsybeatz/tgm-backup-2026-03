@@ -79,4 +79,20 @@ async function sendBrevoEmail({ to, toName = '', subject, htmlContent, apiKey, a
   }
 }
 
-module.exports = { sendBrevoEmail, buildRecipient };
+/**
+ * Parse a Brevo list id.
+ *
+ * These come from env vars as strings. `Number('')` is 0 and `Number('abc')` is
+ * NaN — both falsy — so an unusable value caused contacts to be created with no
+ * list membership while every caller reported success. Nobody was ever
+ * subscribed, and nothing said so.
+ *
+ * @returns {number|null} a positive integer, or null when unusable
+ */
+function parseListId(value) {
+  if (value === undefined || value === null || String(value).trim() === '') return null;
+  const n = Number(value);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+module.exports = { sendBrevoEmail, buildRecipient, parseListId };

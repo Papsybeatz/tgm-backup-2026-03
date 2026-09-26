@@ -10,6 +10,7 @@
  */
 
 const express = require('express');
+const { parseListId } = require('../utils/brevo');
 const router  = express.Router();
 
 const BREVO_API_URL = 'https://api.brevo.com/v3/contacts';
@@ -30,7 +31,15 @@ router.post('/submit', async (req, res) => {
   }
 
   const apiKey = process.env.BREVO_API_KEY;
-  const listId = process.env.BREVO_LIST_ID ? Number(process.env.BREVO_LIST_ID) : null;
+  const listId = parseListId(process.env.BREVO_LIST_ID);
+
+  if (apiKey && !listId) {
+    // The contact still gets created, but with no list membership the lead
+    // magnet email is never triggered — while the caller is told "success".
+    console.warn(
+      '[lead-magnet/submit] No usable BREVO_LIST_ID — contact will be saved without list membership',
+    );
+  }
 
   // Dev fallback — succeed without hitting Brevo if key not set
   if (!apiKey) {

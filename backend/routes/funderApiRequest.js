@@ -8,7 +8,7 @@
 
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const { sendBrevoEmail } = require('../utils/brevo');
+const { sendBrevoEmail, parseListId } = require('../utils/brevo');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -221,11 +221,16 @@ router.post('/request-key', async (req, res) => {
   // Save to Brevo (best-effort)
   const brevoApiKey = process.env.BREVO_API_KEY;
   if (brevoApiKey) {
-    const listId = process.env.BREVO_FUNDER_LIST_ID
-      ? Number(process.env.BREVO_FUNDER_LIST_ID)
-      : process.env.BREVO_LIST_ID
-        ? Number(process.env.BREVO_LIST_ID)
-        : null;
+    const listId = parseListId(process.env.BREVO_FUNDER_LIST_ID)
+      || parseListId(process.env.BREVO_LIST_ID);
+
+    if (!listId) {
+      // Without a list the contact is created but belongs to nothing, so the
+      // funder never appears in the list the team actually works from.
+      console.warn(
+        '[FUNDER-API REQUEST] No usable Brevo list id (BREVO_FUNDER_LIST_ID / BREVO_LIST_ID) — contact will be saved without list membership',
+      );
+    }
 
     const nameParts = trimmedName.split(/\s+/);
     const brevoPayload = {
@@ -242,11 +247,24 @@ router.post('/request-key', async (req, res) => {
     };
     if (listId) brevoPayload.listIds = [listId];
 
+    // fetch() only rejects on network failure — an HTTP 400 (bad attribute, bad
+    // list, revoked key) resolves normally. Without an explicit status check the
+    // contact silently never arrives, which is how this stayed invisible.
     fetch(BREVO_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'api-key': brevoApiKey },
       body: JSON.stringify(brevoPayload),
-    }).catch((err) => console.error('[FUNDER-API REQUEST] Brevo contact error:', err.message));
+    })
+      .then(async (brevoRes) => {
+        if (brevoRes.status === 201 || brevoRes.status === 204) return;
+        const body = await brevoRes.text().catch(() => '');
+        console.error(
+          '[FUNDER-API REQUEST] Brevo contact FAILED:',
+          brevoRes.status,
+          body.slice(0, 300),
+        );
+      })
+      .catch((err) => console.error('[FUNDER-API REQUEST] Brevo contact network error:', err.message));
 
     // Email applicant
     sendBrevoEmail({

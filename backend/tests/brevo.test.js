@@ -14,7 +14,26 @@ const assert = require('node:assert/strict');
 process.env.BREVO_API_KEY = 'test-key';
 process.env.BREVO_FROM_EMAIL = 'support@thegrantsmaster.com';
 
-const { sendBrevoEmail, buildRecipient } = require('../utils/brevo');
+const { sendBrevoEmail, buildRecipient, parseListId } = require('../utils/brevo');
+
+test('a Brevo list id is only accepted when it is a positive integer', () => {
+  // These arrive from env vars as strings. Number('') is 0 and Number('abc') is
+  // NaN — both falsy — so an unusable value used to create contacts with no list
+  // membership while every caller reported success.
+  assert.equal(parseListId('12'), 12);
+  assert.equal(parseListId(34), 34);
+  assert.equal(parseListId(' 56 '), 56);
+
+  assert.equal(parseListId(''), null);
+  assert.equal(parseListId('   '), null);
+  assert.equal(parseListId(undefined), null);
+  assert.equal(parseListId(null), null);
+  assert.equal(parseListId('abc'), null);
+  assert.equal(parseListId('12abc'), null);
+  assert.equal(parseListId('0'), null);
+  assert.equal(parseListId('-3'), null);
+  assert.equal(parseListId('3.5'), null);
+});
 
 test('buildRecipient is the single source of the recipient rule', () => {
   // Used by the invite and password-reset senders, which previously built the
