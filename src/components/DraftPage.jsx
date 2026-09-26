@@ -345,8 +345,6 @@ function workspaceReducer(state, action) {
 }
 
 export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 'Untitled Draft', initialContent = '' } = {}) {
-  const [ideaInput, setIdeaInput] = useState('');
-  const [selectedText, setSelectedText] = useState('');
   const [title, setTitle] = useState(initialTitle || 'Untitled Draft');
   const [newSection, setNewSection] = useState('');
   const { user } = useUser() || {};
@@ -378,7 +376,6 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isHydrated, setIsHydrated] = useState(false);
   const [drafts, setDrafts] = useState([]);
-  const [aiActionCount, setAiActionCount] = useState(0);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const hasSavedDraft = !!draftIdProp;
   const editorRef = useRef(null);
@@ -408,10 +405,6 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
           const data = await res.json();
           const userDrafts = data?.drafts || [];
           setDrafts(userDrafts);
-          const current = userDrafts.find((d) => d.id === draftIdProp) || userDrafts[0];
-          if (current) {
-            setAiActionCount(current.aiActionCount || 0);
-          }
         }
       } catch (e) {
         console.warn('[DraftPage] failed to fetch drafts', e);
@@ -550,6 +543,14 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const isFunderReady = hasScorableContent && readinessScore >= 8;
   const docsSummary = useMemo(() => scoreSupportingDocs(supportingDocs), [supportingDocs]);
 
+  /** Which deliverable this document actually is, read from its own headings. */
+  const deliverableType = useMemo(() => {
+    const html = String(text || '');
+    if (/<h2[^>]*>\s*Opening\s*<\/h2>/i.test(html)) return 'Grant letter';
+    if (/<h2[^>]*>\s*Executive Summary\s*<\/h2>/i.test(html)) return 'Full proposal';
+    return 'Grant letter';
+  }, [text]);
+
   const statusClass = {
     Draft: 'bg-slate-100 text-slate-700 border-slate-200',
     'In Progress': 'bg-amber-50 text-amber-700 border-amber-200',
@@ -634,152 +635,6 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   function getToken() {
     return localStorage.getItem('token') || '';
   }
-
-  const handleAIAction = async (label, action) => {
-    setActiveAction(label);
-    setAiError('');
-    setAiLoading(true);
-
-    try {
-      const token = getToken();
-      const generateSectionMode = action === 'generate_section';
-      const generateFromIdeaMode = action === 'generate_from_idea' && isStarterPlus;
-      const endpoint = (generateSectionMode || generateFromIdeaMode)
-        ? '/api/ai/draft'
-        : '/api/ai/improve';
-
-      const sectionScopedAction = generateSectionMode;
-      const currentSectionText = sectionContentMap[activeSection] || '';
-      const baseContent = sectionScopedAction
-        ? currentSectionText || selectedText || text || ''
-        : selectedText || text || '';
-      const plainContent = stripHtml(baseContent);
-      const body = endpoint === '/api/ai/draft'
-        ? {
-            prompt: generateFromIdeaMode
-              ? `Write a full grant proposal with these exact sections and headings: ${sections.join(', ')}. Context: ${ideaInput.trim() || plainContent || title || 'Write a grant proposal'}`
-              : action === 'generate_section'
-                ? `Write only the ${activeSection} section for this grant proposal. Context: ${ideaInput.trim() || plainContent || title || 'Write a grant proposal section'}`
-              : ideaInput.trim() || plainContent || title || 'Write a grant proposal',
-            template: 'general',
-          }
-        : { content: baseContent || title || 'Improve this grant draft', instruction: action };
-
-      const res = await fetch(apiUrl(endpoint), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-      const output =
-        data?.rewritten ||
-        data?.improved ||
-        data?.clarity ||
-        data?.draft ||
-        data?.output ||
-        data?.text ||
-        data?.result ||
-        data?.content ||
-        '';
-
-      if (!res.ok) {
-        setAiError(data?.message || 'AI request failed. Please try again.');
-        return;
-      }
-
-      if (output) {
-        const normalizedOutput = normalizeAiHtml(output);
-        if (generateFromIdeaMode) {
-          const parsed = parseSectionsFromHtml(normalizedOutput, sections);
-          updateSectionAndEditor({ ...sectionContentMap, ...parsed });
-        } else if (action === 'generate_section' || sectionScopedAction) {
-          const sectionBody = stripHtml(normalizedOutput) ? normalizedOutput : `<p>${normalizedOutput}</p>`;
-          const nextMap = { ...sectionContentMap, [activeSection]: sectionBody };
-          updateSectionAndEditor(nextMap);
-          window.setTimeout(() => scrollToSection(activeSection), 50);
-        } else {
-          syncEditorFromStateRef.current = true;
-          dispatchWorkspace({ type: 'APPLY_EXTERNAL_HTML', payload: { html: normalizedOutput } });
-        }
-      } else {
-        setAiError('No AI output returned. Please try again.');
-      }
-    } catch (error) {
-      setAiError('AI request failed. Please check your connection and try again.');
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const callRewriteBasic = async (action) => {
-    if (!isStarterPlus && aiActionCount >= 3) {
-      setShowUpgradeModal(true);
-      return;
-    }
-    const liveHtml = editorRef.current?.innerHTML || '';
-    const parsedLive = parseSectionsFromHtml(liveHtml, sections);
-    const liveSectionContent = parsedLive[activeSection] || (sections.length === 1 ? liveHtml : '');
-    const currentContent = liveSectionContent || sectionContentMap[activeSection] || text || '';
-    if (stripHtml(currentContent).trim().length < 5) {
-      setAiError('Type something first.');
-      return;
-    }
-    setAiLoading(true);
-    setAiError('');
-    setActiveAction(action);
-    try {
-      const token = getToken();
-      const body = {
-        action,
-        content: currentContent,
-        draftId: draftId || null,
-      };
-      const res = await fetch(apiUrl('/api/ai/rewrite-basic'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok || !data?.success) {
-        if (data?.reason === 'ai_limit_reached') {
-          setShowUpgradeModal(true);
-          return;
-        }
-        throw new Error(data?.message || 'AI request failed');
-      }
-      const normalized = normalizeAiHtml(data?.output || '');
-      if (action === 'brainstorm_basic') {
-        const nextMap = { ...sectionContentMap, [activeSection]: normalized };
-        updateSectionAndEditor(nextMap);
-        window.setTimeout(() => scrollToSection(activeSection), 50);
-      } else if (action === 'draft_letter') {
-        const nextMap = { ...sectionContentMap, [activeSection]: normalized };
-        updateSectionAndEditor(nextMap);
-        window.setTimeout(() => scrollToSection(activeSection), 50);
-      } else {
-        const nextMap = { ...sectionContentMap, [activeSection]: normalized };
-        updateSectionAndEditor(nextMap);
-        window.setTimeout(() => scrollToSection(activeSection), 50);
-      }
-      if (data?.aiActionCount !== undefined) {
-        setAiActionCount(data.aiActionCount);
-      } else {
-        setAiActionCount((c) => c + 1);
-      }
-    } catch (error) {
-      setAiError(error?.message || 'AI request failed. Please try again.');
-    } finally {
-      setAiLoading(false);
-      setActiveAction('');
-    }
-  };
 
   const savedAgo = useMemo(() => {
     if (!lastSavedAt) return 'Not yet';
@@ -1302,37 +1157,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 ))}
               </div>
 
-              <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50/70 p-2.5">
-                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Rewrite (Basic)</p>
-                <button
-                  onClick={() => callRewriteBasic('rewrite')}
-                  disabled={aiLoading || (!isStarterPlus && aiActionCount >= 3)}
-                  className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {aiLoading && activeAction === 'rewrite' ? 'Rewriting...' : 'Rewrite'}
-                </button>
-                <button
-                  onClick={() => callRewriteBasic('rewrite_clarity')}
-                  disabled={aiLoading || (!isStarterPlus && aiActionCount >= 3)}
-                  className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {aiLoading && activeAction === 'rewrite_clarity' ? 'Rewriting...' : 'Rewrite for Clarity'}
-                </button>
-                <button
-                  onClick={() => callRewriteBasic('rewrite_impact')}
-                  disabled={aiLoading || (!isStarterPlus && aiActionCount >= 3)}
-                  className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {aiLoading && activeAction === 'rewrite_impact' ? 'Rewriting...' : 'Rewrite for Impact'}
-                </button>
-                <button
-                  onClick={() => callRewriteBasic('brainstorm_basic')}
-                  disabled={aiLoading || (!isStarterPlus && aiActionCount >= 3)}
-                  className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {aiLoading && activeAction === 'brainstorm_basic' ? 'Brainstorming...' : 'Basic Brainstorming'}
-                </button>
-              </div>
+              {/* "Rewrite (Basic)" panel removed — those rewrites are Steve's job now. */}
 
               <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50/70 p-2.5">
                 <button
@@ -1368,32 +1193,8 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 {activeSection}
               </div>
               <div className="p-6">
-                {isStarterPlus && (
-                  <div className="mb-4 rounded-xl border border-[#003A8C]/15 bg-[#F8FBFF] p-4">
-                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#003A8C]">Idea Input</p>
-                    <textarea
-                      value={ideaInput}
-                      onChange={(e) => setIdeaInput(e.target.value)}
-                      placeholder="Describe the grant, funder, or outcome you want Steve to shape into a proposal..."
-                      className="min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#D4AF37]"
-                    />
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleAIAction('Use Idea', 'generate_from_idea')}
-                        disabled={aiLoading || !isStarterPlus}
-                        className={`rounded-full px-4 py-2 text-xs font-bold transition ${
-                          isStarterPlus
-                            ? 'bg-[#003A8C] text-white hover:opacity-90 disabled:opacity-60'
-                            : 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                        }`}
-                      >
-                        {isStarterPlus ? 'Use Idea' : 'Use Idea (Starter+)'}
-                      </button>
-                      <button type="button" onClick={() => setIdeaInput('')} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-[#D4AF37]">Clear</button>
-                    </div>
-                  </div>
-                )}
+                {/* Idea Input removed: Steve takes the order and writes the document,
+                    so a second place to describe the grant only duplicates him. */}
 
                 {!isStarterPlus && (
                   <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
@@ -1408,69 +1209,11 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 )}
 
                 <h3 className="mb-3 text-base font-semibold text-[#0A0F1A]">{activeSection}</h3>
-                {!isStarterPlus && (
-                  <div className="mb-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => callRewriteBasic('rewrite')}
-                      disabled={aiLoading || aiActionCount >= 3}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {aiLoading && activeAction === 'rewrite' ? 'Rewriting...' : 'Rewrite'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => callRewriteBasic('rewrite_clarity')}
-                      disabled={aiLoading || aiActionCount >= 3}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {aiLoading && activeAction === 'rewrite_clarity' ? 'Rewriting...' : 'Rewrite for Clarity'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => callRewriteBasic('rewrite_impact')}
-                      disabled={aiLoading || aiActionCount >= 3}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {aiLoading && activeAction === 'rewrite_impact' ? 'Rewriting...' : 'Rewrite for Impact'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => callRewriteBasic('brainstorm_basic')}
-                      disabled={aiLoading || aiActionCount >= 3}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {aiLoading && activeAction === 'brainstorm_basic' ? 'Brainstorming...' : 'Basic Brainstorming'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => callRewriteBasic('draft_letter')}
-                      disabled={aiLoading || aiActionCount >= 3}
-                      className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-700 transition hover:border-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {aiLoading && activeAction === 'draft_letter' ? 'Drafting...' : 'Draft Letter'}
-                    </button>
-                  </div>
-                )}
-                {isStarterPlus && (
-                  <div className="mb-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleAIAction('Regenerate Section', 'generate_section')}
-                      disabled={aiLoading || !isStarterPlus}
-                      className="rounded-full border border-[#003A8C]/30 bg-white px-3 py-1.5 text-[11px] font-semibold text-[#003A8C] transition hover:bg-[#003A8C]/5 disabled:opacity-60"
-                    >
-                      {aiLoading && activeAction === 'Regenerate Section' ? 'Regenerating...' : 'Regenerate Section'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAIAction('Improve Section', 'rewrite')}
-                      disabled={aiLoading || !isStarterPlus}
-                      className="rounded-full border border-[#003A8C]/30 bg-white px-3 py-1.5 text-[11px] font-semibold text-[#003A8C] transition hover:bg-[#003A8C]/5 disabled:opacity-60"
-                    >
-                      {aiLoading && activeAction === 'Improve Section' ? 'Improving...' : 'Improve Section'}
-                    </button>
-                  </div>
+                {/* Per-section AI buttons (Rewrite / Regenerate / Draft Letter) removed.
+                    Rewrites and corrections are Steve's job — say "make the need statement
+                    stronger" in the counter and he edits the document directly. */}
+                {aiError && (
+                  <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">{aiError}</p>
                 )}
                 {isStarterPlus && (
                   <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
@@ -1479,7 +1222,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                     <span className="rounded-full border border-[#003A8C]/20 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#003A8C]">Starter - Full Drafting Unlocked</span>
                   </div>
                   <div className="grid gap-2 md:grid-cols-2">
-                    <input disabled value="Draft Type: Proposal" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600" />
+                    <input disabled value={`Draft Type: ${deliverableType}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600" />
                     <input disabled value={`Word Count: ${words}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600" />
                     <input disabled value={`Last saved: ${lastSavedAt ? `${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${savedAgo})` : 'Not yet'}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600" />
                     <input disabled value={`Status: ${status}`} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600" />
@@ -1555,8 +1298,6 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                     pushHistorySnapshot(next);
                     dispatchWorkspace({ type: 'UPDATE_FROM_EDITOR', payload: { html: next, pushHistory: true } });
                   }}
-                  onMouseUp={() => setSelectedText(window.getSelection()?.toString() || '')}
-                  onKeyUp={() => setSelectedText(window.getSelection()?.toString() || '')}
                 />
               </div>
               {isStarterPlus ? (
