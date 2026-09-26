@@ -234,7 +234,9 @@ function createToolkit(ctx) {
       const blockers = validateOrder(state.order);
       if (blockers.length) return base({ ok: false, reason: 'order_invalid', blockers });
 
-      const style = args.style || state.style || state.order.style || 'letter';
+      // The TICKET is authoritative. state.style is a cache of the session value,
+      // so preferring it would make an amended deliverable silently ignored.
+      const style = args.style || state.order.style || state.style || 'letter';
       state.status = 'drafting';
       state.style = style;
 

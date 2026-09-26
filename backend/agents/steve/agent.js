@@ -443,7 +443,7 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
       } else if (state.docHtml) {
         // The draft already exists, so re-make it with the corrected ticket.
         const toolkit = createToolkit({ state, user, tier });
-        const result = await toolkit.execute('create_draft', { style: state.style });
+        const result = await toolkit.execute('create_draft', { style: state.order.style });
         reply = result.ok
           ? `${head} I rewrote “${result.title}” — Checkmate now scores it ${result.scoreReport?.score ?? 'n/a'}/100.`
           : `${head} I need one more detail before I can rewrite it.`;
@@ -465,7 +465,7 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
 
     if (intent === 'confirm_draft') {
       const toolkit = createToolkit({ state, user, tier });
-      const result = await toolkit.execute('create_draft', { style: state.style });
+      const result = await toolkit.execute('create_draft', { style: state.order.style });
       const title = result.title || deriveTitle(state.order);
       const reply = result.ok
         ? `Done. I wrote "${title}" and ran Checkmate on it — it scored ${result.scoreReport?.score ?? 'n/a'}/100. ${result.needsSignIn ? 'Sign in and I will save it to your workspace.' : 'It is saved in your workspace and ready for your review.'}`
