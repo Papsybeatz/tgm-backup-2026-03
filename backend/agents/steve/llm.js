@@ -11,7 +11,9 @@
  */
 const https = require('https');
 
-const DEFAULT_GROQ_MODEL = process.env.GROQ_AGENT_MODEL || 'llama-3.3-70b-versatile';
+// Groq's Llama models moved to Enterprise/contact-sales; the self-serve
+// production models with tool calling are the GPT-OSS pair.
+const DEFAULT_GROQ_MODEL = process.env.GROQ_AGENT_MODEL || 'openai/gpt-oss-120b';
 const DEFAULT_OPENAI_MODEL = process.env.OPENAI_AGENT_MODEL || 'gpt-4o-mini';
 
 /**
@@ -20,7 +22,11 @@ const DEFAULT_OPENAI_MODEL = process.env.OPENAI_AGENT_MODEL || 'gpt-4o-mini';
  * Only model-shaped errors trigger a fallback, so a bad key or a rejected tool
  * schema still fails fast instead of tripling latency.
  */
-const GROQ_MODEL_FALLBACKS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'llama-3.1-70b-versatile'];
+const GROQ_MODEL_FALLBACKS = [
+  'openai/gpt-oss-120b', // current self-serve production model, tool calling
+  'openai/gpt-oss-20b',  // fast/cheap fallback
+  'llama-3.3-70b-versatile', // Enterprise plans only; kept last in case it is available
+];
 const MODEL_ERROR = /model|decommission|deprecat|not\s*found|does\s*not\s*exist|no\s*such/i;
 
 let workingModel = null; // remembered across turns once one succeeds
