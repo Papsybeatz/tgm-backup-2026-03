@@ -208,13 +208,21 @@ async function runToolLoop({ state, user, tier, message, history }) {
  * entirely, and keeps the natural phrasing because the model still writes it.
  */
 async function runIntakeTurn({ state, message, history }) {
+  // The model needs the exact key names, not just the human labels shown in the
+  // ticket above — otherwise it invents keys like "organization_name" and every
+  // field is silently dropped by mergeOrder.
+  const keyReference = Object.keys(SLOTS)
+    .map((key) => `${key} = ${SLOTS[key].label}`)
+    .join('; ');
+
   const system = [
     buildSystemPrompt(state),
     '',
     'Return ONLY this JSON shape, nothing else:',
     '{"fields": {<order fields the applicant JUST stated, omitted if none>}, "reply": "<your next message to the applicant>"}',
-    'Rules for fields: valid keys are the order-field names shown above. Only include what the applicant actually stated in this message. Never invent values.',
-    'Rules for reply: two or three sentences, one question at most, in Steve\u2019s voice.',
+    `Use EXACTLY these keys for fields: ${keyReference}`,
+    'Only include fields the applicant actually stated in this message. Never invent values.',
+    'Reply in two or three sentences with at most one question, in Steve\u2019s voice.',
   ].join('\n');
 
   const response = await llm.chat(
