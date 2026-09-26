@@ -137,7 +137,24 @@ Clears the session and starts a fresh order.
 |---|---|---|
 | `GROQ_API_KEY` | recommended | Enables the real LLM tool-calling loop (default provider) |
 | `OPENAI_API_KEY` | optional | Alternative provider; used only if `GROQ_API_KEY` is absent |
-| `GROQ_AGENT_MODEL` | optional | Defaults to `llama-3.3-70b-versatile` |
+| `GROQ_AGENT_MODEL` | optional | Overrides the model. Defaults to `openai/gpt-oss-120b` |
+
+### Groq model notes (important)
+
+- Groq moved **`llama-3.3-70b-versatile` and `llama-3.1-8b-instant` to
+  Enterprise/contact-sales**, so they are not reachable on a self-serve key.
+  The default is now `openai/gpt-oss-120b`, with `openai/gpt-oss-20b` as a
+  fallback. `llm.js` also tries a short fallback list if a model is retired.
+- **The binding constraint is the plan's token budget.** On the Groq on-demand
+  tier this is **8,000 tokens-per-minute**. A grant conversation burns through
+  that in a few turns, so Steve will fall back to the planner mid-conversation
+  unless the tier is raised. The free tier is fine for evaluating the flow, not
+  for production traffic.
+- Steve honours the provider's `retry-after` on a 429 and retries the same model
+  before degrading, and the tool schema and history are kept deliberately small
+  to stretch the budget.
+- A failure is never silent: the API returns `llmError` and the counter shows an
+  amber dot with the reason.
 | `OPENAI_AGENT_MODEL` | optional | Defaults to `gpt-4o-mini` |
 | `BREVO_API_KEY` | optional | Enables the "ready for review" email |
 | `APP_URL` | optional | Used in the email link and checkout paths |
