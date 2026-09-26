@@ -181,3 +181,46 @@ npm run test:steve
 Covers: planner completes the ticket line by line; the agent loop captures the
 order and writes the grant; and the guardrail refuses to ship a draft while the
 ticket is incomplete.
+
+---
+
+## Dashboard fusion — the counter
+
+The dashboard gets a **counter** across the top: the conversation on the left,
+the "waffle maker" on the right. The waffle maker has three stages and is the
+whole point of the metaphor — you watch the order being taken, then made, then
+handed over:
+
+1. **Your order** — the ticket lines fill in as Steve captures them
+2. **Making it** — the document is being written
+3. **Ready for review** — the finished grant, Checkmate bars, and downloads
+
+### Files
+
+| File | Role |
+|---|---|
+| `src/components/steve/useSteveConcierge.ts` | Shared engine: conversation, ticket, draft, score, voice |
+| `src/components/steve/SteveCounter.tsx` | The dashboard hero (split view) |
+| `src/components/steve/OrderTicket.tsx` | The waffle maker (3 stages) |
+| `src/components/steve/SteveErrorBoundary.tsx` | Contains a counter crash |
+| `src/components/SteveCounterHost.tsx` | Prepends the counter to the dashboard |
+
+### Design guarantees
+
+- **The dashboard is untouched.** `UnifiedDashboard.jsx` only wraps its four
+  tier returns in `SteveCounterHost`. No dashboard content changed.
+- **A counter crash cannot blank the page.** The counter sits inside an error
+  boundary; the dashboard below always renders.
+- **One Steve at a time.** The floating dock is suppressed on `/dashboard`
+  (where the counter is), and still follows you on `/workspace` and `/clients`.
+- **The document is sanitized before rendering.** The HTML is LLM-generated, so
+  it is never trusted as markup — scripts, event handlers and `javascript:`
+  URLs are stripped with `DOMParser`.
+- **Revert:** `?steve=legacy` or `VITE_STEVE_MODE=legacy` removes the counter
+  entirely and restores the original dashboard.
+
+### Known follow-up
+
+The floating panel (`AssistantChatPanel.tsx`) still carries its own copy of the
+conversation logic. The shared `useSteveConcierge` hook should be adopted there
+too, once the counter has been validated in use.

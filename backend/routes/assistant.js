@@ -77,6 +77,7 @@ router.post('/', softAuth, async (req, res) => {
       order: result.order,
       draftId: result.draftId || null,
       draftTitle: result.draftTitle || null,
+      docHtml: result.docHtml || null,
       score: result.score ?? null,
       scoreReport: result.scoreReport || null,
       hasDraft: Boolean(result.hasDraft),

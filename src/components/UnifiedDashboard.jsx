@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from './UserContext';
+import SteveCounterHost from './SteveCounterHost';
 import { TIERS } from '../config/tiers';
 import BillingPortalButton from './BillingPortalButton';
 import DraftsList from './DraftsList';
@@ -518,18 +519,31 @@ export default function UnifiedDashboard() {
   const unlocked = (key) => FEATURE_MAP[key]?.includes(tier);
 
   if (tier === 'free') {
-    return <FreeDashboard />;
+    return (
+      <SteveCounterHost>
+        <FreeDashboard />
+      </SteveCounterHost>
+    );
   }
 
   if (tier === 'starter') {
-    return <StarterDashboard tierConfig={tierConfig} />;
+    return (
+      <SteveCounterHost>
+        <StarterDashboard tierConfig={tierConfig} />
+      </SteveCounterHost>
+    );
   }
 
   if (['pro', 'agency_starter', 'agency_unlimited', 'lifetime'].includes(tier)) {
-    return <AdvancedDashboard tier={tier} tierConfig={tierConfig} />;
+    return (
+      <SteveCounterHost>
+        <AdvancedDashboard tier={tier} tierConfig={tierConfig} />
+      </SteveCounterHost>
+    );
   }
 
   return (
+    <SteveCounterHost>
     <div className="min-h-screen bg-[#F7F9FB] text-gray-900">
 
 
@@ -763,5 +777,6 @@ export default function UnifiedDashboard() {
       )}
 
     </div>
+    </SteveCounterHost>
   );
 }

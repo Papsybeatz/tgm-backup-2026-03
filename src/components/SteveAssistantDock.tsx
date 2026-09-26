@@ -31,7 +31,13 @@ export default function SteveAssistantDock() {
     [location.pathname],
   );
   const isAuthenticated = Boolean(user?.email);
-  const shouldRender = isAuthenticated && isProductRoute;
+
+  // On the dashboard the inline counter IS Steve, so the floating dock would
+  // be a second, competing Steve. The dock still follows you on the workspace
+  // and clients pages.
+  const counterOwnsDashboard = steveMode !== 'legacy' && location.pathname.startsWith('/dashboard');
+
+  const shouldRender = isAuthenticated && isProductRoute && !counterOwnsDashboard;
 
   useEffect(() => {
     if (!shouldRender && open) setOpen(false);
