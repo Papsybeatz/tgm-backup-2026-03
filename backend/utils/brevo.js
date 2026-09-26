@@ -29,13 +29,23 @@ async function sendBrevoEmail({ to, toName = '', subject, htmlContent, apiKey, a
   const fromEmail = process.env.BREVO_FROM_EMAIL || 'noreply@thegrantsmaster.com';
   const fromName = process.env.BREVO_FROM_NAME || 'The Grants Master';
 
+  const recipientEmail = String(to || '').trim().toLowerCase();
+  if (!recipientEmail) {
+    return { sent: false, error: 'No recipient email address supplied' };
+  }
+
+  // Brevo rejects the whole send with "name is missing in to" when the
+  // recipient name is blank, and an account without a display name hits that
+  // every time. Fall back to the address's local part so a name is always sent.
+  const recipientName = String(toName || '').trim() || recipientEmail.split('@')[0] || 'there';
+
   try {
     const res = await fetch(BREVO_SMTP_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'api-key': key },
       body: JSON.stringify({
-        sender: { email: fromEmail, name: fromName },
-        to: [{ email: to.trim().toLowerCase(), name: toName.trim() }],
+        sender: { email: fromEmail, name: fromName || 'The Grants Master' },
+        to: [{ email: recipientEmail, name: recipientName }],
         subject,
         htmlContent,
         ...(Array.isArray(attachments) && attachments.length ? { attachment: attachments } : {}),
