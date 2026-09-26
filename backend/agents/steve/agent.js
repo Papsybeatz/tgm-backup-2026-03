@@ -87,15 +87,14 @@ function buildSystemPrompt(state) {
     .filter((key) => !isBlank(state.order[key]))
     .map((key) => `- ${SLOTS[key].label}: ${state.order[key]}`);
 
+  // Kept deliberately short: this is re-sent on every request, and on a tight
+  // token budget the system prompt is the single biggest recurring cost.
   const rules = [
-    'You are Steve, the grant concierge for The Grants Master. You take a grant order the way a friendly counter attendant takes a food order: warm, plain-spoken, and efficient.',
-    'You are filling an ORDER TICKET. You never invent facts about the applicant — only record what they actually tell you.',
-    'Call capture_intake the moment the applicant gives new order details. Do it silently; do not announce it.',
-    'IMPORTANT: when you only need to record details, write your full reply text in the SAME message as the capture_intake call. Never make a separate call just to write the reply.',
+    'You are Steve, the grant concierge for The Grants Master. You take a grant order the way a friendly counter attendant takes a food order: warm, plain-spoken, efficient.',
+    'You are filling an ORDER TICKET. Never invent facts about the applicant — only record what they actually tell you.',
     'Ask exactly ONE question per message. Never stack questions.',
-    'Keep replies short — two or three sentences — except when reading the order back or handing over a finished draft.',
-    'Never claim something was saved, scored, or written unless a tool returned success.',
-    'Avoid jargon. A busy nonprofit director should feel like they are ordering lunch, not filling a government form.',
+    'Keep replies to two or three sentences.',
+    'Never claim something was saved, scored or written unless a tool confirmed it.',
   ];
 
   if (!isComplete(state.order)) {
@@ -195,6 +194,47 @@ async function runToolLoop({ state, user, tier, message, history }) {
   }
 
   return { reply, usedTools, toolkit };
+}
+
+/*
+ * Intake turn — one round trip instead of two.
+ *
+ * Tool calling forces a second pass: the model calls capture_intake, we return
+ * the result, and only then does it write its reply — re-sending the whole
+ * context. gpt-oss returns empty content alongside a tool call, so the reply
+ * cannot simply be inlined either.
+ *
+ * Asking for fields AND the reply as one JSON object removes the round trip
+ * entirely, and keeps the natural phrasing because the model still writes it.
+ */
+async function runIntakeTurn({ state, message, history }) {
+  const system = [
+    buildSystemPrompt(state),
+    '',
+    'Return ONLY this JSON shape, nothing else:',
+    '{"fields": {<order fields the applicant JUST stated, omitted if none>}, "reply": "<your next message to the applicant>"}',
+    'Rules for fields: valid keys are the order-field names shown above. Only include what the applicant actually stated in this message. Never invent values.',
+    'Rules for reply: two or three sentences, one question at most, in Steve\u2019s voice.',
+  ].join('\n');
+
+  const response = await llm.chat(
+    [
+      { role: 'system', content: system },
+      ...history
+        .filter((item) => item.role === 'user' || item.role === 'assistant')
+        .slice(-6)
+        .map((item) => ({ role: item.role, content: String(item.content || '').slice(0, 400) })),
+      { role: 'user', content: String(message || '') },
+    ],
+    { json: true, temperature: 0.5, maxTokens: 500, label: 'intake' },
+  );
+
+  const parsed = llm.extractJson(response.content);
+  if (!parsed || typeof parsed.reply !== 'string' || !parsed.reply.trim()) return null;
+
+  // mergeOrder ignores unknown keys and refuses to blank a filled line.
+  state.order = mergeOrder(state.order, parsed.fields || {});
+  return { reply: parsed.reply.trim() };
 }
 
 /* ─────────────────── deterministic (no-LLM) planner ─────────────────── */
@@ -343,6 +383,7 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
   const tier = user?.tier || 'free';
   const intent = detectIntent(message, state);
   let engine = llm.isEnabled() ? 'agent' : 'planner';
+  let intakeEngine = null;
   let llmError = null;
 
   try {
@@ -464,7 +505,24 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
     const pendingQuestionKey = lastAssistant?.metadata?.questionKey || null;
 
     let reply = '';
-    if (engine === 'agent') {
+    const intakePhase = !state.docHtml;
+
+    // Intake is the bulk of a conversation, so it uses the cheap single-call
+    // path. The tool loop is kept for turns that need real tool results.
+    if (engine === 'agent' && intakePhase) {
+      try {
+        const intake = await runIntakeTurn({ state, message, history });
+        if (intake) {
+          reply = intake.reply;
+          state.usedLLM = true;
+          intakeEngine = 'intake';
+        }
+      } catch (error) {
+        console.warn('[STEVE] intake call failed, falling back:', error?.message || error);
+      }
+    }
+
+    if (!reply && engine === 'agent') {
       try {
         const result = await runToolLoop({ state, user, tier, message, history });
         reply = result.reply;
@@ -475,7 +533,9 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
         engine = 'planner';
         reply = runPlannerTurn(state, message, pendingQuestionKey).reply;
       }
-    } else {
+    }
+
+    if (!reply) {
       reply = runPlannerTurn(state, message, pendingQuestionKey).reply;
     }
 
@@ -506,6 +566,7 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
       ...buildDownloadPayload(state, user),
       suggestions: suggestionsFor(state),
       engine,
+      path: intakeEngine || (state.usedLLM ? 'agent' : 'planner'),
       llmError,
     };
   } catch (error) {
