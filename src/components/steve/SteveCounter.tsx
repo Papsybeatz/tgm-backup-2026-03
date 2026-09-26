@@ -35,6 +35,8 @@ export default function SteveCounter() {
     onOpenEditor: () => {
       if (c.draftId) navigate(`/workspace/${c.draftId}`);
     },
+    onEmail: () => void c.sendToEmail(),
+    emailState: c.emailState,
   };
 
   return (

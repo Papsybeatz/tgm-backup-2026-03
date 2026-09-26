@@ -156,9 +156,10 @@ test('a correction amends the ticket instead of being filed as an answer', async
   const written = await runSteveTurn({ user: null, userId, message: 'yes' });
   assert.equal(written.hasDraft, true);
   // Assert on the request line, not a bare substring: $75,000 legitimately
-  // appears as a proportional budget line (30% of $250,000).
-  assert.match(written.docHtml, /requests \$250,000/);
-  assert.doesNotMatch(written.docHtml, /requests \$75,000/);
+  // appears as a proportional budget line (30% of $250,000). Phrasing differs
+  // between the letter ("request") and the proposal ("requests").
+  assert.match(written.docHtml, /request[a-z]*[^$]{0,20}\$250,000/i);
+  assert.doesNotMatch(written.docHtml, /request[a-z]*[^$]{0,20}\$75,000/i);
 
   // Correcting again must rewrite the existing draft.
   const again = await runSteveTurn({ user: null, userId, message: 'change the amount to $300k' });
@@ -212,6 +213,54 @@ test('a detail Steve acknowledges in its reply is still filed on the ticket', as
 
   assert.equal(Number(turn.order.people_served), 30, 'the acknowledged count must be on the ticket');
   assert.equal(turn.order.target_population, 'orphans');
+});
+
+test('the letter and the full proposal each produce their own sections', async () => {
+  const { generateGrant } = require('../agents/steve/drafting');
+
+  const order = {
+    applicant_name: 'Hope Soccer Academy',
+    applicant_type: '501(c)(3) nonprofit',
+    need_statement: 'Street kids lack structured pathways',
+    program_activities: 'Training and equipment',
+    target_population: 'street kids',
+    people_served: '120',
+    service_area: 'Greater Accra, Ghana',
+    address: 'Dansoman',
+    request_amount: '75000',
+    outcomes: 'Serve 120 kids',
+  };
+
+  const letter = await generateGrant(order, { style: 'letter' });
+  assert.equal(letter.style, 'letter');
+  const letterSections = [...letter.html.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)].map((m) => m[1]);
+  assert.deepEqual(letterSections, ['Opening', 'Statement of Need', 'Project Description', 'Budget Request', 'Conclusion']);
+
+  // Regression: the letter once pasted the Statement of Need into every section
+  // it did not have, because the assembler only built proposal-shaped content.
+  const opening = letter.sections.Opening || '';
+  const budget = letter.sections['Budget Request'] || '';
+  assert.match(opening, /Dear Program Officer/);
+  assert.notEqual(opening, letter.sections['Statement of Need']);
+  assert.notEqual(budget, letter.sections['Statement of Need']);
+  assert.match(budget, /respectfully request/i);
+
+  const proposal = await generateGrant(order, { style: 'full_proposal' });
+  assert.equal([...proposal.html.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)].map((m) => m[1]).length, 10);
+});
+
+test('asking for a letter to apply for support is not a style change', () => {
+  const { parseAmendment } = require('../agents/steve/amend');
+  const order = { style: 'letter' };
+
+  // Ordinary prose that mentions the artifact must not flip the deliverable.
+  assert.equal(
+    parseAmendment('my friend needs a grant letter to apply for grant support', order),
+    null,
+  );
+  // An actual instruction must.
+  assert.equal(parseAmendment('make it a full proposal', order)?.value, 'full_proposal');
+  assert.equal(parseAmendment('convert it to a letter', { style: 'full_proposal' })?.value, 'letter');
 });
 
 test('a street number is never filed as a funding amount', async () => {

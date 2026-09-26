@@ -387,7 +387,7 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
     draftId: session.draftId || null,
     score: session.score ?? null,
     scoreReport: session.scoreReport || null,
-    style: session.style || 'full_proposal',
+    style: session.style || 'letter',
     optionalBudget: 3,
     usedLLM: false,
   };

@@ -4,6 +4,7 @@ import { useUser } from './UserContext';
 import useAutosave from '../hooks/useAutosave';
 import { tierAtLeast } from '../config/tiers';
 import { apiUrl } from '../lib/apiUrl';
+import EditorToolbar from './EditorToolbar';
 
 const DEFAULT_SECTIONS = ['Section 1', 'Section 2', 'Section 3'];
 const FREE_SECTIONS = ['Draft'];
@@ -369,6 +370,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [manualSaveNote, setManualSaveNote] = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploadError, setUploadError] = useState('');
+  const [emailStatus, setEmailStatus] = useState({ sending: false });
   const [scoreState, setScoreState] = useState({ score: null, label: 'Not scored yet' });
   const [fitState, setFitState] = useState({ loading: false, error: '', insights: null });
   const [supportingDocs, setSupportingDocs] = useState({});
@@ -915,6 +917,30 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     }
   };
 
+  const handleSendToEmail = async () => {
+    if (!draftId) {
+      setUploadError('Save your draft first so it can be emailed.');
+      return;
+    }
+    setEmailStatus({ sending: true });
+    try {
+      const token = getToken();
+      const res = await fetch(apiUrl(`/api/drafts/${draftId}/email`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data?.success) {
+        setEmailStatus({ sentTo: data.sentTo });
+      } else {
+        setEmailStatus({ error: data?.message || 'Could not send the email.' });
+      }
+    } catch {
+      setEmailStatus({ error: 'Could not send the email.' });
+    }
+  };
+
   const handleDownloadTxt = () => {
     const blob = new Blob([stripHtml(text)], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, `${title || 'draft'}.txt`);
@@ -1047,6 +1073,21 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 >
                   Download DOCX
                 </button>
+              )}
+              {isStarterPlus && (
+                <button
+                  onClick={handleSendToEmail}
+                  disabled={emailStatus.sending || !draftId}
+                  className="rounded-lg border border-[#D4AF37]/50 bg-[#D4AF37]/10 px-3 py-1.5 text-xs font-semibold text-[#92400E] transition hover:bg-[#D4AF37]/20 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {emailStatus.sending ? 'Sending…' : 'Send to my email'}
+                </button>
+              )}
+              {emailStatus.sentTo && (
+                <span className="text-[11px] font-semibold text-emerald-700">Sent to {emailStatus.sentTo}</span>
+              )}
+              {emailStatus.error && (
+                <span className="text-[11px] font-semibold text-amber-700">{emailStatus.error}</span>
               )}
               {isStarterPlus && (
                 <button
@@ -1487,11 +1528,12 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                     padding-left: 1.2rem;
                   }
                 `}</style>
+                <EditorToolbar targetRef={editorRef} />
                 <div
                   ref={editorRef}
                   contentEditable
                   suppressContentEditableWarning
-                  data-placeholder="Write your grant proposal here..."
+                  data-placeholder="Write your grant letter here..."
                   className="tgm-html-editor"
                   onInput={(e) => {
                     const next = e.currentTarget.innerHTML;

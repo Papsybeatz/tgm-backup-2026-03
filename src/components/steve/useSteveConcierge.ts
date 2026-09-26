@@ -33,7 +33,7 @@ export type Download = { pdf: string; docx: string } | null;
 export type SteveStatus = 'intake' | 'drafting' | 'ready_for_review' | 'delivered';
 
 const GREETING =
-  "Hi, I'm Steve — your grant concierge. Tell me what you need and I'll take your order: I ask for whatever's missing, write the proposal, score it, and hand it to you ready to download.";
+  "Hi, I'm Steve — your grant concierge. Tell me what you need and I'll take your order: I ask for whatever's missing, write your grant letter, score it, and hand it over ready to download.";
 
 const newMessage = (role: AssistantMessage['role'], content: string): AssistantMessage => ({
   id: `${role}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -69,6 +69,7 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [engine, setEngine] = useState<string>('agent');
   const [llmError, setLlmError] = useState<string | null>(null);
+  const [emailState, setEmailState] = useState<{ sending: boolean; sentTo?: string; error?: string }>({ sending: false });
   const [listening, setListening] = useState(false);
   const [speakReplies, setSpeakReplies] = useState(false);
 
@@ -206,6 +207,27 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
     setLlmError(null);
   }, [authHeaders, user]);
 
+  /** Email the finished document (with a PDF attached) to the applicant. */
+  const sendToEmail = useCallback(async () => {
+    if (!draftId) return;
+    setEmailState({ sending: true });
+    try {
+      const res = await fetch(apiUrl(`/api/drafts/${draftId}/email`), {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data?.success) {
+        setEmailState({ sending: false, sentTo: data.sentTo });
+      } else {
+        setEmailState({ sending: false, error: data?.message || 'Could not send the email.' });
+      }
+    } catch {
+      setEmailState({ sending: false, error: 'Could not send the email.' });
+    }
+  }, [authHeaders, draftId]);
+
   const toggleListening = useCallback(() => {
     if (!speechSupported) return;
 
@@ -268,6 +290,8 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
     submit,
     reset,
     toggleListening,
+    emailState,
+    sendToEmail,
     bottomRef,
   };
 }

@@ -37,10 +37,10 @@ const SLOT_ALIASES = [
   { key: 'program_activities', patterns: [/\bactivities\b/, /\bwhat\s+the\s+money\b/, /\bprogram\s+description\b/] },
   { key: 'target_population', patterns: [/\bpeople\s+served\b/, /\bpopulation\b/, /\bbeneficiaries\b/] },
   { key: 'evidence', patterns: [/\bevidence\b/, /\bproof\b/, /\btrack\s+record\b/] },
-  { key: 'style', patterns: [/\bstyle\b/, /\bfull\s+proposal\b/, /\bone\s*-?\s*page\s+letter\b/] },
+  { key: 'style', patterns: [/\bstyle\b/, /\bfull\s+proposal\b/, /\bproposal\b/, /\bletter\b/, /\bone\s*-?\s*page\s+(?:grant\s+)?letter\b/] },
 ];
 
-const CORRECTION_VERB = /\b(change|update|set|amend|edit|correct|revise|adjust|actually|instead|make\s+it|should\s+be)\b/i;
+const CORRECTION_VERB = /\b(change|update|set|amend|edit|correct|revise|adjust|actually|instead|make\s+it|turn|convert|should\s+be)\b/i;
 const ASSIGNMENT = /\b(?:to|into|is|as|=|:)\s+(.+)$/i;
 const SKIP_VALUE = /^(skip|none|no|n\/a|nothing|never\s*mind)$/i;
 
@@ -122,6 +122,22 @@ function parseAmendment(message, order = {}) {
 
   if (!target) return null;
 
+  // Style is chosen by naming the artifact ("make it a full proposal"), not by
+  // an "X to Y" assignment, so it cannot go through the generic value parser.
+  if (target.key === 'style') {
+    const wants =
+      /\b(letter of inquiry|letter)\b/i.test(text) ? 'letter'
+        : /\b(full\s+proposal|full\s+application|proposal)\b/i.test(text) ? 'full_proposal'
+          : null;
+    if (!wants) return null;
+    // 'letter' and 'proposal' are weak words that appear in ordinary requests
+    // — e.g. "he needs a grant letter to apply for support" is not a change
+    // request. Style therefore requires a strong verb expressing intent, and
+    // not merely the presence of the word.
+    const STRONG_VERB = /\b(change|update|set|amend|edit|correct|revise|adjust|make\s+it|turn|convert|switch|prefer|want|give\s+me)\b/i;
+    return STRONG_VERB.test(text) ? { key: 'style', value: wants, label: SLOTS.style.label } : null;
+  }
+
   // A correction needs either an explicit verb ("change the amount to X") or an
   // explicit assignment ("the amount is X"). Otherwise it is just conversation.
   const afterAlias = text.slice(target.index);
@@ -142,15 +158,6 @@ function parseAmendment(message, order = {}) {
     const parsed = parseAmount(value);
     if (parsed === null || parsed <= 0) return null;
     return { key: target.key, value: parsed, label: SLOTS[target.key].label };
-  }
-
-  if (target.key === 'style') {
-    const normalized = value.toLowerCase().replace(/\s+/g, '_');
-    return {
-      key: target.key,
-      value: /letter/.test(normalized) ? 'letter' : 'full_proposal',
-      label: SLOTS[target.key].label,
-    };
   }
 
   return { key: target.key, value, label: SLOTS[target.key].label };

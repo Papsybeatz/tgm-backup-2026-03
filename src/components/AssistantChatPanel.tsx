@@ -25,7 +25,7 @@ type ScoreReport = {
 type Download = { pdf: string; docx: string } | null;
 
 const GREETING =
-  "Hi, I'm Steve — your grant concierge. Tell me about the grant you need and I'll take your order: I'll ask for whatever's missing, write the proposal, score it, and hand it to you ready to download.";
+  "Hi, I'm Steve — your grant concierge. Tell me about the grant you need and I'll take your order: I'll ask for whatever's missing, write your grant letter, score it, and hand it over ready to download.";
 
 const createMessage = (role: AssistantMessage['role'], content: string): AssistantMessage => ({
   id: `${role}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,

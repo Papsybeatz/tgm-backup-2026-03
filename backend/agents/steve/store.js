@@ -61,7 +61,7 @@ async function getOrCreateSession(userId) {
       userId: key,
       status: 'intake',
       order: emptyOrder(),
-      style: 'full_proposal',
+      style: 'letter',
       draftId: null,
       docTitle: null,
       score: null,

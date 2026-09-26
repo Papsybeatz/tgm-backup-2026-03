@@ -234,7 +234,7 @@ function createToolkit(ctx) {
       const blockers = validateOrder(state.order);
       if (blockers.length) return base({ ok: false, reason: 'order_invalid', blockers });
 
-      const style = args.style || state.style || state.order.style || 'full_proposal';
+      const style = args.style || state.style || state.order.style || 'letter';
       state.status = 'drafting';
       state.style = style;
 

@@ -11,6 +11,7 @@ const {
   buildDraftPdf,
   safeFilename,
 } = require('../services/exportDocuments');
+const { sendBrevoEmail } = require('../utils/brevo');
 
 console.log('[DRAFTS ROUTE] loaded from file:', __filename);
 
@@ -175,6 +176,55 @@ router.post('/:id/versions/:versionId/restore', requireAuth, async (req, res) =>
   } catch (e) {
     console.error('[DRAFTS] restore error', e && e.message ? e.message : e);
     if (!res.headersSent) return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// POST /api/drafts/:id/email — email the draft (with a PDF attached) to the owner.
+router.post('/:id/email', requireAuth, async (req, res) => {
+  try {
+    const draft = await prisma.draft.findFirst({ where: { id: req.params.id, userId: req.user.id } });
+    if (!draft) return res.status(404).json({ success: false, message: 'Draft not found' });
+
+    const to = String(req.body?.to || req.user.email || '').trim();
+    if (!to) return res.status(400).json({ success: false, message: 'No email address on this account.' });
+
+    if (!process.env.BREVO_API_KEY) {
+      return res.status(503).json({
+        success: false,
+        reason: 'email_not_configured',
+        message: 'Email sending is not configured yet. Use Download instead.',
+      });
+    }
+
+    const pdf = await buildDraftPdf({
+      title: draft.title,
+      content: draft.content,
+      subtitle: `Prepared in The Grants Master | ${new Date().toLocaleDateString('en-US')}`,
+    });
+
+    const escapedTitle = String(draft.title || 'Your grant letter').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+    const { sent, error } = await sendBrevoEmail({
+      to,
+      toName: req.user.name || '',
+      subject: escapedTitle,
+      htmlContent: `
+        <div style="font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.6;color:#0A0F1A;max-width:720px">
+          <p style="color:#64748B;font-size:13px;margin:0 0 4px">Your document from The Grants Master</p>
+          <h1 style="margin:0 0 16px;font-size:20px">${escapedTitle}</h1>
+          <div>${draft.content || ''}</div>
+        </div>`,
+      attachments: [{ content: pdf.toString('base64'), name: `${safeFilename(draft.title)}.pdf` }],
+    });
+
+    if (!sent) {
+      console.error('[DRAFTS] email failed:', error);
+      return res.status(502).json({ success: false, message: 'The email provider rejected the message.', error });
+    }
+
+    return res.json({ success: true, sentTo: to });
+  } catch (e) {
+    console.error('[DRAFTS] email error', e?.message || e);
+    return res.status(500).json({ success: false, message: 'Could not send the email.' });
   }
 });
 

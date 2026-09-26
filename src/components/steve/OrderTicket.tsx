@@ -25,6 +25,8 @@ type OrderTicketProps = {
   draftId: string | null;
   onImprove: () => void;
   onOpenEditor: () => void;
+  onEmail: () => void;
+  emailState: { sending: boolean; sentTo?: string; error?: string };
 };
 
 /**
@@ -84,6 +86,8 @@ export default function OrderTicket({
   draftId,
   onImprove,
   onOpenEditor,
+  onEmail,
+  emailState,
 }: OrderTicketProps) {
   // Prefer the document headings; fall back to the section list the API returns
   // so the ticket still reaches "ready" if the backend hasn't shipped docHtml.
@@ -323,13 +327,23 @@ export default function OrderTicket({
                     Download DOCX
                   </a>
                   {draftId && (
-                    <button
-                      type="button"
-                      onClick={onOpenEditor}
-                      className="rounded-lg border border-[#CBD5E1] px-3 py-2 text-xs font-bold text-[#003A8C] transition hover:border-[#003A8C]"
-                    >
-                      Open in editor
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={onOpenEditor}
+                        className="rounded-lg border border-[#CBD5E1] px-3 py-2 text-xs font-bold text-[#003A8C] transition hover:border-[#003A8C]"
+                      >
+                        Open in editor
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onEmail}
+                        disabled={emailState.sending}
+                        className="rounded-lg border border-[#CBD5E1] px-3 py-2 text-xs font-bold text-[#0A0F1A] transition hover:border-[#D4AF37] disabled:opacity-60"
+                      >
+                        {emailState.sending ? 'Sending…' : 'Send to my email'}
+                      </button>
+                    </>
                   )}
                 </>
               ) : (
@@ -344,6 +358,12 @@ export default function OrderTicket({
               >
                 Make it stronger
               </button>
+              {emailState.sentTo && (
+                <p className="w-full text-[11px] font-semibold text-emerald-700">Sent to {emailState.sentTo}</p>
+              )}
+              {emailState.error && (
+                <p className="w-full text-[11px] font-semibold text-amber-700">{emailState.error}</p>
+              )}
             </div>
           </div>
         </div>

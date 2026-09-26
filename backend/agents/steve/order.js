@@ -155,7 +155,7 @@ const SLOTS = {
     group: 'Sign-off',
     label: 'Deliverable style',
     question: 'Should Steve write a full proposal or a one-page grant letter?',
-    hint: 'Deliverable style: "full_proposal" or "letter". Defaults to full_proposal.',
+    hint: 'Deliverable style: "full_proposal" or "letter". Defaults to a one-page grant letter.',
   },
 };
 
@@ -215,12 +215,12 @@ function mergeOrder(order, patch) {
     if (value === null) return;
     if (key === 'style') {
       const normalized = String(value).toLowerCase().replace(/\s+/g, '_');
-      next.style = STYLE_VALUES.includes(normalized) ? normalized : 'full_proposal';
+      next.style = STYLE_VALUES.includes(normalized) ? normalized : 'letter';
       return;
     }
     next[key] = value;
   });
-  if (!next.style) next.style = 'full_proposal';
+  if (!next.style) next.style = 'letter';
   return next;
 }
 

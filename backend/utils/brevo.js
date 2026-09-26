@@ -17,9 +17,10 @@ const BREVO_SMTP_API_URL = 'https://api.brevo.com/v3/smtp/email';
  * @param {string} opts.subject     - Email subject line
  * @param {string} opts.htmlContent - Full HTML body
  * @param {string} [opts.apiKey]    - Override BREVO_API_KEY (default: env var)
+ * @param {Array<{content: string, name: string}>} [opts.attachments] - base64 attachments
  * @returns {{ sent: boolean, error?: string }}
  */
-async function sendBrevoEmail({ to, toName = '', subject, htmlContent, apiKey }) {
+async function sendBrevoEmail({ to, toName = '', subject, htmlContent, apiKey, attachments }) {
   const key = apiKey || process.env.BREVO_API_KEY;
   if (!key) {
     return { sent: false, error: 'BREVO_API_KEY not set' };
@@ -37,6 +38,7 @@ async function sendBrevoEmail({ to, toName = '', subject, htmlContent, apiKey })
         to: [{ email: to.trim().toLowerCase(), name: toName.trim() }],
         subject,
         htmlContent,
+        ...(Array.isArray(attachments) && attachments.length ? { attachment: attachments } : {}),
       }),
     });
 

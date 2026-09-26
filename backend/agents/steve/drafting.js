@@ -76,6 +76,40 @@ function buildContext(order) {
 
 /* ───────────────────────── deterministic assembler ───────────────────────── */
 
+/**
+ * The one-page grant letter.
+ *
+ * The proposal-shaped map below has no Opening or Budget Request, so without
+ * this the letter style fell back to pasting the Statement of Need into those
+ * sections and shipped a visibly wrong document.
+ */
+function assembleLetter(order) {
+  const proposal = assembleDraft(order);
+  const { title, amount } = buildContext(order);
+  const org = String(order?.applicant_name || 'The applicant organization').trim();
+  const type = String(order?.applicant_type || 'nonprofit organization').trim();
+  const area = String(order?.service_area || 'the service area').trim();
+  const funder = String(order?.funder_name || 'your foundation').trim();
+  const need = sentence(order?.need_statement) || 'The community faces a documented and unmet need.';
+  const lines = budgetLines(order);
+  const budgets = lines.length
+    ? lines.map((line) => `<li>${esc(line)}</li>`).join('')
+    : '<li>Detailed line-item budget available on request.</li>';
+
+  return {
+    Opening: `<p>Dear Program Officer,</p><p>${esc(org)} is a ${esc(type)} serving ${esc(area)}. We respectfully request ${esc(amount)} from ${esc(funder)} to fund ${esc(title)}.</p><p>${esc(need)}</p>`,
+    'Statement of Need': proposal['Statement of Need'],
+    'Project Description': proposal['Project Description'],
+    'Budget Request': `<p>We respectfully request ${esc(amount)}, allocated as follows:</p><ul>${budgets}</ul><p>Every line item is tied directly to the activities above. A detailed budget and supporting documentation are available on request.</p>`,
+    Conclusion: proposal.Conclusion,
+  };
+}
+
+/** Build the section map for whichever deliverable was asked for. */
+function assembleForStyle(order, style) {
+  return style === 'letter' ? assembleLetter(order) : assembleDraft(order);
+}
+
 function assembleDraft(order) {
   const { title, amount } = buildContext(order);
   const org = String(order?.applicant_name || 'The applicant organization').trim();
@@ -220,7 +254,7 @@ function renderDocument(title, sectionMap, style) {
  * @returns {Promise<{html: string, sections: object, usedLLM: boolean, title: string, style: string}>}
  */
 async function generateGrant(order, options = {}) {
-  const style = options.style || order?.style || 'full_proposal';
+  const style = options.style || order?.style || 'letter';
   const title = options.title || deriveTitle(order);
   const sectionNames = sectionsForStyle(style);
 
@@ -237,14 +271,14 @@ async function generateGrant(order, options = {}) {
   }
 
   if (!sections) {
-    const assembled = assembleDraft(order);
+    const assembled = assembleForStyle(order, style);
     sections = {};
     sectionNames.forEach((name) => {
       sections[name] = assembled[name] || assembled['Statement of Need'];
     });
   } else {
     // Fill any section the model skipped so the document is never partial.
-    const assembled = assembleDraft(order);
+    const assembled = assembleForStyle(order, style);
     sectionNames.forEach((name) => {
       if (!sections[name]) sections[name] = assembled[name] || assembled['Statement of Need'];
     });
@@ -273,6 +307,8 @@ module.exports = {
   LETTER_SECTIONS,
   sectionsForStyle,
   assembleDraft,
+  assembleLetter,
+  assembleForStyle,
   generateGrant,
   reviseSection,
   buildContext,
