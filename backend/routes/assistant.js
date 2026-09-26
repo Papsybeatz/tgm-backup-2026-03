@@ -85,6 +85,7 @@ router.post('/', softAuth, async (req, res) => {
       download: result.download || null,
       suggestions: result.suggestions || [],
       engine: result.engine || 'agent',
+      llmError: result.llmError || null,
       signedIn: Boolean(user),
     });
   } catch (error) {

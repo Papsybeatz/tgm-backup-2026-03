@@ -219,6 +219,41 @@ handed over:
 - **Revert:** `?steve=legacy` or `VITE_STEVE_MODE=legacy` removes the counter
   entirely and restores the original dashboard.
 
+## Corrections — "change the amount to $250k"
+
+Correcting an order is not the same as placing one, and it must work with or
+without the LLM. `amend.js` parses corrections deterministically:
+
+| You say | Ticket line updated |
+|---|---|
+| `change the amount to $250k` | Amount requested → $250,000 |
+| `make it $250k` | Amount requested → $250,000 |
+| `update the address to 12 Main St` | Address |
+| `actually the name is Hope Academy` | Organization name |
+| `can we set the deadline to March 15` | Deadline |
+
+Corrections are handled as a fast path in **both** engines, so the model can
+never silently ignore one. If a draft already exists, correcting a line
+**rewrites the grant** and re-scores it.
+
+### Two bugs this fixed
+
+1. **Corrections were being dropped.** `detectIntent("change the amount to
+   $250k")` returned `general`, so the message fell through to reading the order
+   back again — unchanged.
+2. **A story could be filed as the organization name.** The planner wrote any
+   reply into whatever line it had just asked for. Now, prose answering a
+   short-form line (name, amount, address…) is redirected to the need statement
+   and Steve re-asks the real question.
+
+### Degraded-engine notice
+
+When the LLM is unavailable the counter shows an amber dot and a banner naming
+the reason, and the API returns `llmError`. A silent fallback is treated as a
+bug: the applicant should never be shown a scripted conversation without knowing
+why. `llm.js` also tries a short list of fallback Groq models when the
+configured one has been retired.
+
 ### Known follow-up
 
 The floating panel (`AssistantChatPanel.tsx`) still carries its own copy of the

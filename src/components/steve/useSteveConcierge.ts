@@ -68,6 +68,7 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
   const [download, setDownload] = useState<Download>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [engine, setEngine] = useState<string>('agent');
+  const [llmError, setLlmError] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const [speakReplies, setSpeakReplies] = useState(false);
 
@@ -100,6 +101,7 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
     if (data.download !== undefined) setDownload(data.download || null);
     if (Array.isArray(data.suggestions)) setSuggestions(data.suggestions);
     if (data.engine) setEngine(data.engine);
+    if (data.llmError !== undefined) setLlmError(data.llmError || null);
   }, []);
 
   /** Rehydrate an in-progress order. */
@@ -201,6 +203,7 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
     setDownload(null);
     setSuggestions([]);
     setStatus('intake');
+    setLlmError(null);
   }, [authHeaders, user]);
 
   const toggleListening = useCallback(() => {
@@ -253,6 +256,7 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
     download,
     suggestions,
     engine,
+    llmError,
     listening,
     speakReplies,
     speechSupported,

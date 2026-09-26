@@ -27,8 +27,10 @@ const {
   summarizeOrder,
   deriveTitle,
   isBlank,
+  formatAmount,
   validateOrder,
 } = require('./order');
+const { parseAmendment, looksLikeProse, SHORT_SLOTS } = require('./amend');
 
 const MAX_STEPS = 5;
 const UPGRADE_LINK = `${process.env.APP_URL || 'https://www.thegrantsmaster.com'}/pricing`;
@@ -61,6 +63,8 @@ function detectIntent(message, state) {
   const text = String(message || '').toLowerCase().trim();
 
   if (/^(reset|start over|restart|new grant|new order|clear)/.test(text)) return 'reset';
+  // Correcting an existing ticket outranks everything except an explicit reset.
+  if (parseAmendment(message, state.order)) return 'amend';
   if (/download|export|\bpdf\b|\bdocx?\b|word file|save the file/.test(text)) return 'download';
   if (/score|checkmate|review my draft|how good|grade/.test(text)) return 'score';
   if (/open (it|the draft|the editor)|edit in workspace|take me to the draft/.test(text)) return 'open_editor';
@@ -169,10 +173,42 @@ async function runToolLoop({ state, user, tier, message, history }) {
 function runPlannerTurn(state, message, pendingQuestionKey = null) {
   const text = String(message || '').trim();
 
-  // Only treat a reply as an order line if Steve actually asked for that line
-  // on the previous turn. This stops an opening story from being filed as the
-  // organization name.
+  // ── 1. Corrections come first. "Change the amount to $250k" is an amendment
+  //       to the ticket, never an answer to the question Steve just asked.
+  const amendment = parseAmendment(text, state.order);
+  if (amendment) {
+    state.order = mergeOrder(state.order, { [amendment.key]: amendment.value });
+    const missingAfter = missingRequired(state.order);
+    const head = `Updated ${amendment.label.toLowerCase()} to ${formatAmendmentValue(amendment)}.`;
+
+    if (missingAfter.length) {
+      const question = nextQuestion(state.order);
+      return { reply: `${head} ${question.question}`, questionKey: question.key, amended: amendment };
+    }
+
+    return {
+      reply: `${head}\n\n${summarizeOrder(state.order).join('\n')}\n\nShall I write it now?`,
+      questionKey: null,
+      amended: amendment,
+    };
+  }
+
+  // ── 2. An answer to the line Steve just asked for — but only if it looks
+  //       like a value for that line. A paragraph is a story, not an org name.
   if (pendingQuestionKey && text && !/^(skip|none|no|no thanks|n\/a)$/i.test(text)) {
+    if (SHORT_SLOTS.has(pendingQuestionKey) && looksLikeProse(text)) {
+      if (isBlank(state.order.need_statement)) {
+        state.order = mergeOrder(state.order, { need_statement: text });
+        return {
+          reply: `That reads like the project story, so I saved it as the need. ${SLOTS[pendingQuestionKey].question}`,
+          questionKey: pendingQuestionKey,
+        };
+      }
+      return {
+        reply: `That's longer than I need for ${SLOTS[pendingQuestionKey].label.toLowerCase()}. ${SLOTS[pendingQuestionKey].question}`,
+        questionKey: pendingQuestionKey,
+      };
+    }
     state.order = mergeOrder(state.order, { [pendingQuestionKey]: text });
   }
 
@@ -193,6 +229,12 @@ function runPlannerTurn(state, message, pendingQuestionKey = null) {
   }
 
   return { reply: 'Your draft is ready. You can download it, or tell me what to change.', questionKey: null };
+}
+
+/** Render an amendment value the way the applicant gave it. */
+function formatAmendmentValue(amendment) {
+  if (amendment.key === 'request_amount') return formatAmount(amendment.value);
+  return String(amendment.value);
 }
 
 /* ─────────────────────────── deterministic guard ─────────────────────────── */
@@ -272,6 +314,7 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
   const tier = user?.tier || 'free';
   const intent = detectIntent(message, state);
   let engine = llm.isEnabled() ? 'agent' : 'planner';
+  let llmError = null;
 
   try {
     switch (intent) {
@@ -303,6 +346,39 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
 
       default:
         break;
+    }
+
+    if (intent === 'amend') {
+      const amendment = parseAmendment(message, state.order);
+      state.order = mergeOrder(state.order, { [amendment.key]: amendment.value });
+      const head = `Updated ${amendment.label.toLowerCase()} to ${
+        amendment.key === 'request_amount' ? formatAmount(amendment.value) : amendment.value
+      }.`;
+
+      let reply;
+      if (!isComplete(state.order)) {
+        reply = `${head} ${nextQuestion(state.order).question}`;
+      } else if (state.docHtml) {
+        // The draft already exists, so re-make it with the corrected ticket.
+        const toolkit = createToolkit({ state, user, tier });
+        const result = await toolkit.execute('create_draft', { style: state.style });
+        reply = result.ok
+          ? `${head} I rewrote “${result.title}” — Checkmate now scores it ${result.scoreReport?.score ?? 'n/a'}/100.`
+          : `${head} I need one more detail before I can rewrite it.`;
+      } else {
+        reply = `${head}\n\n${summarizeOrder(state.order).join('\n')}\n\nShall I write it now?`;
+      }
+
+      await store.appendMessage(session, 'assistant', reply, { intent: 'amend', questionKey: null });
+      await store.saveSession(session, state);
+      return {
+        reply,
+        intent: 'amend',
+        ...statePayload(state),
+        ...buildDownloadPayload(state, user),
+        suggestions: suggestionsFor(state),
+        engine,
+      };
     }
 
     if (intent === 'confirm_draft') {
@@ -365,7 +441,8 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
         reply = result.reply;
         state.usedLLM = true;
       } catch (error) {
-        console.warn('[STEVE] agent loop failed, falling back to planner:', error?.message || error);
+        llmError = sanitizeError(error?.message || error);
+        console.warn('[STEVE] agent loop failed, falling back to planner:', llmError);
         engine = 'planner';
         reply = runPlannerTurn(state, message, pendingQuestionKey).reply;
       }
@@ -400,6 +477,7 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
       ...buildDownloadPayload(state, user),
       suggestions: suggestionsFor(state),
       engine,
+      llmError,
     };
   } catch (error) {
     console.error('[STEVE] turn failed:', error?.message || error);
@@ -411,6 +489,14 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
     }
     return { reply, intent: 'error', status: 'intake', engine };
   }
+}
+
+/** Never let a provider error echo a credential back to the client. */
+function sanitizeError(message) {
+  return String(message || '')
+    .replace(/sk-[A-Za-z0-9_-]{6,}/g, '[redacted]')
+    .replace(/\b[A-Za-z0-9_-]{40,}\b/g, '[redacted]')
+    .slice(0, 300);
 }
 
 async function notifyReadyForReviewSafe({ user, state }) {

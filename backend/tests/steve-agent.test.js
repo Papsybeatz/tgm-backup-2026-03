@@ -125,6 +125,66 @@ test('agent loop captures the order, asks the next question, then writes the gra
   assert.ok(done.reply.includes('/100'), 'Steve must report the Checkmate score');
 });
 
+test('a correction amends the ticket instead of being filed as an answer', async () => {
+  delete process.env.GROQ_API_KEY;
+  delete process.env.OPENAI_API_KEY;
+  llm.isEnabled = () => false; // earlier tests stub this to true
+
+  const userId = `amend_${Date.now()}`;
+  await store.resetSession(userId);
+
+  const setup = [
+    'start', 'Hope Soccer Academy', 'School', 'Street kids lack structured football pathways',
+    'Training and equipment', 'Street kids with football talent', 'Greater Accra, Ghana',
+    '6317 Sakatsuru Loop, Dansoman', '$75,000', 'Serve 120 kids',
+  ];
+  let turn;
+  for (const answer of setup) {
+    turn = await runSteveTurn({ user: null, userId, message: answer });
+  }
+  assert.equal(turn.progress.complete, true);
+  assert.equal(turn.order.request_amount, '$75,000');
+
+  const amended = await runSteveTurn({ user: null, userId, message: 'change the amount to $250k' });
+  assert.equal(amended.intent, 'amend');
+  assert.equal(Number(amended.order.request_amount), 250000, 'ticket amount must be updated');
+  assert.match(amended.reply, /updated/i);
+  assert.match(amended.reply, /\$250,000/);
+  assert.match(amended.reply, /write it now\?/i, 'must re-offer to write');
+
+  // Writing must use the corrected amount, not the original.
+  const written = await runSteveTurn({ user: null, userId, message: 'yes' });
+  assert.equal(written.hasDraft, true);
+  // Assert on the request line, not a bare substring: $75,000 legitimately
+  // appears as a proportional budget line (30% of $250,000).
+  assert.match(written.docHtml, /requests \$250,000/);
+  assert.doesNotMatch(written.docHtml, /requests \$75,000/);
+
+  // Correcting again must rewrite the existing draft.
+  const again = await runSteveTurn({ user: null, userId, message: 'change the amount to $300k' });
+  assert.equal(again.intent, 'amend');
+  assert.match(again.docHtml, /\$300,000/);
+});
+
+test('a long story is never filed as the organization name', async () => {
+  delete process.env.GROQ_API_KEY;
+  delete process.env.OPENAI_API_KEY;
+  llm.isEnabled = () => false;
+
+  const userId = `prose_${Date.now()}`;
+  await store.resetSession(userId);
+
+  const story =
+    'my friend gathers soccer talented kids from the streets and its a soccer academy in the making, so he needs a grant letter to apply for grant support';
+
+  await runSteveTurn({ user: null, userId, message: 'It is a nonprofit' });
+  const turn = await runSteveTurn({ user: null, userId, message: story });
+
+  assert.notEqual(turn.order.applicant_name, story, 'the story must not become the org name');
+  assert.equal(turn.order.need_statement, story, 'the story belongs in the need statement');
+  assert.match(turn.reply, /name of the organization/i, 'must still ask for the real name');
+});
+
 test('guardrail refuses to write while the ticket is incomplete', async () => {
   process.env.GROQ_API_KEY = 'test-key';
   llm.isEnabled = () => true;

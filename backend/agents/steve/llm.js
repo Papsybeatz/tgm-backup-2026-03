@@ -14,6 +14,17 @@ const https = require('https');
 const DEFAULT_GROQ_MODEL = process.env.GROQ_AGENT_MODEL || 'llama-3.3-70b-versatile';
 const DEFAULT_OPENAI_MODEL = process.env.OPENAI_AGENT_MODEL || 'gpt-4o-mini';
 
+/**
+ * Groq's model catalogue moves. If the configured model has been retired we try
+ * the next candidate rather than silently degrading to the planner forever.
+ * Only model-shaped errors trigger a fallback, so a bad key or a rejected tool
+ * schema still fails fast instead of tripling latency.
+ */
+const GROQ_MODEL_FALLBACKS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'llama-3.1-70b-versatile'];
+const MODEL_ERROR = /model|decommission|deprecat|not\s*found|does\s*not\s*exist|no\s*such/i;
+
+let workingModel = null; // remembered across turns once one succeeds
+
 function providerConfig() {
   if (process.env.GROQ_API_KEY) {
     return {
@@ -91,33 +102,62 @@ async function chat(messages, options = {}) {
   const config = providerConfig();
   if (!config) throw new Error('NO_LLM_KEY');
 
-  const body = {
-    model: options.model || config.model,
-    messages,
-    temperature: typeof options.temperature === 'number' ? options.temperature : 0.4,
-    max_tokens: options.maxTokens || 1600,
+  const buildBody = (model) => {
+    const body = {
+      model,
+      messages,
+      temperature: typeof options.temperature === 'number' ? options.temperature : 0.4,
+      max_tokens: options.maxTokens || 1600,
+    };
+
+    if (options.tools && options.tools.length > 0) {
+      body.tools = options.tools;
+      body.tool_choice = options.toolChoice || 'auto';
+    }
+
+    if (options.json) {
+      body.response_format = { type: 'json_object' };
+    }
+
+    return body;
   };
 
-  if (options.tools && options.tools.length > 0) {
-    body.tools = options.tools;
-    body.tool_choice = options.toolChoice || 'auto';
+  const candidates = [];
+  if (options.model) candidates.push(options.model);
+  else {
+    if (workingModel) candidates.push(workingModel);
+    if (process.env.GROQ_AGENT_MODEL) candidates.push(process.env.GROQ_AGENT_MODEL);
+    if (config.name === 'groq') GROQ_MODEL_FALLBACKS.forEach((m) => candidates.push(m));
+    else candidates.push(config.model);
+  }
+  const models = candidates.filter((m, i) => m && candidates.indexOf(m) === i);
+
+  let lastError;
+  for (const model of models) {
+    try {
+      const parsed = await requestJson(config, buildBody(model), options.timeoutMs);
+      workingModel = model;
+      const choice = parsed?.choices?.[0];
+      const message = choice?.message || {};
+
+      return {
+        content: typeof message.content === 'string' ? message.content : '',
+        toolCalls: Array.isArray(message.tool_calls) ? message.tool_calls : [],
+        finishReason: choice?.finish_reason || 'stop',
+        raw: message,
+        usage: parsed?.usage || null,
+        model,
+      };
+    } catch (error) {
+      lastError = error;
+      // Only a model problem is worth trying the next candidate. A bad key or a
+      // rejected tool schema will fail identically on every model.
+      if (!MODEL_ERROR.test(String(error?.message || ''))) break;
+      console.warn(`[STEVE] model "${model}" unavailable, trying next: ${error.message}`);
+    }
   }
 
-  if (options.json) {
-    body.response_format = { type: 'json_object' };
-  }
-
-  const parsed = await requestJson(config, body, options.timeoutMs);
-  const choice = parsed?.choices?.[0];
-  const message = choice?.message || {};
-
-  return {
-    content: typeof message.content === 'string' ? message.content : '',
-    toolCalls: Array.isArray(message.tool_calls) ? message.tool_calls : [],
-    finishReason: choice?.finish_reason || 'stop',
-    raw: message,
-    usage: parsed?.usage || null,
-  };
+  throw lastError || new Error('LLM request failed');
 }
 
 /** Pull a JSON object out of a model reply, tolerating prose or code fences. */
