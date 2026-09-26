@@ -2,7 +2,8 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "test:steve": "node --test tests/steve-agent.test.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

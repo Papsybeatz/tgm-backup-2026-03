@@ -231,3 +231,41 @@ model LifetimeTier {
 
   @@index([claimed])
 }
+
+// ---------------------------------------------------------------------------
+// Steve — conversational grant concierge
+// ---------------------------------------------------------------------------
+
+model AssistantSession {
+  id          String   @id @default(cuid())
+  userId      String
+  status      String   @default("intake") // intake | drafting | ready_for_review | delivered
+  order       Json
+  draftId     String?
+  docTitle    String?
+  docHtml     String?
+  style       String   @default("full_proposal")
+  score       Int?
+  scoreReport Json?
+  lastIntent  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  messages AssistantMessage[]
+
+  @@index([userId, updatedAt])
+  @@index([draftId])
+}
+
+model AssistantMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      String // user | assistant | tool
+  content   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  session AssistantSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
