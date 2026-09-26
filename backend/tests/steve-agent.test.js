@@ -185,6 +185,52 @@ test('a long story is never filed as the organization name', async () => {
   assert.match(turn.reply, /name of the organization/i, 'must still ask for the real name');
 });
 
+test('a detail Steve acknowledges in its reply is still filed on the ticket', async () => {
+  process.env.GROQ_API_KEY = 'test-key';
+  llm.isEnabled = () => true;
+
+  // A model that talks about the detail but returns no fields at all — the
+  // exact failure reported from a real session.
+  llm.chat = async () => ({
+    content: JSON.stringify({
+      fields: {},
+      reply: 'Got it — thanks for sharing that the orphanage serves 30 children. What is the organisation called?',
+    }),
+    toolCalls: [],
+    finishReason: 'stop',
+    raw: { role: 'assistant', content: '' },
+  });
+
+  const userId = `ack_${Date.now()}`;
+  await store.resetSession(userId);
+
+  const turn = await runSteveTurn({
+    user: null,
+    userId,
+    message: 'A client of mine started an orphanage with 30 orphans and wants me to write her a grant',
+  });
+
+  assert.equal(Number(turn.order.people_served), 30, 'the acknowledged count must be on the ticket');
+  assert.equal(turn.order.target_population, 'orphans');
+});
+
+test('a street number is never filed as a funding amount', async () => {
+  process.env.GROQ_API_KEY = 'test-key';
+  llm.isEnabled = () => true;
+  llm.chat = async () => ({
+    content: JSON.stringify({ fields: {}, reply: 'Thanks — what is the funding amount?' }),
+    toolCalls: [],
+    finishReason: 'stop',
+    raw: { role: 'assistant', content: '' },
+  });
+
+  const userId = `addr_${Date.now()}`;
+  await store.resetSession(userId);
+  const turn = await runSteveTurn({ user: null, userId, message: '6317 Sakatsuru Loop, Dansoman, Accra' });
+
+  assert.equal(turn.order.request_amount, undefined, 'an address must not become a request amount');
+});
+
 test('guardrail refuses to write while the ticket is incomplete', async () => {
   process.env.GROQ_API_KEY = 'test-key';
   llm.isEnabled = () => true;

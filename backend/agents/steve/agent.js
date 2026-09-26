@@ -31,6 +31,7 @@ const {
   validateOrder,
 } = require('./order');
 const { parseAmendment, looksLikeProse, SHORT_SLOTS } = require('./amend');
+const { extractDeterministic } = require('./extract');
 
 const MAX_STEPS = 5;
 const UPGRADE_LINK = `${process.env.APP_URL || 'https://www.thegrantsmaster.com'}/pricing`;
@@ -222,6 +223,9 @@ async function runIntakeTurn({ state, message, history }) {
     '{"fields": {<order fields the applicant JUST stated, omitted if none>}, "reply": "<your next message to the applicant>"}',
     `Use EXACTLY these keys for fields: ${keyReference}`,
     'Only include fields the applicant actually stated in this message. Never invent values.',
+    'Extract EVERY concrete fact, including facts buried inside a request or a story — not just facts given as direct answers. If the applicant mentions a number of beneficiaries, a place, an amount of money, or what kind of organisation it is, you MUST record it.',
+    'Worked example: "my friend runs an orphanage in Accra for 30 orphans and wants a grant" yields people_served=30, target_population="orphans", service_area="Accra". File those three even though the sentence is mainly a request.',
+    'If your reply mentions a detail, that detail must be in fields.',
     'Reply in two or three sentences with at most one question, in Steve\u2019s voice.',
   ].join('\n');
 
@@ -514,6 +518,14 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
 
     let reply = '';
     const intakePhase = !state.docHtml;
+
+    // Deterministic floor. The model may acknowledge a fact in its reply without
+    // filing it; that is the worst failure mode, because the applicant is told
+    // they were understood and never repeats the detail. Guarantee the
+    // unambiguous ones land before the model is even consulted.
+    if (intakePhase) {
+      state.order = mergeOrder(state.order, extractDeterministic(message));
+    }
 
     // Intake is the bulk of a conversation, so it uses the cheap single-call
     // path. The tool loop is kept for turns that need real tool results.
