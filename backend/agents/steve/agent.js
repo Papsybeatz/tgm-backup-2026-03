@@ -496,7 +496,7 @@ function sanitizeError(message) {
   return String(message || '')
     .replace(/sk-[A-Za-z0-9_-]{6,}/g, '[redacted]')
     .replace(/\b[A-Za-z0-9_-]{40,}\b/g, '[redacted]')
-    .slice(0, 300);
+    .slice(0, 600);
 }
 
 async function notifyReadyForReviewSafe({ user, state }) {

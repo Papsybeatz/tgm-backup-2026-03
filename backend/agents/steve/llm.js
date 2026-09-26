@@ -138,7 +138,7 @@ async function chat(messages, options = {}) {
   }
   const models = candidates.filter((m, i) => m && candidates.indexOf(m) === i);
 
-  let lastError;
+  const failures = [];
   for (const model of models) {
     try {
       const parsed = await requestJson(config, buildBody(model), options.timeoutMs);
@@ -155,15 +155,18 @@ async function chat(messages, options = {}) {
         model,
       };
     } catch (error) {
-      lastError = error;
+      const message = String(error?.message || error);
+      failures.push(`${model}: ${message}`);
       // Only a model problem is worth trying the next candidate. A bad key or a
       // rejected tool schema will fail identically on every model.
-      if (!MODEL_ERROR.test(String(error?.message || ''))) break;
-      console.warn(`[STEVE] model "${model}" unavailable, trying next: ${error.message}`);
+      if (!MODEL_ERROR.test(message)) break;
+      console.warn(`[STEVE] model "${model}" unavailable, trying next: ${message}`);
     }
   }
 
-  throw lastError || new Error('LLM request failed');
+  // Report every attempt, not just the last — otherwise a working primary model
+  // failing for one reason is masked by a redundant fallback failing for another.
+  throw new Error(failures.join(' || ') || 'LLM request failed');
 }
 
 /** Pull a JSON object out of a model reply, tolerating prose or code fences. */
