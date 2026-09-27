@@ -949,7 +949,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   Free Preview - Save Locked
                 </span>
               )}
-              {isStarterPlus && (
+              {(
                 <button
                   onClick={handleDownloadPdf}
                   disabled={!draftId}
@@ -958,7 +958,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                   Download PDF
                 </button>
               )}
-              {isStarterPlus && (
+              {(
                 <button
                   onClick={handleDownloadDocx}
                   disabled={!draftId}

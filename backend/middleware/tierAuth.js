@@ -1,26 +1,42 @@
 const TIERS = {
+  // ---------------------------------------------------------------------------
+  // Gating model: tiers sell SAVE, HISTORY, EMAIL and MULTI-CLIENT WORK.
+  //
+  // They no longer sell AI capability. Steve does the drafting, scoring and
+  // rewrites for every tier, so gating on 'ai_rewrite' or 'scoring_engine' was
+  // selling something free users already had. What actually differs is whether
+  // your work is kept, whether it can be sent, and whether Steve can work for
+  // your clients.
+  // ---------------------------------------------------------------------------
   free: {
-    features: ['draft_basic', 'view_drafts', 'brainstorming_unlimited', 'scoring_basic', 'export_pdf', 'export_doc', 'ny_grants', 'email_support'],
-    limits: { drafts: 1, scoring: 3, matching: 0 }
+    // Full capability, nothing kept: one grant, no history, no email. They can
+    // still DOWNLOAD it — the payoff is what makes them upgrade.
+    features: ['draft_basic', 'view_drafts', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'ai_rewrite', 'export_pdf', 'export_doc', 'ny_grants', 'email_support'],
+    limits: { drafts: 1, scoring: Infinity, matching: 0 }
   },
   starter: {
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'matching_basic', 'matching_engine', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'project_templates', 'priority_support'],
+    // The upgrade reason is "don't lose your work".
+    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'save_drafts', 'version_history', 'email_delivery', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'ai_rewrite', 'matching_basic', 'matching_engine', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'project_templates', 'priority_support'],
     limits: { drafts: Infinity, scoring: Infinity, matching: Infinity }
   },
   pro: {
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'matching_engine', 'matching_unlimited', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_3', 'shared_workspace', 'team_templates', 'team_activity_log', 'ny_funder_intelligence', 'ny_compliance_rules', 'document_uploads', 'custom_export_formatting'],
+    // The upgrade reason is collaboration.
+    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'save_drafts', 'version_history', 'email_delivery', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'ai_rewrite', 'ai_priority', 'matching_basic', 'matching_engine', 'matching_unlimited', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_3', 'shared_workspace', 'team_templates', 'team_activity_log', 'ny_funder_intelligence', 'ny_compliance_rules', 'document_uploads', 'custom_export_formatting'],
     limits: { drafts: Infinity, scoring: Infinity, matching: Infinity, teamSeats: 3 }
   },
   agency_starter: {
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'scoring_bulk', 'matching_engine', 'matching_unlimited', 'matching_bulk', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_10', 'client_folders', 'client_templates', 'shared_workspace', 'white_label_header', 'white_label_full', 'priority_support', 'role_based_permissions', 'client_activity_logs', 'multi_client_dashboards'],
+    // The upgrade reason is throughput across clients.
+    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'save_drafts', 'version_history', 'email_delivery', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'scoring_bulk', 'ai_rewrite', 'ai_priority', 'matching_basic', 'matching_engine', 'matching_unlimited', 'matching_bulk', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_10', 'client_folders', 'client_aware_steve', 'client_templates', 'shared_workspace', 'white_label_header', 'white_label_full', 'priority_support', 'role_based_permissions', 'client_activity_logs', 'multi_client_dashboards'],
     limits: { drafts: Infinity, scoring: Infinity, matching: Infinity, teamSeats: 10, clientFolders: true }
   },
   agency_unlimited: {
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'scoring_bulk', 'matching_engine', 'matching_unlimited', 'matching_bulk', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_portfolio', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_unlimited', 'client_folders', 'client_templates', 'shared_workspace', 'white_label_full', 'priority_support', 'sla_support', 'admin_controls', 'multi_client_dashboards', 'dedicated_success_manager', 'quarterly_strategy_reviews', 'early_access'],
+    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'save_drafts', 'version_history', 'email_delivery', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'scoring_bulk', 'ai_rewrite', 'ai_priority', 'matching_basic', 'matching_engine', 'matching_unlimited', 'matching_bulk', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'analytics_portfolio', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_unlimited', 'client_folders', 'client_aware_steve', 'client_templates', 'shared_workspace', 'white_label_full', 'priority_support', 'sla_support', 'admin_controls', 'multi_client_dashboards', 'dedicated_success_manager', 'quarterly_strategy_reviews', 'early_access'],
     limits: { drafts: Infinity, scoring: Infinity, matching: Infinity, teamSeats: Infinity, clientFolders: true }
   },
   lifetime: {
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'matching_engine', 'matching_unlimited', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_1', 'priority_support', 'lifetime_badge', 'founder_certificate'],
+    // Founding Member: scoped to Starter-level forever. No seats, no clients —
+    // that is what keeps Pro and Agency intact.
+    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'save_drafts', 'version_history', 'email_delivery', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'ai_rewrite', 'ai_priority', 'matching_basic', 'matching_engine', 'matching_unlimited', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'priority_support', 'lifetime_badge', 'founder_certificate'],
     limits: { drafts: Infinity, scoring: Infinity, matching: Infinity }
   }
 };

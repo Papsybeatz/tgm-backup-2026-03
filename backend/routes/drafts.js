@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 const router = express.Router();
 
 const requireAuth = require('../middleware/auth');
+const { requireFeature } = require('../middleware/tierAuth');
 const { logAiAction } = require('../utils/logging');
 const {
   buildDraftDocx,
@@ -125,7 +126,7 @@ router.get('/:id/export.docx', requireAuth, async (req, res) => {
 
 // Draft versions endpoints
 // GET /api/drafts/:id/versions
-router.get('/:id/versions', requireAuth, async (req, res) => {
+router.get('/:id/versions', requireAuth, requireFeature('version_history'), async (req, res) => {
   try {
     const draftId = req.params.id;
     const draft = await prisma.draft.findUnique({ where: { id: draftId } });
@@ -139,7 +140,7 @@ router.get('/:id/versions', requireAuth, async (req, res) => {
 });
 
 // POST /api/drafts/:id/versions — create a new version for a draft
-router.post('/:id/versions', requireAuth, async (req, res) => {
+router.post('/:id/versions', requireAuth, requireFeature('version_history'), async (req, res) => {
   try {
     const draftId = req.params.id;
     const { content } = req.body;
@@ -155,7 +156,7 @@ router.post('/:id/versions', requireAuth, async (req, res) => {
 });
 
 // POST /api/drafts/:id/versions/:versionId/restore — restore a draft from a version
-router.post('/:id/versions/:versionId/restore', requireAuth, async (req, res) => {
+router.post('/:id/versions/:versionId/restore', requireAuth, requireFeature('version_history'), async (req, res) => {
   try {
     const draftId = req.params.id;
     const versionId = req.params.versionId;
@@ -180,7 +181,7 @@ router.post('/:id/versions/:versionId/restore', requireAuth, async (req, res) =>
 });
 
 // POST /api/drafts/:id/email — email the draft (with a PDF attached) to the owner.
-router.post('/:id/email', requireAuth, async (req, res) => {
+router.post('/:id/email', requireAuth, requireFeature('email_delivery'), async (req, res) => {
   try {
     const draft = await prisma.draft.findFirst({ where: { id: req.params.id, userId: req.user.id } });
     if (!draft) return res.status(404).json({ success: false, message: 'Draft not found' });

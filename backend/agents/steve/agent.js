@@ -376,7 +376,8 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
     return { reply: 'What would you like to do? I can write you a grant.', intent: 'general', status: 'intake' };
   }
 
-  const session = await store.getOrCreateSession(sessionKey);
+  const clientId = String(context?.clientId || '').trim() || null;
+  const session = await store.getOrCreateSession(sessionKey, clientId);
   await store.appendMessage(session, 'user', message);
 
   const state = {
@@ -645,9 +646,9 @@ function buildDownloadPayload(state, user) {
 }
 
 /** Rehydrate the panel on page load. */
-async function getSessionView({ user, userId }) {
+async function getSessionView({ user, userId, clientId = null }) {
   const sessionKey = String(user?.id || userId || 'guest');
-  const session = await store.getOrCreateSession(sessionKey);
+  const session = await store.getOrCreateSession(sessionKey, String(clientId || '').trim() || null);
   const history = await store.getHistory(session, 30);
   const state = {
     status: session.status,

@@ -13,6 +13,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 
 const { runSteveTurn, getSessionView } = require('../agents/steve');
+const { hasFeature } = require('../middleware/tierAuth');
 const { resetSession } = require('../agents/steve/store');
 const llm = require('../agents/steve/llm');
 
@@ -58,11 +59,25 @@ router.post('/', softAuth, async (req, res) => {
     ? { id: req.user.id, email: req.user.email, name: req.user.name, tier: tier || req.user.tier }
     : null;
 
+  // Client-aware Steve is the Agency unlock: the same concierge, but working on
+  // behalf of a client with that client's context.
+  const clientId = String(context?.clientId || req.body?.clientId || '').trim() || null;
+  if (clientId && !hasFeature(user?.tier || tier || 'free', 'client_aware_steve')) {
+    return res.status(403).json({
+      reply:
+        'Working on behalf of a client is part of Agency. On your current plan Steve writes for your own organisation.',
+      intent: 'upgrade_required',
+      requiresUpgrade: true,
+      upgradeLink: 'https://www.thegrantsmaster.com/pricing',
+      requiredFeature: 'client_aware_steve',
+    });
+  }
+
   try {
     // Wrap the whole turn so every provider call it makes — tool loop, drafting,
     // scoring — is attributed to this request and to no other.
     const result = await llm.withUsage(async (usage) => {
-      const turnResult = await runSteveTurn({ user, userId, message, context });
+      const turnResult = await runSteveTurn({ user, userId, message, context: { ...context, clientId } });
       turnResult.tokens = {
         requests: usage.requests,
         prompt: usage.prompt,
@@ -112,7 +127,7 @@ router.post('/', softAuth, async (req, res) => {
 router.get('/session', softAuth, async (req, res) => {
   const userId = req.query?.userId || req.body?.userId || 'guest';
   try {
-    const view = await getSessionView({ user: req.user || null, userId });
+    const view = await getSessionView({ user: req.user || null, userId, clientId: String(req.query?.clientId || '').trim() || null });
     return res.json({ success: true, signedIn: Boolean(req.user), ...view });
   } catch (error) {
     console.error('[ASSISTANT] session load error:', error?.message || error);
