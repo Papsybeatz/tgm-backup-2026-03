@@ -114,6 +114,7 @@ const adminRoutes = require('./routes/admin');
 const billingRoutes = require('./routes/billing');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { scoreDraft } = require('./agents/steve/scoring');
 
 app.post('/api/agency/request', async (req, res) => {
   const { name, org, email, teamSize } = req.body;
@@ -178,26 +179,57 @@ app.post('/api/match', requireAuth, requireFeature('matching_engine'), (req, res
   res.json({ success: true, message: 'Matching engine processed.' });
 });
 
-// Tier-gated scoring endpoint â€” requires scoring_basic (starter+)
-app.post('/api/score', requireAuth, requireFeature('scoring_basic'), (req, res) => {
+// Scoring endpoint — Checkmate, the single scoring engine for the whole product.
+//
+// This used to be a word-count heuristic (words/120 + headings*2 + ...), which
+// meant the editor and Steve scored the same document differently. It now runs
+// the same rubric Steve uses, pulling the order ticket off the draft when a
+// draftId is supplied.
+app.post('/api/score', requireAuth, requireFeature('scoring_basic'), async (req, res) => {
   const content = String(req.body?.content || '');
+  const draftId = req.body?.draftId ? String(req.body.draftId) : null;
+
+  // Structural stats are cheap and the Fit insights panel shows them, so they
+  // must not cost an LLM call.
   const text = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  const words = text ? text.split(/\s+/).length : 0;
-  const headings = (content.match(/<h2[^>]*>/gi) || []).length;
-  const bullets = (content.match(/<li[^>]*>/gi) || []).length;
-  const numbers = (text.match(/\b\d+(?:\.\d+)?%?\b/g) || []).length;
-  const sections = Math.max(headings, 1);
+  const stats = {
+    words: text ? text.split(/\s+/).length : 0,
+    headings: (content.match(/<h2[^>]*>/gi) || []).length,
+    bullets: (content.match(/<li[^>]*>/gi) || []).length,
+    numbers: (text.match(/\b\d+(?:\.\d+)?%?\b/g) || []).length,
+  };
+  stats.sections = Math.max(stats.headings, 1);
 
-  let score = 58;
-  score += Math.min(14, Math.floor(words / 120));
-  score += Math.min(10, headings * 2);
-  score += Math.min(8, bullets * 2);
-  score += Math.min(8, numbers * 2);
-  score += sections >= 6 ? 8 : sections >= 4 ? 5 : sections >= 2 ? 3 : 0;
-  score = Math.max(1, Math.min(100, score));
+  let order = {};
+  if (draftId) {
+    try {
+      const draft = await prisma.draft.findFirst({ where: { id: draftId, userId: req.user.id } });
+      if (draft?.order && typeof draft.order === 'object') order = draft.order;
+    } catch (e) {
+      // Fall through to an order-less score rather than failing the request.
+      console.warn('[SCORE] could not load draft order:', e?.message || e);
+    }
+  }
 
-  const label = score >= 85 ? 'Strong' : score >= 70 ? 'Ready' : score >= 55 ? 'In Progress' : 'Needs Work';
-  res.json({ success: true, score, label, words, sections, headings, bullets, numbers });
+  try {
+    const report = await scoreDraft(order, content, { style: order?.style });
+    return res.json({
+      success: true,
+      score: report.score,
+      label: report.label,
+      criteria: report.criteria,
+      criteriaDefs: report.criteriaDefs,
+      strengths: report.strengths || [],
+      weaknesses: report.weaknesses || [],
+      missingComponents: report.missingComponents || [],
+      fixes: report.fixes || [],
+      style: report.style,
+      ...stats,
+    });
+  } catch (error) {
+    console.error('[SCORE] failed:', error?.message || error);
+    return res.status(500).json({ success: false, message: 'Scoring failed. Please try again.' });
+  }
 });
 
 // Tier-gated analytics endpoint â€” requires analytics_advanced (pro+)

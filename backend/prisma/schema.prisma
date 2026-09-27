@@ -51,6 +51,10 @@ model Draft {
   userId          String
   title           String
   content         String
+  // The order ticket Steve took for this draft. Checkmate needs it to judge
+  // funder alignment and completeness; without it a saved draft could only be
+  // scored by a cruder heuristic.
+  order           Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   tierAtCreation  String

@@ -370,6 +370,10 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const [uploadError, setUploadError] = useState('');
   const [emailStatus, setEmailStatus] = useState({ sending: false });
   const [scoreState, setScoreState] = useState({ score: null, label: 'Not scored yet' });
+  const [scoreReport, setScoreReport] = useState(null);
+  const [scoring, setScoring] = useState(false);
+  const scoringRef = useRef(false);
+  const lastScoredRef = useRef('');
   const [fitState, setFitState] = useState({ loading: false, error: '', insights: null });
   const [supportingDocs, setSupportingDocs] = useState({});
   const [history, setHistory] = useState([]);
@@ -673,34 +677,64 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
     window.setTimeout(() => setManualSaveNote(''), 2500);
   };
 
-  const handleScoreDraft = async () => {
+  const handleScoreDraft = async ({ silent = false } = {}) => {
     if (!isStarterPlus || !canSave) return;
-    setAiError('');
-    setAiLoading(true);
-    setActiveAction('Score My Draft');
+    if (scoringRef.current) return; // one run at a time
+    scoringRef.current = true;
+
+    if (silent) setScoring(true);
+    else {
+      setAiError('');
+      setAiLoading(true);
+      setActiveAction('Score My Draft');
+    }
+
     try {
       const token = getToken();
+      // draftId lets Checkmate read the order ticket Steve captured, so the
+      // editor and the counter score the same document the same way.
       const res = await fetch(apiUrl('/api/score'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ content: text }),
+        body: JSON.stringify({ content: text, draftId: draftId || undefined }),
       });
       const data = await res.json();
       if (!res.ok || !data?.success) {
         throw new Error(data?.message || 'Scoring failed');
       }
+      setScoreReport(data);
       setScoreState({ score: data.score, label: data.label });
       setStatus(data.score >= 70 ? 'Ready' : 'In Progress');
+      lastScoredRef.current = text;
     } catch (error) {
-      setAiError(error?.message || 'Scoring failed. Please try again.');
+      if (!silent) setAiError(error?.message || 'Scoring failed. Please try again.');
+      else console.warn('[DraftPage] background re-score failed', error?.message);
     } finally {
-      setAiLoading(false);
-      setActiveAction('');
+      scoringRef.current = false;
+      setScoring(false);
+      if (!silent) {
+        setAiLoading(false);
+        setActiveAction('');
+      }
     }
   };
+
+  // Re-score automatically once an edit has been saved, so the number on screen
+  // is never stale. Debounced so a typing burst costs one Checkmate run, not one
+  // per keystroke — each run is a real LLM call.
+  useEffect(() => {
+    if (!isStarterPlus || !canSave || !draftId || !saved) return undefined;
+    if (text === lastScoredRef.current) return undefined;
+
+    const timer = window.setTimeout(() => {
+      void handleScoreDraft({ silent: true });
+    }, 8000);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saved, text, draftId, isStarterPlus, canSave]);
 
   const handleCheckFit = async () => {
     if (!isStarterPlus || !canSave) return;
@@ -713,7 +747,7 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ content: text }),
+        body: JSON.stringify({ content: text, draftId: draftId || undefined }),
       });
       const data = await res.json();
       if (!res.ok || !data?.success) {
@@ -1346,7 +1380,13 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
               <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs">
                 <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
                   <span className="font-semibold text-slate-700">Grant Fit Score</span>
-                  <span className="font-semibold text-[#003A8C]">{scoreState.score !== null ? `${scoreState.label} (${scoreState.score}/100)` : 'Ready to Analyze'}</span>
+                  <span className="font-semibold text-[#003A8C]">
+                    {scoring
+                      ? 'Re-scoring…'
+                      : scoreState.score !== null
+                        ? `${scoreState.label} (${scoreState.score}/100)`
+                        : 'Ready to Analyze'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2">
                   <span className="font-semibold text-slate-700">Missing Components</span>

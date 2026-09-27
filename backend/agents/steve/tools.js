@@ -257,6 +257,7 @@ function createToolkit(ctx) {
           title: draft.title,
           content: draft.html,
           tier,
+          order: state.order,
         });
         if (saved.ok && saved.draft) state.draftId = saved.draft.id;
       }
@@ -376,6 +377,7 @@ function createToolkit(ctx) {
       title: state.docTitle,
       content: state.docHtml,
       tier,
+      order: state.order,
     });
     if (saved.ok && saved.draft) state.draftId = saved.draft.id;
   }

@@ -26,17 +26,52 @@ function escapeHtml(value) {
  * Save (or update) the Steve-generated draft in the workspace.
  * @returns {Promise<{ok: boolean, draft?: object, created?: boolean, reason?: string}>}
  */
-async function saveDraftForUser({ userId, draftId, title, content, tier = 'free' }) {
+/** Does this error mean the Draft.order column has not been migrated yet? */
+function isMissingColumnError(error) {
+  const code = error?.code;
+  const message = String(error?.message || '');
+  return (
+    code === 'P2022' ||
+    /column .*order.* does not exist|order.*does not exist|Unknown arg .order|no such column/i.test(message)
+  );
+}
+
+/**
+ * Write the draft, but never lose the write because the order column is pending.
+ *
+ * `order` is the most recently added column, so a deploy that lands before its
+ * migration would otherwise break saving the applicant's document entirely.
+ */
+async function guardedWrite(run, data) {
+  try {
+    return await run(data);
+  } catch (error) {
+    if (!data.order || !isMissingColumnError(error)) throw error;
+    console.warn(
+      '[STEVE] Draft.order column is missing (migration not applied) — saving without the order ticket',
+    );
+    const { order, ...withoutOrder } = data;
+    return run(withoutOrder);
+  }
+}
+
+async function saveDraftForUser({ userId, draftId, title, content, tier = 'free', order = null }) {
   if (!userId) return { ok: false, reason: 'not_authenticated' };
 
   try {
     if (draftId) {
       const existing = await prisma.draft.findFirst({ where: { id: draftId, userId } });
       if (existing) {
-        const draft = await prisma.draft.update({
-          where: { id: draftId },
-          data: { title: title || existing.title, content, updatedAt: new Date() },
-        });
+        const draft = await guardedWrite(
+          (data) => prisma.draft.update({ where: { id: draftId }, data }),
+          {
+            title: title || existing.title,
+            content,
+            // Keep the ticket fresh so a later re-score sees the latest facts.
+            ...(order ? { order } : {}),
+            updatedAt: new Date(),
+          },
+        );
         await snapshot(draft.id, content);
         return { ok: true, draft, created: false };
       }
@@ -49,24 +84,31 @@ async function saveDraftForUser({ userId, draftId, title, content, tier = 'free'
         // Reuse their single free slot rather than blocking the concierge.
         const [oldest] = await prisma.draft.findMany({ where: { userId }, orderBy: { updatedAt: 'asc' }, take: 1 });
         if (oldest) {
-          const draft = await prisma.draft.update({
-            where: { id: oldest.id },
-            data: { title: title || oldest.title, content, updatedAt: new Date() },
-          });
+          const draft = await guardedWrite(
+            (data) => prisma.draft.update({ where: { id: oldest.id }, data }),
+            {
+              title: title || oldest.title,
+              content,
+              ...(order ? { order } : {}),
+              updatedAt: new Date(),
+            },
+          );
           await snapshot(draft.id, content);
           return { ok: true, draft, created: false, reason: 'free_slot_reused' };
         }
       }
     }
 
-    const draft = await prisma.draft.create({
-      data: {
+    const draft = await guardedWrite(
+      (data) => prisma.draft.create({ data }),
+      {
         userId,
         title: title || 'Steve Draft',
         content,
+        ...(order ? { order } : {}),
         tierAtCreation: String(tier || 'free'),
       },
-    });
+    );
     await snapshot(draft.id, content);
     return { ok: true, draft, created: true };
   } catch (error) {
