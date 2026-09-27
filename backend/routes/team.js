@@ -1,4 +1,5 @@
 const express = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const router = express.Router();
 
 // In-memory demo data (replace with DB in production)
@@ -29,7 +30,8 @@ router.post('/add', async (req, res) => {
     await sendInviteEmail(email, inviterName, inviteLink);
     res.json({ success: true, message: `Invite sent to ${email}` });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({
+      detail: errorDetail(err), success: false, message: err.message });
   }
 });
 

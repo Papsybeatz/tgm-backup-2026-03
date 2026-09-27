@@ -1,4 +1,5 @@
 const express = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -56,6 +57,7 @@ router.post('/upload', requireAuth, upload.single('file'), async (req, res) => {
     });
   } catch (error) {
     res.json({
+      detail: errorDetail(error),
       success: true,
       file: {
         name: req.file.originalname,

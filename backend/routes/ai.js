@@ -1,4 +1,5 @@
 const express = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const https = require('https');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -147,7 +148,8 @@ router.post('/brainstorm', requireAuth, async (req, res) => {
     return res.json({ text });
   } catch (err) {
     logError('AI_BRAINSTORM', err, { email: req.user?.email });
-    return res.status(500).json({ message: err.message || 'AI brainstorming failed' });
+    return res.status(500).json({
+      detail: errorDetail(err), message: err.message || 'AI brainstorming failed' });
   }
 });
 
@@ -179,7 +181,8 @@ Be specific, compelling, and funder-focused. Use formal but accessible language.
     return res.json({ draft });
   } catch (err) {
     logError('AI_DRAFT', err, { email: req.user?.email });
-    return res.status(500).json({ message: err.message || 'AI generation failed' });
+    return res.status(500).json({
+      detail: errorDetail(err), message: err.message || 'AI generation failed' });
   }
 });
 
@@ -211,7 +214,8 @@ Return the improved content as HTML using <h2>, <h3>, <p>, <ul>, <li> tags. Outp
     return res.json({ output });
   } catch (err) {
     logError('AI_IMPROVE', err, { email: req.user?.email });
-    return res.status(500).json({ message: err.message || 'AI improve failed' });
+    return res.status(500).json({
+      detail: errorDetail(err), message: err.message || 'AI improve failed' });
   }
 });
 
@@ -286,7 +290,8 @@ router.post('/rewrite-basic', requireAuth, async (req, res) => {
     return res.json(response);
   } catch (err) {
     logError('AI_REWRITE_BASIC', err, { email: req.user?.email });
-    return res.status(500).json({ message: err.message || 'AI rewrite failed' });
+    return res.status(500).json({
+      detail: errorDetail(err), message: err.message || 'AI rewrite failed' });
   }
 });
 

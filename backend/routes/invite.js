@@ -1,6 +1,7 @@
 // /backend/routes/invite.js
 // POST /request-invite route for invite requests
 const express = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
@@ -48,7 +49,8 @@ router.post('/request-invite', (req, res) => {
     saveRequests(requests);
     return res.json({ success: true, message: 'Invite request received.' });
   } catch (err) {
-    return res.status(500).json({ success: false, message: 'Failed to save invite request.' });
+    return res.status(500).json({
+      detail: errorDetail(err), success: false, message: 'Failed to save invite request.' });
   }
 });
 

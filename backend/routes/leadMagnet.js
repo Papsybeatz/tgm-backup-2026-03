@@ -10,6 +10,7 @@
  */
 
 const express = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const { parseListId } = require('../utils/brevo');
 const router  = express.Router();
 
@@ -84,7 +85,8 @@ router.post('/submit', async (req, res) => {
 
   } catch (err) {
     console.error('[lead-magnet/submit] Network error:', err);
-    return res.status(500).json({ error: 'Server error. Please try again.' });
+    return res.status(500).json({
+      detail: errorDetail(err), error: 'Server error. Please try again.' });
   }
 });
 

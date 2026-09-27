@@ -1,6 +1,7 @@
 // /backend/routes/adminInvite.js
 // Admin endpoints for invite approval dashboard
 const express = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
@@ -69,7 +70,8 @@ router.get('/admin/invite-requests', requireAdmin, (req, res) => {
     }));
     return res.json({ success: true, requests: result });
   } catch (err) {
-    return res.status(500).json({ success: false, message: 'Failed to load invite requests.' });
+    return res.status(500).json({
+      detail: errorDetail(err), success: false, message: 'Failed to load invite requests.' });
   }
 });
 

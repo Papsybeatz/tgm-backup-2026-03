@@ -1,4 +1,5 @@
 const express = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const https = require('https');
 const { buildRecipient } = require('../utils/brevo');
 const router = express.Router();
@@ -115,6 +116,7 @@ router.post('/', async (req, res) => {
   } catch (err) {
     console.error('[CONTACT] Error:', err.message);
     return res.status(500).json({
+      detail: errorDetail(err),
       success: false,
       message: 'Failed to send message. Please email support@thegrantsmaster.com directly.',
     });

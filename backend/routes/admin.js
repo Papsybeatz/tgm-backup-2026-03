@@ -1,4 +1,5 @@
 const express = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -33,7 +34,8 @@ async function requireAdmin(req, res, next) {
     next();
   } catch (e) {
     console.error('[ADMIN] auth error', e.message);
-    return res.status(500).json({ success: false, message: 'Auth error' });
+    return res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Auth error' });
   }
 }
 
@@ -173,7 +175,8 @@ router.get('/users', requireAdmin, async (req, res) => {
     res.json(mapped);
   } catch (e) {
     console.error('[ADMIN] /users error', e.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -227,7 +230,8 @@ router.get('/billing', requireAdmin, async (req, res) => {
     res.json({ users: rows });
   } catch (error) {
     console.error('[ADMIN] /billing error', error.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -257,7 +261,8 @@ router.post('/billing/grant-temporary-access', requireAdmin, async (req, res) =>
     res.json({ success: true, user: updatedUser });
   } catch (error) {
     console.error('[ADMIN] grant-temporary-access error', error.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -310,7 +315,8 @@ router.post('/billing/close-temporary-access', requireAdmin, async (req, res) =>
     });
   } catch (error) {
     console.error('[ADMIN] close-temporary-access error', error.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -393,7 +399,8 @@ router.get('/metrics', requireAdmin, async (req, res) => {
     });
   } catch (e) {
     console.error('[ADMIN] /metrics error', e.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -407,7 +414,8 @@ router.get('/invite-queue', requireAdmin, async (req, res) => {
     res.json(invites);
   } catch (e) {
     console.error('[ADMIN] /invite-queue error', e.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -421,7 +429,8 @@ router.post('/approve-invite/:id', requireAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (e) {
     console.error('[ADMIN] approve-invite error', e.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -435,7 +444,8 @@ router.post('/deny-invite/:id', requireAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (e) {
     console.error('[ADMIN] deny-invite error', e.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -453,7 +463,8 @@ router.post('/override-tier/:userId', requireAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (e) {
     console.error('[ADMIN] override-tier error', e.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -490,7 +501,8 @@ router.get('/export-usage', requireAdmin, async (req, res) => {
     res.send(csv);
   } catch (e) {
     console.error('[ADMIN] export-usage error', e.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 

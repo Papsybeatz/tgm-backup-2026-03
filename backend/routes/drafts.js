@@ -1,5 +1,6 @@
 // backend/routes/drafts.js
 const express = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -35,7 +36,8 @@ router.post('/', requireAuth, async (req, res) => {
     return res.json({ success: true, draft });
   } catch (e) {
     console.error('[DRAFTS] create error', e && e.message ? e.message : e);
-    return res.status(500).json({ success: false, message: 'Server error' });
+    return res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -55,7 +57,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
     return res.json({ success: true, draft });
   } catch (e) {
     console.error('[DRAFTS] patch error', e && e.message ? e.message : e);
-    return res.status(500).json({ success: false, message: 'Server error' });
+    return res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -69,7 +72,8 @@ router.get('/', requireAuth, async (req, res) => {
     return res.json({ success: true, drafts });
   } catch (e) {
     console.error('[DRAFTS] list error', e && e.message ? e.message : e);
-    return res.status(500).json({ success: false, message: 'Server error' });
+    return res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -82,7 +86,8 @@ router.get('/:id', requireAuth, async (req, res) => {
     return res.json({ success: true, draft });
   } catch (e) {
     console.error('[DRAFTS] get error', e && e.message ? e.message : e);
-    return res.status(500).json({ success: false, message: 'Server error' });
+    return res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -101,7 +106,8 @@ router.get('/:id/export.pdf', requireAuth, async (req, res) => {
     res.send(buffer);
   } catch (e) {
     console.error('[DRAFTS] pdf export error', e?.message || e);
-    res.status(500).json({ success: false, message: 'Export failed' });
+    res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Export failed' });
   }
 });
 
@@ -120,7 +126,8 @@ router.get('/:id/export.docx', requireAuth, async (req, res) => {
     res.send(buffer);
   } catch (e) {
     console.error('[DRAFTS] docx export error', e?.message || e);
-    res.status(500).json({ success: false, message: 'Export failed' });
+    res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Export failed' });
   }
 });
 
@@ -135,7 +142,8 @@ router.get('/:id/versions', requireAuth, requireFeature('version_history'), asyn
     return res.json({ success: true, versions });
   } catch (e) {
     console.error('[DRAFTS] versions list error', e && e.message ? e.message : e);
-    if (!res.headersSent) return res.status(500).json({ success: false, message: 'Server error' });
+    if (!res.headersSent) return res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -151,7 +159,8 @@ router.post('/:id/versions', requireAuth, requireFeature('version_history'), asy
     return res.json({ success: true, version });
   } catch (e) {
     console.error('[DRAFTS] create version error', e && e.message ? e.message : e);
-    if (!res.headersSent) return res.status(500).json({ success: false, message: 'Server error' });
+    if (!res.headersSent) return res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -176,7 +185,8 @@ router.post('/:id/versions/:versionId/restore', requireAuth, requireFeature('ver
     return res.json({ success: true, draft: updated });
   } catch (e) {
     console.error('[DRAFTS] restore error', e && e.message ? e.message : e);
-    if (!res.headersSent) return res.status(500).json({ success: false, message: 'Server error' });
+    if (!res.headersSent) return res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 
@@ -256,7 +266,8 @@ router.post('/:id/email', requireAuth, requireFeature('email_delivery'), async (
     });
   } catch (e) {
     console.error('[DRAFTS] email error', e?.message || e);
-    return res.status(500).json({ success: false, message: 'Could not send the email.' });
+    return res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Could not send the email.' });
   }
 });
 
@@ -271,7 +282,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
     return res.json({ success: true });
   } catch (e) {
     console.error('[DRAFTS] delete error', e?.message);
-    return res.status(500).json({ success: false, message: 'Server error' });
+    return res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
   }
 });
 

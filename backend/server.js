@@ -5,6 +5,7 @@ const multer = require('multer');
 const cookieParser = require('cookie-parser');
 const { validateUpload } = require('./utils/uploadValidation');
 const https = require('https');
+const { errorDetail } = require('./utils/errorDetail');
 const app = express();
 
 const CANONICAL_HOST = 'www.thegrantsmaster.com';
@@ -103,7 +104,8 @@ app.get('/api/test-ai', async (req, res) => {
     res.json({ success: true, response });
   } catch (error) {
     console.error('Groq error:', error.message);
-    res.json({ success: false, error: error.message });
+    res.json({
+      detail: errorDetail(error), success: false, error: error.message });
   }
 });
 
@@ -243,7 +245,8 @@ app.post('/api/score', requireAuth, requireFeature('scoring_basic'), async (req,
     });
   } catch (error) {
     console.error('[SCORE] failed:', error?.message || error);
-    return res.status(500).json({ success: false, message: 'Scoring failed. Please try again.' });
+    return res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Scoring failed. Please try again.' });
   }
 });
 

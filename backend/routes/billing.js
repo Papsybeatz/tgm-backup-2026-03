@@ -1,4 +1,5 @@
 const express    = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const router     = express.Router();
 const requireAuth = require('../middleware/auth');
 const { PrismaClient } = require('@prisma/client');
@@ -41,7 +42,8 @@ router.get('/portal', requireAuth, async (req, res) => {
     return res.json({ url: session.url });
   } catch (err) {
     console.error('[BILLING] portal error:', err.message);
-    return res.status(500).json({ error: 'Failed to open billing portal' });
+    return res.status(500).json({
+      detail: errorDetail(err), error: 'Failed to open billing portal' });
   }
 });
 
@@ -57,7 +59,8 @@ router.get('/status', requireAuth, async (req, res) => {
     return res.json(user);
   } catch (err) {
     console.error('[BILLING] status error:', err.message);
-    return res.status(500).json({ error: 'Failed to fetch billing status' });
+    return res.status(500).json({
+      detail: errorDetail(err), error: 'Failed to fetch billing status' });
   }
 });
 

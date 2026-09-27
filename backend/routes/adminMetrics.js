@@ -1,5 +1,6 @@
 // backend/routes/adminMetrics.js
 const express = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -87,7 +88,8 @@ router.get('/metrics', adminOnly, async (req, res) => {
     res.json(metricsCache);
   } catch (err) {
     console.error('Admin metrics error:', err);
-    res.status(500).json({ success: false, message: 'Error fetching metrics' });
+    res.status(500).json({
+      detail: errorDetail(err), success: false, message: 'Error fetching metrics' });
   }
 });
 

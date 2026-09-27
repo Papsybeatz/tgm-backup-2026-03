@@ -6,6 +6,7 @@
  */
 
 const express = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const requireAuth = require('../middleware/auth');
@@ -55,7 +56,8 @@ router.get('/leads', requireAuth, requireAdmin, async (req, res) => {
     return res.json({ leads, total });
   } catch (err) {
     console.error('[ADMIN FUNDERS] list error:', err.message);
-    return res.status(500).json({ error: 'Failed to load leads.' });
+    return res.status(500).json({
+      detail: errorDetail(err), error: 'Failed to load leads.' });
   }
 });
 
@@ -69,7 +71,8 @@ router.get('/leads/:leadId', requireAuth, requireAdmin, async (req, res) => {
     if (!lead) return res.status(404).json({ error: 'Lead not found.' });
     return res.json({ lead });
   } catch (err) {
-    return res.status(500).json({ error: 'Failed to load lead.' });
+    return res.status(500).json({
+      detail: errorDetail(err), error: 'Failed to load lead.' });
   }
 });
 
@@ -102,7 +105,8 @@ router.post('/leads/:leadId/approve', requireAuth, requireAdmin, async (req, res
     return res.json({ success: true, lead });
   } catch (err) {
     console.error('[ADMIN FUNDERS] approve error:', err.message);
-    return res.status(500).json({ error: 'Failed to approve lead.' });
+    return res.status(500).json({
+      detail: errorDetail(err), error: 'Failed to approve lead.' });
   }
 });
 
@@ -134,7 +138,8 @@ router.post('/leads/:leadId/reject', requireAuth, requireAdmin, async (req, res)
     return res.json({ success: true, lead });
   } catch (err) {
     console.error('[ADMIN FUNDERS] reject error:', err.message);
-    return res.status(500).json({ error: 'Failed to reject lead.' });
+    return res.status(500).json({
+      detail: errorDetail(err), error: 'Failed to reject lead.' });
   }
 });
 
@@ -191,7 +196,8 @@ router.post('/leads/:leadId/issue-sandbox', requireAuth, requireAdmin, async (re
     return res.json({ success: true, sidecarFunderId, orgApiKey, keyScope: 'sandbox' });
   } catch (err) {
     console.error('[ADMIN FUNDERS] issue-sandbox error:', err.message);
-    return res.status(500).json({ error: 'Failed to issue sandbox key.' });
+    return res.status(500).json({
+      detail: errorDetail(err), error: 'Failed to issue sandbox key.' });
   }
 });
 

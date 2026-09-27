@@ -1,4 +1,5 @@
 const express = require('express');
+const { errorDetail } = require('../utils/errorDetail');
 const { PrismaClient } = require('@prisma/client');
 const requireAuth = require('../middleware/auth');
 const { requireFeature } = require('../middleware/tierAuth');
@@ -145,7 +146,8 @@ router.get('/', async (req, res) => {
     res.json({ success: true, clients });
   } catch (error) {
     console.error('[CLIENTS] list error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -171,7 +173,8 @@ router.post('/', async (req, res) => {
     res.status(201).json({ success: true, client });
   } catch (error) {
     console.error('[CLIENTS] create error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -217,7 +220,8 @@ router.post('/checkmate/bulk', async (req, res) => {
     res.json({ success: true, reports });
   } catch (error) {
     console.error('[CLIENTS] bulk checkmate error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -252,7 +256,8 @@ router.post('/checkmate/bulk/export.csv', async (req, res) => {
     res.send(rows.join('\n'));
   } catch (error) {
     console.error('[CLIENTS] bulk csv error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -272,7 +277,8 @@ router.get('/:id', requireClient, async (req, res) => {
     res.json({ success: true, client, role: req.clientAccess.role, templateTypes: TEMPLATE_TYPES });
   } catch (error) {
     console.error('[CLIENTS] get error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -290,7 +296,8 @@ router.patch('/:id', requireClientEditor, async (req, res) => {
     res.json({ success: true, client });
   } catch (error) {
     console.error('[CLIENTS] patch error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -303,7 +310,8 @@ router.delete('/:id', requireClientEditor, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('[CLIENTS] delete error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -323,7 +331,8 @@ router.post('/:id/drafts', requireClientEditor, async (req, res) => {
     res.status(201).json({ success: true, draft });
   } catch (error) {
     console.error('[CLIENTS] draft create error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -338,7 +347,8 @@ router.post('/:id/drafts/link', requireClientEditor, async (req, res) => {
     res.json({ success: true, draft: updated });
   } catch (error) {
     console.error('[CLIENTS] draft link error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -360,7 +370,8 @@ router.post('/:id/templates', requireClientEditor, async (req, res) => {
     res.status(201).json({ success: true, template });
   } catch (error) {
     console.error('[CLIENTS] template create error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -393,7 +404,8 @@ router.post('/:id/templates/sync', requireClientEditor, async (req, res) => {
     res.json({ success: true, templates: created });
   } catch (error) {
     console.error('[CLIENTS] template sync error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -408,7 +420,8 @@ router.post('/:id/documents', requireClientEditor, async (req, res) => {
     res.status(201).json({ success: true, document });
   } catch (error) {
     console.error('[CLIENTS] document create error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -427,7 +440,8 @@ router.post('/:id/permissions', requireClientEditor, async (req, res) => {
     res.status(201).json({ success: true, permission });
   } catch (error) {
     console.error('[CLIENTS] permission create error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -445,7 +459,8 @@ router.post('/:id/reports', requireClientEditor, async (req, res) => {
     res.status(201).json({ success: true, report });
   } catch (error) {
     console.error('[CLIENTS] report create error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -484,7 +499,8 @@ ${['strengths','weaknesses','missingComponents','complianceIssues','recommendedF
     res.send(html);
   } catch (error) {
     console.error('[CLIENTS] report export error', error?.message || error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'Server error' });
   }
 });
 
@@ -503,7 +519,8 @@ router.get('/:id/reports/:reportId/export.pdf', requireClient, async (req, res) 
     res.send(buffer);
   } catch (error) {
     console.error('[CLIENTS] report pdf export error', error?.message || error);
-    res.status(500).json({ success: false, message: 'PDF export failed' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'PDF export failed' });
   }
 });
 
@@ -522,7 +539,8 @@ router.get('/:id/reports/:reportId/export.docx', requireClient, async (req, res)
     res.send(buffer);
   } catch (error) {
     console.error('[CLIENTS] report docx export error', error?.message || error);
-    res.status(500).json({ success: false, message: 'DOCX export failed' });
+    res.status(500).json({
+      detail: errorDetail(error), success: false, message: 'DOCX export failed' });
   }
 });
 
