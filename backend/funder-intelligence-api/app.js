@@ -20,6 +20,7 @@ const {
   activateCycleEntitlement,
   recordCycleUsage,
 } = require('./lib/service');
+const { buildReviewerWorklist } = require('./lib/reviewer');
 const { requireApiKey } = require('./lib/auth');
 
 const app = express();
@@ -155,6 +156,39 @@ app.post('/batch/score', async (req, res) => {
     const statusCode = error.statusCode || 400;
     await monitorRequest(funder || req.auth?.funder, 'batch.score', statusCode, startedAt);
     return res.status(statusCode).json({ message: error.message || 'Batch scoring failed.' });
+  }
+});
+
+// Reviewer mode — the decision surface for a funder's review team.
+//
+// Scoring primitives already existed; this turns them into ranked cohorts,
+// suggested statuses, consolidated risk flags and bias signals. Reviewer seats
+// come from the funder's plan (a tier feature, not a separate product).
+app.post('/reviewer/worklist', async (req, res) => {
+  const startedAt = Date.now();
+  let funder = null;
+  try {
+    const payload = await validateAndResolveFunder(req.auth, req.body || {});
+    funder = payload.funder;
+
+    const applications = Array.isArray(payload.applications) && payload.applications.length
+      ? payload.applications
+      : Array.isArray(req.body?.applications)
+        ? req.body.applications
+        : [];
+
+    const worklist = buildReviewerWorklist(funder, applications, {
+      planKey: funder?.plan_key || req.body?.plan_key,
+      reviewerScores: Array.isArray(req.body?.reviewer_scores) ? req.body.reviewer_scores : [],
+    });
+
+    const webhookDelivery = await emitWorkflowWebhook(funder, 'reviewer.worklist', worklist);
+    await monitorRequest(funder, 'reviewer.worklist', 200, startedAt);
+    return res.status(200).json({ ...worklist, webhook_delivery: webhookDelivery });
+  } catch (error) {
+    const statusCode = error.statusCode || 400;
+    await monitorRequest(funder || req.auth?.funder, 'reviewer.worklist', statusCode, startedAt);
+    return res.status(statusCode).json({ message: error.message || 'Reviewer worklist failed.' });
   }
 });
 
