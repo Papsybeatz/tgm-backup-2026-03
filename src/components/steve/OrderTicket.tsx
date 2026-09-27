@@ -27,6 +27,8 @@ type OrderTicketProps = {
   onOpenEditor: () => void;
   onEmail: () => void;
   emailState: { sending: boolean; sentTo?: string; error?: string };
+  /** Email delivery is a Starter+ gate; Free gets the download instead. */
+  emailEnabled?: boolean;
 };
 
 /**
@@ -88,6 +90,7 @@ export default function OrderTicket({
   onOpenEditor,
   onEmail,
   emailState,
+  emailEnabled = false,
 }: OrderTicketProps) {
   // Prefer the document headings; fall back to the section list the API returns
   // so the ticket still reaches "ready" if the backend hasn't shipped docHtml.
@@ -335,14 +338,16 @@ export default function OrderTicket({
                       >
                         Open in editor
                       </button>
-                      <button
-                        type="button"
-                        onClick={onEmail}
-                        disabled={emailState.sending}
-                        className="rounded-lg border border-[#CBD5E1] px-3 py-2 text-xs font-bold text-[#0A0F1A] transition hover:border-[#D4AF37] disabled:opacity-60"
-                      >
-                        {emailState.sending ? 'Sending…' : 'Send to my email'}
-                      </button>
+                      {emailEnabled && (
+                        <button
+                          type="button"
+                          onClick={onEmail}
+                          disabled={emailState.sending}
+                          className="rounded-lg border border-[#CBD5E1] px-3 py-2 text-xs font-bold text-[#0A0F1A] transition hover:border-[#D4AF37] disabled:opacity-60"
+                        >
+                          {emailState.sending ? 'Sending…' : 'Send to my email'}
+                        </button>
+                      )}
                     </>
                   )}
                 </>

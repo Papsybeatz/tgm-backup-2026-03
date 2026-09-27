@@ -37,6 +37,9 @@ export default function SteveCounter() {
     },
     onEmail: () => void c.sendToEmail(),
     emailState: c.emailState,
+    // email_delivery is on every tier except Free, so the button is hidden
+    // rather than shown-then-refused.
+    emailEnabled: c.tier !== 'free',
   };
 
   return (
