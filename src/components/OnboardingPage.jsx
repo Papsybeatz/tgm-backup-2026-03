@@ -164,7 +164,7 @@ function OptionButton({ active, children, onClick }) {
 function LifetimeBadge() {
   return (
     <p style={{ margin: '14px 0 0', textAlign: 'center', color: '#E8D28C', fontSize: 12, fontWeight: 800 }}>
-      Lifetime Access Available - Limited to 200 users
+      Founding Member seats available - limited to 100
     </p>
   );
 }
@@ -492,7 +492,7 @@ export default function OnboardingPage() {
         ) : (
           <div style={{ marginTop: 16, textAlign: 'center' }}>
             <p style={{ margin: '0 0 10px', color: '#E8D28C', fontSize: 13, fontWeight: 900 }}>
-              Lifetime Access Available - $149 one-time (Limited to 200 users)
+              Founding Member - $499 one-time (limited to 100 seats)
             </p>
             <button
               type="button"

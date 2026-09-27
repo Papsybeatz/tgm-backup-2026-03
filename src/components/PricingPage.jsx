@@ -148,17 +148,24 @@ const SECURITY_POINTS = [
   'Secure document storage',
 ];
 
+// Founding Member is scoped to Starter, deliberately. An earlier lifetime offer
+// promised "everything in Pro" for $149 — Pro is $79/mo, so that sold a
+// Pro-equivalent customer for 0.16x annual income, forever. These are the
+// Starter-level features only; Pro and Agency items are excluded below.
 const LIFETIME_FEATURES = [
-  'Unlimited drafts',
-  'Checkmate Pro',
-  'Funder alignment',
+  'Unlimited grant letters',
+  'Full Checkmate scoring',
+  'Funder alignment insights',
   'Grant Fit Score',
-  'NY funder intelligence',
-  'NY compliance rules',
-  'Team seat (1)',
+  'Save, version history and send to email',
   'Template library',
-  'Document uploads',
-  'Export tools',
+  'Export to PDF and Word',
+];
+
+const LIFETIME_EXCLUDES = [
+  'Pro team seats and shared workspace',
+  'Agency client folders and client-aware Steve',
+  'White-label output',
 ];
 
 function CheckIcon({ active = true }) {
@@ -342,20 +349,20 @@ export default function PricingPage() {
         }}>
           <div>
             <p style={{ margin: '0 0 10px', color: '#B8960C', fontSize: 12, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>
-              Founder&apos;s Offer
+              Founding Member
             </p>
             <h2 style={{ margin: '0 0 10px', fontSize: 30, fontWeight: 900, color: 'var(--tgm-navy)' }}>
-              Early Adopter Lifetime Access
+              Founding Member Lifetime Access
             </h2>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 12 }}>
-              <span style={{ fontSize: 44, fontWeight: 900, color: 'var(--tgm-navy)' }}>$149</span>
+              <span style={{ fontSize: 44, fontWeight: 900, color: 'var(--tgm-navy)' }}>$499</span>
               <span style={{ fontSize: 15, color: 'var(--tgm-muted)', fontWeight: 800 }}>one-time</span>
             </div>
             <p style={{ margin: '0 0 14px', fontSize: 15, lineHeight: 1.7, color: 'var(--tgm-muted)' }}>
-              Limited to 200 seats. Supports development of the NY Intelligence Module.
+              Limited to 100 seats. One payment, no renewal, ever. Your price is locked for life.
             </p>
             <p style={{ margin: '0 0 22px', fontSize: 14, fontWeight: 900, color: 'var(--tgm-navy)' }}>
-              Includes everything in Pro, forever.
+              Everything in Starter, forever.
             </p>
             <UpgradeButton
               tierKey="lifetime"
@@ -365,7 +372,7 @@ export default function PricingPage() {
               }) : undefined}
               loading={checkoutLoading}
             >
-              Unlock Lifetime Access
+              Claim a Founding Member seat
             </UpgradeButton>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
@@ -376,6 +383,10 @@ export default function PricingPage() {
               </div>
             ))}
           </div>
+          <p style={{ margin: '16px 0 0', fontSize: 12.5, lineHeight: 1.7, color: 'var(--tgm-muted)' }}>
+            <strong style={{ color: 'var(--tgm-navy)' }}>Not included:</strong>{' '}
+            {LIFETIME_EXCLUDES.join(' · ')}
+          </p>
         </article>
       </section>
 
