@@ -55,6 +55,8 @@ model Draft {
   // funder alignment and completeness; without it a saved draft could only be
   // scored by a cruder heuristic.
   order           Json?
+  // Which client this draft belongs to, when a consultant produced it.
+  clientId        String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   tierAtCreation  String
@@ -63,6 +65,7 @@ model Draft {
   checkmateReports CheckmateReport[]
 
   @@index([userId, updatedAt])
+  @@index([clientId])
 }
 
 model ClientFolder {
@@ -243,6 +246,9 @@ model LifetimeTier {
 model AssistantSession {
   id          String   @id @default(cuid())
   userId      String
+  // Set when a consultant is working inside a client folder. Sessions are
+  // scoped per client so switching clients never carries a conversation across.
+  clientId    String?
   status      String   @default("intake") // intake | drafting | ready_for_review | delivered
   order       Json
   draftId     String?
@@ -258,6 +264,7 @@ model AssistantSession {
   messages AssistantMessage[]
 
   @@index([userId, updatedAt])
+  @@index([userId, clientId])
   @@index([draftId])
 }
 

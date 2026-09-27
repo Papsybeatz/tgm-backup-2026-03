@@ -31,19 +31,27 @@ function emptyOrder() {
   return {};
 }
 
-async function getOrCreateSession(userId) {
+/**
+ * Load or create the session for a user, optionally scoped to one client.
+ *
+ * The client scope matters for consultants: without it, opening client B would
+ * resume the conversation they were having about client A, and the draft would
+ * be filed against whoever spoke last.
+ */
+async function getOrCreateSession(userId, clientId = null) {
+  const scope = clientId ? `${userId}::${clientId}` : String(userId || 'guest');
   const key = String(userId || 'guest');
 
   if (!dbDisabledReason) {
     try {
       const existing = await prisma.assistantSession.findFirst({
-        where: { userId: key },
+        where: { userId: key, clientId: clientId || null },
         orderBy: { updatedAt: 'desc' },
       });
       if (existing) return existing;
 
       return await prisma.assistantSession.create({
-        data: { userId: key, order: emptyOrder(), status: 'intake' },
+        data: { userId: key, clientId: clientId || null, order: emptyOrder(), status: 'intake' },
       });
     } catch (error) {
       dbDisabledReason = error.message;
@@ -55,10 +63,11 @@ async function getOrCreateSession(userId) {
     }
   }
 
-  if (!memory.sessions.has(key)) {
-    memory.sessions.set(key, {
-      id: `mem_${key}`,
+  if (!memory.sessions.has(scope)) {
+    memory.sessions.set(scope, {
+      id: `mem_${scope}`,
       userId: key,
+      clientId: clientId || null,
       status: 'intake',
       order: emptyOrder(),
       style: 'letter',
@@ -70,7 +79,7 @@ async function getOrCreateSession(userId) {
     });
     memory.messages.set(key, []);
   }
-  return memory.sessions.get(key);
+  return memory.sessions.get(scope);
 }
 
 async function saveSession(session, patch = {}) {
