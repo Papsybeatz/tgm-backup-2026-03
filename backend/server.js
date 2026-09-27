@@ -52,7 +52,7 @@ const teamInvitesRoutes = require('./routes/teamInvites');
 const authRoutes = require('./routes/auth');
 const draftsRoutes = require('./routes/drafts');
 const assistantRoutes = require('./routes/assistant');
-const { agentLimiter, uploadLimiter, funderIntakeLimiter } = require('./middleware/rateLimit');
+const { agentLimiter, uploadLimiter, funderIntakeLimiter, steveLimiter } = require('./middleware/rateLimit');
 const requireAuth = require('./middleware/auth');
 const { requireFeature } = require('./middleware/tierAuth');
 
@@ -146,7 +146,7 @@ app.use('/api/funder-api', funderIntakeLimiter, funderApiRequestRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/team', teamInvitesRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/assistant', assistantRoutes);
+app.use('/api/assistant', steveLimiter, assistantRoutes);
 const aiRoutes = require('./routes/ai');
 app.use('/api/ai', aiRoutes);
 const documentsRoutes = require('./routes/documents');
@@ -170,13 +170,28 @@ app.post('/api/upload', uploadLimiter, upload.single('file'), (req, res) => {
 });
 
 // Tier-gated AI agent endpoint â€” requires ai_rewrite (starter+)
+// Retirement notice: this returned { success: true, message: 'Agent call
+// processed.' } without doing anything. Steve owns drafting and rewrites now.
 app.post('/api/agent/call', agentLimiter, requireAuth, requireFeature('ai_rewrite'), (req, res) => {
-  res.json({ success: true, message: 'Agent call processed.' });
+  res.status(410).json({
+    success: false,
+    error: 'gone',
+    message: 'This legacy agent endpoint has been retired. Steve, the grant concierge, handles drafting and rewrites on every plan.',
+    useInstead: '/api/assistant',
+  });
 });
 
 // Tier-gated matching endpoint â€” requires matching_engine (pro+)
+// NOT IMPLEMENTED. This returned { success: true, message: 'Matching engine
+// processed.' } — a paying customer was told matching ran when it never did.
+// Funder matching is not built; advertising it on a paid tier is the real
+// problem, so this fails honestly until it exists.
 app.post('/api/match', requireAuth, requireFeature('matching_engine'), (req, res) => {
-  res.json({ success: true, message: 'Matching engine processed.' });
+  res.status(501).json({
+    success: false,
+    error: 'not_implemented',
+    message: 'Funder matching is not available yet. Checkmate scoring and funder alignment are available now.',
+  });
 });
 
 // Scoring endpoint — Checkmate, the single scoring engine for the whole product.
@@ -233,8 +248,15 @@ app.post('/api/score', requireAuth, requireFeature('scoring_basic'), async (req,
 });
 
 // Tier-gated analytics endpoint â€” requires analytics_advanced (pro+)
+// NOT IMPLEMENTED. Same defect as /api/match: it claimed success and returned a
+// placeholder string. Pro and Agency list advanced analytics, so this needs
+// either building or removing from the plan copy.
 app.get('/api/analytics', requireAuth, requireFeature('analytics_advanced'), (req, res) => {
-  res.json({ success: true, message: 'Analytics data.' });
+  res.status(501).json({
+    success: false,
+    error: 'not_implemented',
+    message: 'Advanced analytics is not available yet.',
+  });
 });
 
 // Tier-gated agency endpoints â€” requires client_folders (agency+)

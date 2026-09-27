@@ -11,6 +11,17 @@ const agentLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Steve: every turn is a paid LLM call, and the route accepts signed-out guests
+// (softAuth) — so without this, an anonymous caller can spend money at will.
+// 20/minute is far above any real conversation (~2-4 turns/min) but stops a loop.
+const steveLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  message: 'Too many messages to Steve. Please wait a moment and try again.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const uploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 5, // limit each user to 5 uploads per hour
@@ -39,6 +50,7 @@ const funderIntakeLimiter = rateLimit({
 
 module.exports = {
   agentLimiter,
+  steveLimiter,
   funderIntakeLimiter,
   uploadLimiter,
   passwordResetLimiter,
