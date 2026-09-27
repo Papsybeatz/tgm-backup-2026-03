@@ -13,11 +13,27 @@ const agentLimiter = rateLimit({
 
 // Steve: every turn is a paid LLM call, and the route accepts signed-out guests
 // (softAuth) — so without this, an anonymous caller can spend money at will.
-// 20/minute is far above any real conversation (~2-4 turns/min) but stops a loop.
+//
+// Calibration matters here. A real conversation runs ~2-4 turns/minute; our own
+// end-to-end smoke test fires ~25 turns in well under a minute. A 20/minute cap
+// therefore throttled the test suite itself — the limiter was working, but it
+// broke the only gate that catches real regressions. 30 sits above both.
+//
+// The hourly cap is the one that actually bounds sustained abuse; the per-minute
+// cap stops a hot loop.
 const steveLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 20,
+  max: 30,
   message: 'Too many messages to Steve. Please wait a moment and try again.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Sustained-spend guard: 400 turns/hour per IP is ~100x any real user.
+const steveHourlyLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 400,
+  message: 'Hourly message limit reached. Please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -51,6 +67,7 @@ const funderIntakeLimiter = rateLimit({
 module.exports = {
   agentLimiter,
   steveLimiter,
+  steveHourlyLimiter,
   funderIntakeLimiter,
   uploadLimiter,
   passwordResetLimiter,

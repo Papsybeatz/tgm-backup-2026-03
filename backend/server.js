@@ -52,7 +52,7 @@ const teamInvitesRoutes = require('./routes/teamInvites');
 const authRoutes = require('./routes/auth');
 const draftsRoutes = require('./routes/drafts');
 const assistantRoutes = require('./routes/assistant');
-const { agentLimiter, uploadLimiter, funderIntakeLimiter, steveLimiter } = require('./middleware/rateLimit');
+const { agentLimiter, uploadLimiter, funderIntakeLimiter, steveLimiter, steveHourlyLimiter } = require('./middleware/rateLimit');
 const requireAuth = require('./middleware/auth');
 const { requireFeature } = require('./middleware/tierAuth');
 
@@ -146,7 +146,7 @@ app.use('/api/funder-api', funderIntakeLimiter, funderApiRequestRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/team', teamInvitesRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/assistant', steveLimiter, assistantRoutes);
+app.use('/api/assistant', steveLimiter, steveHourlyLimiter, assistantRoutes);
 const aiRoutes = require('./routes/ai');
 app.use('/api/ai', aiRoutes);
 const documentsRoutes = require('./routes/documents');
