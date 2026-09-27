@@ -277,6 +277,81 @@ app.use(function(err, req, res, next) {
 });
 
 const PORT = process.env.PORT || 4000;
+
+/**
+ * Apply pending migrations at boot.
+ *
+ * Why this lives here rather than in railway.json: the pre-deploy hook has now
+ * failed twice — once because I wrote the config key with the wrong type, and
+ * once (apparently) because the command itself failed while the deploy still
+ * reported success. Steve's session store silently falls back to memory when the
+ * AssistantSession table is missing, so the failure is invisible: every deploy
+ * quietly wipes in-flight conversations.
+ *
+ * Running it here removes the dependency on deploy configuration entirely, and
+ * prints the real reason into the application logs where it can actually be
+ * seen. Prisma takes an advisory lock, so several instances starting at once is
+ * safe, and a failure never blocks the server from starting.
+ */
+function applyMigrations() {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = (result) => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+
+    let spawn;
+    try {
+      ({ spawn } = require('child_process'));
+    } catch {
+      return done({ ok: false, reason: 'child_process unavailable' });
+    }
+
+    if (!process.env.DATABASE_URL) {
+      console.warn('[MIGRATE] DATABASE_URL not set — skipping migrations');
+      return done({ ok: false, reason: 'DATABASE_URL not set' });
+    }
+
+    console.log('[MIGRATE] applying pending migrations…');
+    const child = spawn('npx', ['prisma', 'migrate', 'deploy'], {
+      cwd: __dirname,
+      env: process.env,
+      shell: false,
+    });
+
+    let out = '';
+    let err = '';
+    child.stdout.on('data', (c) => { out += c.toString(); });
+    child.stderr.on('data', (c) => { err += c.toString(); });
+
+    const timer = setTimeout(() => {
+      console.error('[MIGRATE] timed out after 90s — killing');
+      try { child.kill('SIGKILL'); } catch { /* ignore */ }
+    }, 90000);
+
+    child.on('error', (e) => {
+      clearTimeout(timer);
+      console.error('[MIGRATE] could not run prisma:', e.message);
+      done({ ok: false, reason: e.message });
+    });
+
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      const tail = (out + err).trim().split('\n').slice(-25).join(' | ');
+      if (code === 0) {
+        console.log('[MIGRATE] OK —', tail || 'no output');
+        done({ ok: true, output: tail });
+      } else {
+        console.error(`[MIGRATE] FAILED (exit ${code}) —`, tail || 'no output');
+        done({ ok: false, reason: `exit ${code}: ${tail}` });
+      }
+    });
+  });
+}
+
+applyMigrations().finally(() => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend running on port ${PORT}`);
   console.log(`[BREVO] API key:         ${process.env.BREVO_API_KEY ? 'PRESENT âœ“' : 'MISSING âœ—'}`);
@@ -295,5 +370,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`[STRIPE] Funder Scale:    ${process.env.STRIPE_FUNDER_SCALE_PRICE_ID     || 'MISSING âœ—'}`);
   console.log(`[STRIPE] Funder Ent:      ${process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'MISSING âœ—'}`);
 });
-
-
+});
