@@ -105,18 +105,42 @@ const TIERS = {
   },
   lifetime: {
     key: 'lifetime',
-    name: 'Lifetime',
+    // ---------------------------------------------------------------------
+    // FOUNDING MEMBER (key kept as 'lifetime' — Stripe, the DB and the webhook
+    // all reference it, so the economics changed without a migration risk).
+    //
+    // This was $149 one-time with "All Pro features" forever. Pro is $79/mo
+    // ($948/yr), so $149 bought a Pro-equivalent customer for 0.16x annual —
+    // cheaper than two months, permanently. 100 sales = +$14,900 cash and
+    // -$7,900/mo recurring forever: repaid in under two months, then pure loss.
+    //
+    // The formula that works for a launch cash instrument:
+    //   1. cap the quantity      - scarcity creates urgency AND bounds liability
+    //   2. price >= ~1.4x annual - a real deal, not a giveaway
+    //   3. scope down one tier   - locks out Starter revenue, never Pro/Agency
+    //   4. time-box it           - ends when the seats are gone
+    //   5. brand it as status    - "Founding Member", not "cheap plan"
+    //   6. exclude future premium features
+    // ---------------------------------------------------------------------
+    name: 'Founding Member',
     priceMonthly: null,
-    priceOnce: 149,
+    priceOnce: 499,
     billingType: 'one_time',
+    seatLimit: 100,
+    tagline: 'First 100 members only',
     stripePriceId: process.env.STRIPE_LIFETIME_PRICE_ID || 'price_1TXrTl64TrQMI3mIKgqoP3iL',
     features: [
-      'All Pro features',
-      'Lifetime updates',
-      'Lifetime AI access',
-      'Lifetime templates & scoring',
-      'Priority support',
-      'Lifetime Member badge'
+      'Everything in Starter, forever',
+      'Unlimited grant letters',
+      'Full Checkmate scoring',
+      'Save, version history and send to email',
+      'Lifetime updates to Starter features',
+      'Founding Member badge and priority support'
+    ],
+    excludes: [
+      'Team seats and shared workspace (Pro)',
+      'Client folders and multi-client work (Agency)',
+      'White-label output'
     ]
   }
 };

@@ -105,9 +105,35 @@ router.post('/create-session', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Unknown price ID' });
   }
 
+  // Founding Member is a capped launch instrument: the scarcity is what makes
+  // the urgency real, and the cap is what bounds the liability.
+  if (tier === 'lifetime') {
+    const FOUNDING_MEMBER_SEATS = Number(process.env.FOUNDING_MEMBER_SEATS || 100);
+    try {
+      const claimed = await prisma.user.count({ where: { tier: 'lifetime' } });
+      if (claimed >= FOUNDING_MEMBER_SEATS) {
+        return res.status(409).json({
+          error: 'Founding Member seats are all claimed',
+          reason: 'founding_member_sold_out',
+          seatsClaimed: claimed,
+          seatLimit: FOUNDING_MEMBER_SEATS,
+          message: `All ${FOUNDING_MEMBER_SEATS} Founding Member seats have been claimed. Starter is $29/month.`,
+        });
+      }
+    } catch (e) {
+      // Never block a sale because the count failed; the webhook still records it.
+      console.warn('[CHECKOUT] could not count lifetime seats:', e?.message || e);
+    }
+  }
+
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Already a Founding Member — nothing to buy.
+    if (tier === 'lifetime' && user.tier === 'lifetime') {
+      return res.status(409).json({ error: 'You are already a Founding Member' });
+    }
 
     let customerId = user.stripeCustomerId;
     if (!customerId) {
