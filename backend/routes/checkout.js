@@ -17,6 +17,13 @@ function getStripe() {
 }
 
 const APP_URL = process.env.APP_URL || 'https://www.thegrantsmaster.com';
+
+/** Stripe messages are useful to the buyer's operator, never contain secrets. */
+function sanitizeStripeError(err) {
+  return String(err?.message || err || 'Unknown checkout error')
+    .replace(/sk_[a-zA-Z0-9_]+/g, '[redacted]')
+    .slice(0, 300);
+}
 const FUNDER_PILOT_PRICE_ID = process.env.STRIPE_FUNDER_PILOT_PRICE_ID || 'price_1TxLdP64TrQMI3mIwohgkoSa';
 const FUNDER_SCALE_PRICE_ID = process.env.STRIPE_FUNDER_SCALE_PRICE_ID || 'price_1TxLku64TrQMI3mIiFBlby8P';
 const FUNDER_ENTERPRISE_PRICE_ID = process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'price_1TxLrO64TrQMI3mIKMEbGAvL';
@@ -161,7 +168,16 @@ router.post('/create-session', requireAuth, async (req, res) => {
     return res.json({ url: session.url });
   } catch (err) {
     console.error('[CHECKOUT] create-session error:', err.message);
-    return res.status(500).json({ error: 'Failed to create checkout session' });
+    // The Stripe reason was only ever in the logs, so a failure like a price
+    // belonging to another account looked identical to a network blip.
+    return res.status(500).json({
+      error: 'Failed to create checkout session',
+      detail: sanitizeStripeError(err),
+      priceId,
+      hint: /no such price/i.test(err.message || '')
+        ? 'This price belongs to a different Stripe account than the live key. Recreate it in the same account.'
+        : undefined,
+    });
   }
 });
 
@@ -265,7 +281,10 @@ router.post('/create-funder-session', async (req, res) => {
     return res.json({ url: session.url, cycleId: cycle.id });
   } catch (err) {
     console.error('[CHECKOUT] create-funder-session error:', err.message);
-    return res.status(500).json({ error: 'Failed to create checkout session' });
+    return res.status(500).json({
+      error: 'Failed to create checkout session',
+      detail: sanitizeStripeError(err),
+    });
   }
 });
 
