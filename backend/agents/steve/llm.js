@@ -79,6 +79,44 @@ function parseRetryAfterMs(message) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+let warnedAboutPreference = false;
+
+function warnOnce(message) {
+  if (warnedAboutPreference) return;
+  warnedAboutPreference = true;
+  console.error('[LLM] ' + message);
+}
+
+/**
+ * What the app is actually using, for diagnostics.
+ *
+ * Returns the resolved provider and, when an explicit preference could not be
+ * honoured, the reason — so a misrouted request is diagnosable from the API
+ * response instead of requiring log access.
+ */
+function providerInfo() {
+  const preference = String(process.env.LLM_PROVIDER || '').trim().toLowerCase() || 'auto';
+  const resolved = providerConfig();
+  const hasGroq = Boolean(process.env.GROQ_API_KEY);
+  const hasOpenai = Boolean(process.env.OPENAI_API_KEY);
+
+  let warning = null;
+  if (preference === 'openai' && !hasOpenai) {
+    warning = 'LLM_PROVIDER=openai but OPENAI_API_KEY is not set in this environment';
+  } else if (preference === 'groq' && !hasGroq) {
+    warning = 'LLM_PROVIDER=groq but GROQ_API_KEY is not set in this environment';
+  }
+
+  return {
+    preference,
+    name: resolved ? resolved.name : 'none',
+    model: resolved ? resolved.model : null,
+    hasGroqKey: hasGroq,
+    hasOpenaiKey: hasOpenai,
+    warning,
+  };
+}
+
 function providerConfig() {
   const groq = process.env.GROQ_API_KEY
     ? {
@@ -104,8 +142,21 @@ function providerConfig() {
   // Groq always won and an OpenAI key was silently inert — you could pay for
   // OpenAI and never route a single request to it.
   const preference = String(process.env.LLM_PROVIDER || '').trim().toLowerCase();
-  if (preference === 'openai') return openai || groq;
-  if (preference === 'groq') return groq || openai;
+
+  // A preference that cannot be honoured must NEVER be silent. `openai || groq`
+  // previously returned Groq when OPENAI_API_KEY was absent, so setting
+  // LLM_PROVIDER=openai without the key looked identical to not setting it at
+  // all — no error, no warning, and the model never changed.
+  if (preference === 'openai') {
+    if (openai) return openai;
+    warnOnce('LLM_PROVIDER=openai but OPENAI_API_KEY is not set in this environment — serving Groq instead.');
+    return groq;
+  }
+  if (preference === 'groq') {
+    if (groq) return groq;
+    warnOnce('LLM_PROVIDER=groq but GROQ_API_KEY is not set in this environment — serving OpenAI instead.');
+    return openai;
+  }
 
   // Auto: Groq first, because its LPU latency is the better default for a
   // conversational concierge. Set LLM_PROVIDER=openai to escape its TPM ceiling.
@@ -272,6 +323,7 @@ function extractJson(text) {
 module.exports = {
   isEnabled,
   chat,
+  providerInfo,
   extractJson,
   providerConfig,
   withUsage,

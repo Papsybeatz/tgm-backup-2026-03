@@ -109,6 +109,7 @@ router.post('/', softAuth, async (req, res) => {
       download: result.download || null,
       suggestions: result.suggestions || [],
       engine: result.engine || 'agent',
+      provider: llm.providerInfo(),
       llmError: result.llmError || null,
       path: result.path || null,
       tokens: result.tokens || null,
