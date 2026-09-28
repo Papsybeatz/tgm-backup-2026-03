@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import ClientSwitcher from './ClientSwitcher';
 
 const TABS = ['Drafts', 'Templates', 'Reports', 'Documents', 'Permissions', 'Activity'];
@@ -28,6 +28,7 @@ function downloadBlob(blob, filename) {
 
 export default function ClientWorkspacePage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [client, setClient] = useState(null);
   const [role, setRole] = useState('viewer');
   const [activeTab, setActiveTab] = useState('Drafts');
@@ -342,7 +343,14 @@ export default function ClientWorkspacePage() {
                       <td className="py-3 font-bold text-[#003A8C]">{report.draft?.title || report.title}</td>
                       <td className="py-3"><span className="rounded-full bg-emerald-50 px-3 py-1 font-bold text-emerald-700">{report.score}/100</span></td>
                       <td className="py-3 text-slate-600">{[...(report.missingComponents || []), ...(report.complianceIssues || [])].slice(0, 3).join('; ') || 'No critical issues flagged'}</td>
-                      <td className="py-3"><button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700">Ask Steve to fix</button></td>
+                      <td className="py-3"><button
+                        type="button"
+                        onClick={() => navigate(`/dashboard?clientId=${encodeURIComponent(id)}`)}
+                        className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-[#D4AF37]"
+                        title="Open Steve, scoped to this client, to fix this draft"
+                      >
+                        Ask Steve to fix
+                      </button></td>
                       <td className="py-3">
                         <div className="flex flex-wrap gap-2">
                           <button onClick={() => exportReport(report, 'pdf')} className="rounded-lg bg-[#003A8C] px-3 py-2 text-xs font-bold text-white">PDF</button>

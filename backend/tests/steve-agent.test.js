@@ -339,3 +339,49 @@ test('guardrail refuses to write while the ticket is incomplete', async () => {
   assert.ok(turn.reply.includes('?'), 'must ask for the missing detail instead');
   assert.ok(turn.progress.requiredFilled === 0);
 });
+
+/* ─────────────────── client-aware Steve (Agency unlock) ─────────────────── */
+
+test('client context puts the client into the prompt without inventing facts', () => {
+  const { clientPromptBlock } = require('../agents/steve/clientContext');
+
+  const block = clientPromptBlock({
+    client: {
+      name: 'Hope Orphanage',
+      sector: 'Child welfare',
+      state: 'Virginia',
+      notes: 'Prefers warm, plain language.',
+      funders: ['The Community Foundation', { name: 'United Way' }],
+    },
+    templates: [
+      { title: 'House need statement', type: 'needs_statement', content: '<p>Long standing <strong>need</strong> narrative.</p>' },
+    ],
+  });
+
+  assert.match(block, /Hope Orphanage/);
+  assert.match(block, /Child welfare/);
+  assert.match(block, /Virginia/);
+  assert.match(block, /warm, plain language/);
+  assert.match(block, /The Community Foundation/);
+  assert.match(block, /United Way/);
+  assert.match(block, /House need statement/);
+  // HTML is stripped from templates
+  assert.doesNotMatch(block, /<strong>/);
+  // The grounding rule must be present, or templates become fabricated facts
+  assert.match(block, /NOT facts to copy/i);
+  assert.match(block, /never invent/i);
+});
+
+test('no client context produces no block, so a normal session is unchanged', () => {
+  const { clientPromptBlock } = require('../agents/steve/clientContext');
+  assert.equal(clientPromptBlock({ client: null, templates: [] }), '');
+});
+
+test('client context is not loaded without a user or a client id', async () => {
+  const { loadClientContext } = require('../agents/steve/clientContext');
+  // These must short-circuit before any database call — otherwise a missing
+  // user id would still let a clientId through.
+  assert.equal(await loadClientContext({ userId: null, clientId: 'c1' }), null);
+  assert.equal(await loadClientContext({ userId: 'u1', clientId: null }), null);
+  assert.equal(await loadClientContext({ userId: '', clientId: '' }), null);
+});

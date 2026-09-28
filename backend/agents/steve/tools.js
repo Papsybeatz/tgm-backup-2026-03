@@ -22,6 +22,7 @@ const {
 const { generateGrant, reviseSection } = require('./drafting');
 const { scoreDraft } = require('./scoring');
 const { saveDraftForUser, notifyReadyForReview } = require('./persist');
+const { logClientActivity } = require('./clientContext');
 
 /* ───────────────────────────── JSON schemas ───────────────────────────── */
 
@@ -258,11 +259,24 @@ function createToolkit(ctx) {
           content: draft.html,
           tier,
           order: state.order,
+          clientId: state.clientId || null,
         });
         if (saved.ok && saved.draft) state.draftId = saved.draft.id;
       }
 
       state.status = 'ready_for_review';
+
+      // Leave a trace on the client's file. A consultant needs to see that
+      // Steve produced something for THIS client, and when.
+      if (state.clientId) {
+        await logClientActivity({
+          clientId: state.clientId,
+          userId: user?.id,
+          action: 'steve_drafted',
+          detail: `Steve drafted “${draft.title}” (Checkmate ${report.score}/100)`,
+          metadata: { draftId: state.draftId || null, score: report.score, style },
+        });
+      }
 
       let notification = { inApp: true, emailed: false };
       if (user?.email) {
@@ -378,6 +392,7 @@ function createToolkit(ctx) {
       content: state.docHtml,
       tier,
       order: state.order,
+      clientId: state.clientId || null,
     });
     if (saved.ok && saved.draft) state.draftId = saved.draft.id;
   }

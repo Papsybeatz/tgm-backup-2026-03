@@ -79,6 +79,18 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const token = typeof window !== 'undefined' ? window.localStorage.getItem('token') || '' : '';
+
+  // A consultant arrives here from a client's folder, so the URL carries which
+  // client Steve is working for. The server independently verifies ownership —
+  // this only says which client, never that the user may use it.
+  const clientId = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      return new URLSearchParams(window.location.search).get('clientId');
+    } catch {
+      return null;
+    }
+  }, []);
   const isSignedIn = Boolean(user?.email || token);
 
   const speechSupported = useMemo(() => {
@@ -114,7 +126,10 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
 
     (async () => {
       try {
-        const query = isSignedIn ? '' : '?userId=guest';
+        const params = new URLSearchParams();
+        if (!isSignedIn) params.set('userId', 'guest');
+        if (clientId) params.set('clientId', clientId);
+        const query = params.toString() ? `?${params.toString()}` : '';
         const res = await fetch(apiUrl(`/api/assistant/session${query}`), {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
@@ -165,7 +180,7 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
             userId: user?.id || user?.email || 'guest',
             tier: user?.tier || 'free',
             message,
-            context: { mode: 'drafting', guestId: 'guest' },
+            context: { mode: 'drafting', guestId: 'guest', clientId },
           }),
         });
 

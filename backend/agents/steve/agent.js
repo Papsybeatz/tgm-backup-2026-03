@@ -32,6 +32,7 @@ const {
 } = require('./order');
 const { parseAmendment, looksLikeProse, SHORT_SLOTS } = require('./amend');
 const { extractDeterministic } = require('./extract');
+const { loadClientContext, clientPromptBlock } = require('./clientContext');
 
 const MAX_STEPS = 5;
 const UPGRADE_LINK = `${process.env.APP_URL || 'https://www.thegrantsmaster.com'}/pricing`;
@@ -120,7 +121,8 @@ function buildSystemPrompt(state) {
     '',
     missing.length ? `STILL NEEDED: ${missing.map((key) => SLOTS[key].label).join(', ')}` : 'STILL NEEDED: nothing — the ticket is complete.',
     `NEXT QUESTION TO ASK: ${next?.question || '(none — ticket complete)'}`,
-  ].join('\n');
+    state.clientBlock || '',
+  ].filter(Boolean).join('\n');
 }
 
 /* ────────────────────────────── the tool loop ────────────────────────────── */
@@ -377,6 +379,15 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
   }
 
   const clientId = String(context?.clientId || '').trim() || null;
+
+  // Loaded once per turn. loadClientContext enforces ownership, so a clientId
+  // that is not this user's client is ignored rather than honoured.
+  let clientBlock = '';
+  if (clientId) {
+    const loaded = await loadClientContext({ userId: user?.id, clientId });
+    if (loaded) clientBlock = clientPromptBlock(loaded);
+  }
+
   const session = await store.getOrCreateSession(sessionKey, clientId);
   await store.appendMessage(session, 'user', message);
 
@@ -391,6 +402,8 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
     style: session.style || 'letter',
     optionalBudget: 3,
     usedLLM: false,
+    clientId,
+    clientBlock,
   };
 
   const tier = user?.tier || 'free';

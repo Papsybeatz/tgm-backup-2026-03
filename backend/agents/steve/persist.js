@@ -46,16 +46,20 @@ async function guardedWrite(run, data) {
   try {
     return await run(data);
   } catch (error) {
-    if (!data.order || !isMissingColumnError(error)) throw error;
+    if (!isMissingColumnError(error)) throw error;
+    // Strip whichever optional column is missing and retry. Losing the order
+    // ticket or the client link is far better than losing the document itself.
+    const { order, clientId, ...rest } = data;
+    if (!order && !clientId) throw error;
     console.warn(
-      '[STEVE] Draft.order column is missing (migration not applied) — saving without the order ticket',
+      '[STEVE] an optional Draft column is missing (migration pending) — saving without:',
+      [!order ? null : 'order', !clientId ? null : 'clientId'].filter(Boolean).join(', '),
     );
-    const { order, ...withoutOrder } = data;
-    return run(withoutOrder);
+    return run(rest);
   }
 }
 
-async function saveDraftForUser({ userId, draftId, title, content, tier = 'free', order = null }) {
+async function saveDraftForUser({ userId, draftId, title, content, tier = 'free', order = null, clientId = null }) {
   if (!userId) return { ok: false, reason: 'not_authenticated' };
 
   try {
@@ -69,6 +73,7 @@ async function saveDraftForUser({ userId, draftId, title, content, tier = 'free'
             content,
             // Keep the ticket fresh so a later re-score sees the latest facts.
             ...(order ? { order } : {}),
+            ...(clientId ? { clientId } : {}),
             updatedAt: new Date(),
           },
         );
@@ -90,6 +95,7 @@ async function saveDraftForUser({ userId, draftId, title, content, tier = 'free'
               title: title || oldest.title,
               content,
               ...(order ? { order } : {}),
+              ...(clientId ? { clientId } : {}),
               updatedAt: new Date(),
             },
           );
@@ -106,6 +112,7 @@ async function saveDraftForUser({ userId, draftId, title, content, tier = 'free'
         title: title || 'Steve Draft',
         content,
         ...(order ? { order } : {}),
+        ...(clientId ? { clientId } : {}),
         tierAtCreation: String(tier || 'free'),
       },
     );
