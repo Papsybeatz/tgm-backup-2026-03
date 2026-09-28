@@ -80,26 +80,38 @@ function parseRetryAfterMs(message) {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function providerConfig() {
-  if (process.env.GROQ_API_KEY) {
-    return {
-      name: 'groq',
-      host: 'api.groq.com',
-      path: '/openai/v1/chat/completions',
-      key: process.env.GROQ_API_KEY,
-      model: DEFAULT_GROQ_MODEL,
-    };
-  }
-  if (process.env.OPENAI_API_KEY) {
-    return {
-      name: 'openai',
-      host: 'api.openai.com',
-      path: '/v1/chat/completions',
-      key: process.env.OPENAI_API_KEY,
-      model: DEFAULT_OPENAI_MODEL,
-    };
-  }
-  return null;
+  const groq = process.env.GROQ_API_KEY
+    ? {
+        name: 'groq',
+        host: 'api.groq.com',
+        path: '/openai/v1/chat/completions',
+        key: process.env.GROQ_API_KEY,
+        model: DEFAULT_GROQ_MODEL,
+      }
+    : null;
+
+  const openai = process.env.OPENAI_API_KEY
+    ? {
+        name: 'openai',
+        host: 'api.openai.com',
+        path: '/v1/chat/completions',
+        key: process.env.OPENAI_API_KEY,
+        model: DEFAULT_OPENAI_MODEL,
+      }
+    : null;
+
+  // Explicit preference wins. Without this, having BOTH keys configured meant
+  // Groq always won and an OpenAI key was silently inert — you could pay for
+  // OpenAI and never route a single request to it.
+  const preference = String(process.env.LLM_PROVIDER || '').trim().toLowerCase();
+  if (preference === 'openai') return openai || groq;
+  if (preference === 'groq') return groq || openai;
+
+  // Auto: Groq first, because its LPU latency is the better default for a
+  // conversational concierge. Set LLM_PROVIDER=openai to escape its TPM ceiling.
+  return groq || openai;
 }
+
 
 function isEnabled() {
   return providerConfig() !== null;
