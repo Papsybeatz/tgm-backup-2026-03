@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from './UserContext';
 import CaseStudiesSection from './CaseStudiesSection';
@@ -12,6 +13,11 @@ async function safeJson(res) {
 export default function SignupPage() {
   const navigate = useNavigate();
   const { setUser } = useUser();
+  // An invitee arrives from the email link. Without carrying this through, they
+  // signed up as an ordinary user and the team seat was never claimed.
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get('invite') || searchParams.get('token') || '';
+
   const [form, setForm] = useState({ email: '', password: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -55,7 +61,38 @@ export default function SignupPage() {
         // Returning user — mark onboarded so they skip onboarding gate
         localStorage.setItem('tgm_onboarded', '1');
       }
-      setMessage(isNewUser ? 'Account created! Setting up your workspace…' : 'Account ready. Redirecting…');
+      // Claim the seat BEFORE navigating, so the invitee lands on the invited
+      // plan rather than free. A failure here must not block the account they
+      // just created — the invite stays acceptable from /invite/accept.
+      let seatClaimed = false;
+      if (inviteToken) {
+        try {
+          const acceptRes = await fetch(`/api/invite/${encodeURIComponent(inviteToken)}/accept`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.token}` },
+            body: JSON.stringify({}),
+          });
+          const acceptBody = await acceptRes.json().catch(() => ({}));
+          if (acceptRes.ok && acceptBody.success) {
+            seatClaimed = true;
+            if (acceptBody.tier) {
+              const upgraded = { email: data.email, tier: acceptBody.tier };
+              setUser(upgraded);
+              localStorage.setItem('user', JSON.stringify(upgraded));
+            }
+          } else {
+            console.warn('[SIGNUP] invite not accepted:', acceptBody.message || acceptRes.status);
+          }
+        } catch (inviteErr) {
+          console.warn('[SIGNUP] invite accept failed:', inviteErr?.message);
+        }
+      }
+
+      setMessage(
+        seatClaimed
+          ? 'Account created and your team seat is active. Setting up your workspace…'
+          : (isNewUser ? 'Account created! Setting up your workspace…' : 'Account ready. Redirecting…')
+      );
       setTimeout(() => navigate(isNewUser ? '/onboarding' : '/dashboard'), 1000);
     } catch (err) {
       setStatus('error');

@@ -23,6 +23,7 @@ import NewYorkChecklistPage from './components/NewYorkChecklistPage';
 import ConsultantLandingPage from './components/ConsultantLandingPage';
 import FunderApiLandingPage from './components/FunderApiLandingPage';
 import FunderReviewerPage from './components/FunderReviewerPage';
+import InviteAcceptPage from './components/InviteAcceptPage';
 import ClientsPage from './components/ClientsPage';
 import ClientWorkspacePage from './components/ClientWorkspacePage';
 import ScottDistributionPage from './components/ScottDistributionPage';
@@ -71,6 +72,7 @@ function App() {
                 <Route path="/login"   element={<LoginPage />} />
                 <Route path="/signup"  element={<SignupPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/invite/accept" element={<InviteAcceptPage />} />
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/plans" element={<PricingPage />} />
                 <Route path="/upgrade" element={<UpgradePage />} />
