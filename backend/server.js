@@ -283,6 +283,19 @@ app.use(function(err, req, res, next) {
 
 const PORT = process.env.PORT || 4000;
 
+// Print the provider environment at boot, at the top of the application logs.
+// Names and presence only — never a key value.
+//
+// This exists because "is the container actually configured?" kept being
+// answered from the Variables tab rather than from the process. That tab shows
+// what is DESIRED; this line shows what the container HAS, and it is readable
+// without making any HTTP call.
+console.log(
+  `[LLM] provider env -> LLM_PROVIDER=${process.env.LLM_PROVIDER || '(unset)'}` +
+  ` | OPENAI_API_KEY=${process.env.OPENAI_API_KEY ? 'present' : 'ABSENT'}` +
+  ` | GROQ_API_KEY=${process.env.GROQ_API_KEY ? 'present' : 'ABSENT'}`,
+);
+
 ensureSchema()
   .catch((e) => console.error('[SCHEMA] unexpected error:', e?.message || e))
   .finally(() => {
