@@ -6,7 +6,8 @@
     "test:steve": "node --test tests/steve-agent.test.js",
     "test:brevo": "node --test tests/brevo.test.js",
     "smoke:steve": "node scripts/smoke-steve.js",
-    "test:tiers": "node --test tests/tier-gates.test.js"
+    "test:tiers": "node --test tests/tier-gates.test.js",
+    "baseline:migrations": "node scripts/baseline-migrations.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
