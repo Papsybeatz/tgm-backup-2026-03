@@ -103,16 +103,21 @@ export default function SteveCounter() {
           </div>
         </div>
 
-        {/* Degraded-engine notice — the whole point is that this is never silent */}
-        {c.engine === 'planner' && (
+                {/* Degraded-engine notice.
+            Previously this showed the provider's raw error to the visitor —
+            including a billing URL and the model name. That is internal ops
+            information and it makes the product look broken. The detail now
+            goes to the console (and the server logs) instead, and is only
+            visible in the UI with ?debug=steve. */}
+        {c.engine === 'planner' && typeof window !== 'undefined'
+          && new URLSearchParams(window.location.search).get('debug') === 'steve' && (
           <div className="mb-3 rounded-xl border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-[11px] leading-5 text-amber-100">
-            <span className="font-bold">Basic engine active.</span> Natural-language mode is off
-            {c.llmError ? <> — <span className="font-mono">{c.llmError}</span></> : ' — no LLM key configured'}.
-            The ticket, the grant, scoring and downloads all still work.
+            <span className="font-bold">Debug (internal only):</span> engine=planner
+            {c.llmError ? <> — <span className="font-mono">{c.llmError}</span></> : null}
           </div>
         )}
 
-        {/* Mobile ticket toggle */}
+{/* Mobile ticket toggle */}
         <button
           type="button"
           onClick={() => setShowTicketOnMobile((v) => !v)}

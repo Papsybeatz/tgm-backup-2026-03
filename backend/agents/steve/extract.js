@@ -29,7 +29,12 @@ const MONEY_PATTERN = /(?:[$€£]\s?[\d,]+(?:\.\d+)?\s*(?:k|m|million|thousand)
 const TYPE_PATTERNS = [
   { pattern: /501\s*\(?c\)?\s*\(?3\)?|non-?profit|not-for-profit|charity|charitable/i, value: '501(c)(3) nonprofit' },
   { pattern: /\bchurch\b|\bministry\b|\bparish\b|\bcongregation\b/i, value: 'Church' },
-  { pattern: /\bpublic school\b|\bhigh school\b|\bprimary school\b|\belementary\b/i, value: 'School' },
+  // A bare noun has to count. "A school" was previously ignored because only
+  // 'public school' / 'high school' / 'elementary' matched, so Steve asked for
+  // the type he had already been given and the applicant had to repeat himself.
+  { pattern: /\b(school|academy|college|university|kindergarten)\b/i, value: 'School' },
+  { pattern: /\b(church|ministry|parish|congregation|mosque|temple)\b/i, value: 'Church' },
+  { pattern: /\b(non-?profit|not-for-profit|charity|community group|ngo|foundation)\b/i, value: '501(c)(3) nonprofit' },
 ];
 
 /** A count with no noun ("how many? 30") is only usable once a population is known. */
