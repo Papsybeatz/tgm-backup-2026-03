@@ -14,7 +14,16 @@ const { PrismaClient } = require('@prisma/client');
 
 const { runSteveTurn, getSessionView } = require('../agents/steve');
 const { hasFeature } = require('../middleware/tierAuth');
-const { resetSession } = require('../agents/steve/store');
+const { resetSession, getOrCreateSession, saveSession } = require('../agents/steve/store');
+const { buildOrderFromForm } = require('../agents/steve/formOrder');
+const { createToolkit, parseSections } = require('../agents/steve/tools');
+const {
+  SLOTS,
+  missingRequired,
+  validateOrder,
+  orderProgress,
+  summarizeOrder,
+} = require('../agents/steve/order');
 const llm = require('../agents/steve/llm');
 
 const router = express.Router();
@@ -121,6 +130,146 @@ router.post('/', softAuth, async (req, res) => {
       reply: 'I hit a snag on my side. Try that again?',
       intent: 'error',
       requiresUpgrade: false,
+    });
+  }
+});
+
+/**
+ * POST /api/assistant/order — itemized intake form.
+ *
+ * The deterministic front door to the SAME pipeline the conversation uses: the
+ * form fills the order ticket, and the ticket drives drafting.js. It costs one
+ * writing call (plus one scoring call) instead of the 12–15 a conversation
+ * takes, and a dropdown can never mis-file the applicant type.
+ *
+ * Body: { form: {orgName, orgType, address, phone, contactName, contactEmail,
+ *         projectTitle, need, servesWho, peopleServed, serviceArea, amount,
+ *         moneyDoes, outcomes, funderName, deadline, deliverable},
+ *         userId?, tier?, clientId? }
+ */
+router.post('/order', softAuth, async (req, res) => {
+  const form = (req.body && req.body.form) || req.body || {};
+  const userId = req.user?.id || req.body?.userId || 'guest';
+  const clientId = String(req.body?.clientId || form.clientId || '').trim() || null;
+  const tier = req.user?.tier || req.body?.tier || 'free';
+  const user = req.user
+    ? { id: req.user.id, email: req.user.email, name: req.user.name, tier }
+    : null;
+
+  if (clientId && !hasFeature(tier, 'client_aware_steve')) {
+    return res.status(403).json({
+      success: false,
+      message:
+        'Working on behalf of a client is part of Agency. On your current plan Steve writes for your own organisation.',
+      requiresUpgrade: true,
+      upgradeLink: 'https://www.thegrantsmaster.com/pricing',
+      requiredFeature: 'client_aware_steve',
+    });
+  }
+
+  const order = buildOrderFromForm(form);
+  const missing = missingRequired(order);
+  if (missing.length) {
+    return res.status(400).json({
+      success: false,
+      message: `Still needed: ${missing.map((key) => SLOTS[key].label).join(', ')}.`,
+      missing,
+      missingLabels: missing.map((key) => SLOTS[key].label),
+      progress: orderProgress(order),
+      order,
+    });
+  }
+
+  const blockers = validateOrder(order);
+  if (blockers.length) {
+    return res.status(400).json({ success: false, message: blockers.join(' '), blockers, order });
+  }
+
+  try {
+    const state = {
+      status: 'drafting',
+      order,
+      style: order.style || 'letter',
+      docTitle: null,
+      docHtml: null,
+      draftId: null,
+      score: null,
+      scoreReport: null,
+      usedLLM: false,
+      clientId,
+      clientBlock: '',
+    };
+
+    const result = await llm.withUsage(async (usage) => {
+      const toolkit = createToolkit({ state, user, tier });
+      const toolResult = await toolkit.execute('create_draft', { style: state.style });
+      toolResult.tokens = {
+        requests: usage.requests,
+        prompt: usage.prompt,
+        completion: usage.completion,
+        total: usage.total,
+        models: usage.models,
+        calls: usage.calls,
+      };
+      return toolResult;
+    });
+
+    // Seed the session so post-draft actions that still live on the conversation
+    // ("Make it stronger", "Download PDF") work against this ticket.
+    if (result.ok) {
+      try {
+        const session = await getOrCreateSession(String(user?.id || userId || 'guest'), clientId);
+        await saveSession(session, {
+          status: state.status,
+          order: state.order,
+          style: state.style,
+          draftId: state.draftId,
+          docTitle: state.docTitle,
+          docHtml: state.docHtml,
+          score: state.score,
+          scoreReport: state.scoreReport,
+        });
+      } catch (error) {
+        console.warn('[ASSISTANT] order session seed skipped:', error?.message || error);
+      }
+    }
+
+    const download =
+      state.draftId && user?.id
+        ? {
+            pdf: `/api/drafts/${state.draftId}/export.pdf`,
+            docx: `/api/drafts/${state.draftId}/export.docx`,
+          }
+        : null;
+
+    return res.json({
+      success: Boolean(result.ok),
+      reply: result.ok
+        ? `Done. I wrote “${state.docTitle}” — Checkmate scores it ${state.score ?? 'n/a'}/100.`
+        : 'I could not write this one yet — please check the details.',
+      reason: result.reason || null,
+      status: state.status,
+      progress: orderProgress(state.order),
+      order: state.order,
+      orderSummary: summarizeOrder(state.order),
+      draftId: state.draftId,
+      draftTitle: state.docTitle,
+      docHtml: state.docHtml || null,
+      score: state.score ?? null,
+      scoreReport: state.scoreReport || null,
+      hasDraft: Boolean(state.docHtml),
+      editedSections: state.docHtml ? Object.keys(parseSections(state.docHtml)) : [],
+      download,
+      engine: result.usedLLM ? 'agent' : 'planner',
+      provider: llm.providerInfo(),
+      needsSignIn: !user?.id,
+      tokens: result.tokens || null,
+    });
+  } catch (error) {
+    console.error('[ASSISTANT] order turn error:', error?.message || error);
+    return res.status(500).json({
+      success: false,
+      reply: 'I hit a snag on my side. Try that again?',
     });
   }
 });
