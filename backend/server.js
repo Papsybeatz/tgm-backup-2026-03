@@ -7,6 +7,7 @@ const { validateUpload } = require('./utils/uploadValidation');
 const https = require('https');
 const { errorDetail } = require('./utils/errorDetail');
 const { ensureSchema } = require('./utils/ensureSchema');
+const { baselineMigrations } = require('./utils/baselineMigrations');
 const app = express();
 
 const CANONICAL_HOST = 'www.thegrantsmaster.com';
@@ -298,6 +299,8 @@ console.log(
 
 ensureSchema()
   .catch((e) => console.error('[SCHEMA] unexpected error:', e?.message || e))
+  .then(() => baselineMigrations())
+  .catch((e) => console.error('[BASELINE] unexpected error:', e?.message || e))
   .finally(() => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend running on port ${PORT}`);
