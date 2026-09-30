@@ -143,6 +143,13 @@ const SLOTS = {
     question: 'Who signs off on this proposal, and what email should the funder reply to?',
     hint: 'Name and contact email of the person submitting the proposal.',
   },
+  phone: {
+    required: false,
+    group: 'Sign-off',
+    label: 'Phone',
+    question: 'What phone number should the funder use if they have a question?',
+    hint: 'Contact phone number for the submitting organization. Optional.',
+  },
   deadline: {
     required: false,
     group: 'Sign-off',

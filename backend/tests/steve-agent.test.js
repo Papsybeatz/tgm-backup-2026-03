@@ -133,8 +133,12 @@ test('a correction amends the ticket instead of being filed as an answer', async
   const userId = `amend_${Date.now()}`;
   await store.resetSession(userId);
 
+  // No explicit "School" answer here: the deterministic extractor recognises the
+  // bare type noun in "Hope Soccer Academy" and files applicant_type itself
+  // (commit 943f593). Adding "School" as a separate answer would shift every
+  // subsequent line by one and file the address as the amount.
   const setup = [
-    'start', 'Hope Soccer Academy', 'School', 'Street kids lack structured football pathways',
+    'start', 'Hope Soccer Academy', 'Street kids lack structured football pathways',
     'Training and equipment', 'Street kids with football talent', 'Greater Accra, Ghana',
     '6317 Sakatsuru Loop, Dansoman', '$75,000', 'Serve 120 kids',
   ];
@@ -143,6 +147,7 @@ test('a correction amends the ticket instead of being filed as an answer', async
     turn = await runSteveTurn({ user: null, userId, message: answer });
   }
   assert.equal(turn.progress.complete, true);
+  assert.equal(turn.order.applicant_type, 'School', 'the type noun in the name must be recognised');
   assert.equal(turn.order.request_amount, '$75,000');
 
   const amended = await runSteveTurn({ user: null, userId, message: 'change the amount to $250k' });

@@ -127,6 +127,7 @@ function assembleDraft(order) {
     ? 'The program is designed for a twelve-month implementation cycle.'
     : `The funded work runs ${String(order.timeline).trim()}.`;
   const contact = isBlank(order?.contact_name) ? '' : String(order.contact_name).trim();
+  const phone = isBlank(order?.phone) ? '' : String(order.phone).trim();
   const deadline = isBlank(order?.deadline) ? '' : String(order.deadline).trim();
   const lines = budgetLines(order);
   const budgets = lines.length
@@ -151,7 +152,7 @@ function assembleDraft(order) {
     'Budget Narrative': `<p>The requested ${esc(amount)} is allocated as follows:</p><ul>${budgets}</ul><p>Every line item is tied directly to delivery of the activities described above. A detailed line-item budget and supporting documentation are available on request.</p>`,
     Sustainability: `<p>Beyond this grant period, ${esc(org)} will sustain the program through diversified funding, earned partnerships, and continued local support. The goal is not a one-time intervention but durable capacity in ${esc(area)} for ${esc(population)}.</p>`,
     Timeline: `<p>${esc(timeline)}</p>`,
-    Conclusion: `<p>This is a credible, funder-ready opportunity: a clearly documented need, a specific program that addresses it, a budget tied to delivery, and outcomes the funder can hold us to. ${esc(org)} is ready to begin immediately upon award.${deadline ? ` We note the submission deadline of ${esc(deadline)}.` : ''} Thank you for your consideration.</p>${contact ? `<p>Respectfully submitted,<br/><strong>${esc(contact)}</strong><br/>${esc(org)}</p>` : ''}`,
+    Conclusion: `<p>This is a credible, funder-ready opportunity: a clearly documented need, a specific program that addresses it, a budget tied to delivery, and outcomes the funder can hold us to. ${esc(org)} is ready to begin immediately upon award.${deadline ? ` We note the submission deadline of ${esc(deadline)}.` : ''} Thank you for your consideration.</p>${contact || phone ? `<p>Respectfully submitted,<br/>${contact ? `<strong>${esc(contact)}</strong><br/>` : ''}${esc(org)}${phone ? `<br/>${esc(phone)}` : ''}</p>` : ''}`,
   };
 }
 

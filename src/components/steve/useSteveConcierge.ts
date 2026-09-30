@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiUrl } from '../../lib/apiUrl';
 import { useUser } from '../UserContext';
 import type { AssistantMessage } from '../../types/assistant';
+import { EMPTY_INTAKE, buildFormProgress } from './intakeFields';
 
 export type TicketLine = { key: string; label: string; required: boolean; filled: boolean };
 export type Progress = {
@@ -57,6 +58,9 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
 
   const [messages, setMessages] = useState<AssistantMessage[]>([newMessage('assistant', GREETING)]);
   const [input, setInput] = useState('');
+  // The itemized intake form. Field ids map to the order ticket server-side.
+  const [form, setForm] = useState<Record<string, string>>({ ...EMPTY_INTAKE });
+  const [orderError, setOrderError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<SteveStatus>('intake');
   const [progress, setProgress] = useState<Progress | null>(null);
@@ -74,6 +78,9 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
   });
   const [listening, setListening] = useState(false);
   const [speakReplies, setSpeakReplies] = useState(false);
+
+  /** The order-ticket preview as the applicant types — no server round trip. */
+  const formProgress = useMemo(() => buildFormProgress(form), [form]);
 
   const recognitionRef = useRef<any>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -162,6 +169,53 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
     [speakReplies],
   );
 
+  const setField = useCallback((id: string, value: string) => {
+    setForm((current) => ({ ...current, [id]: value }));
+  }, []);
+
+  /**
+   * Write the grant from the form.
+   *
+   * One call replaces the 12–15 the conversation took, and the ticket it builds
+   * is the same ticket the conversational path feeds to the assembler.
+   */
+  const submitOrder = useCallback(async () => {
+    if (loading) return;
+    if (!buildFormProgress(form).complete) return;
+
+    setLoading(true);
+    setOrderError(null);
+    setStatus('drafting');
+    setSuggestions([]);
+
+    try {
+      const res = await fetch(apiUrl('/api/assistant/order'), {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          userId: user?.id || user?.email || 'guest',
+          tier: user?.tier || 'free',
+          form,
+          clientId,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || data?.success === false) {
+        setOrderError(data?.message || 'Steve could not write this one yet.');
+        setStatus('intake');
+        return;
+      }
+
+      applyPayload(data);
+    } catch {
+      setOrderError("I couldn't reach the server. Check your connection and try again.");
+      setStatus('intake');
+    } finally {
+      setLoading(false);
+    }
+  }, [applyPayload, authHeaders, clientId, form, loading, user]);
+
   const submit = useCallback(
     async (raw: string) => {
       const message = String(raw || '').trim();
@@ -223,6 +277,13 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
     setStatus('intake');
     setLlmError(null);
   }, [authHeaders, user]);
+
+  /** "Next client": clear the form and the finished draft, keep the session fresh. */
+  const clearForm = useCallback(async () => {
+    setForm({ ...EMPTY_INTAKE });
+    setOrderError(null);
+    await reset();
+  }, [reset]);
 
   /** Email the finished document (with a PDF attached) to the applicant. */
   const sendToEmail = useCallback(async () => {
@@ -292,6 +353,9 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
     // state
     messages,
     input,
+    form,
+    formProgress,
+    orderError,
     loading,
     status,
     progress,
@@ -311,8 +375,11 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
     tier: user?.tier || 'free',
     // actions
     setInput,
+    setField,
     setSpeakReplies,
     submit,
+    submitOrder,
+    clearForm,
     reset,
     toggleListening,
     emailState,
