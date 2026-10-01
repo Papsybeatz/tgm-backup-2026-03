@@ -22,8 +22,14 @@ export default function SteveCounter() {
   const navigate = useNavigate();
   const [showTicketOnMobile, setShowTicketOnMobile] = useState(false);
 
+  // The ticket must describe the order the applicant is actually building. Before
+  // a draft exists that is the form, so an empty form reads 0% — showing the
+  // server session's leftover order here is what made an untouched form look
+  // 22% filled. After a draft exists the server ticket is the truth.
+  const shownProgress = c.docHtml ? c.progress : c.formProgress;
+
   const ticketProps = {
-    progress: c.progress,
+    progress: shownProgress,
     status: c.status,
     loading: c.loading,
     draftTitle: c.draftTitle,
@@ -43,9 +49,6 @@ export default function SteveCounter() {
     emailEnabled: c.tier !== 'free',
   };
 
-  // Before a draft exists the ticket previews the form; afterwards it shows the
-  // real server-side ticket that produced the document.
-  const shownProgress = c.docHtml ? c.progress : c.formProgress;
   const isDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === 'steve';
 
   return (

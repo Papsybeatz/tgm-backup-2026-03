@@ -115,7 +115,10 @@ export type FormProgress = {
  * applicant types instead of waiting for a server round trip.
  */
 export function buildFormProgress(form: Record<string, string>): FormProgress {
-  const fields = visibleFields(form);
+  // The deliverable toggle is a mode selector with a sensible default, not data
+  // the applicant supplies. Counting it would report a non-zero ticket on an
+  // otherwise empty form, which reads as a lie.
+  const fields = visibleFields(form).filter((field) => field.id !== 'deliverable');
   const lines = fields.map((field) => ({
     key: field.id,
     label: field.label,
