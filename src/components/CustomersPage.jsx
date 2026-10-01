@@ -37,9 +37,9 @@ export default function CustomersPage() {
         <div className="mx-auto max-w-5xl">
           <div className="grid gap-6 md:grid-cols-3">
             <div className="rounded-xl border border-[#E2E8F0] bg-[#F7F9FB] p-6">
-              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Where our users are</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Made for the states with the most nonprofits</p>
               <p className="text-sm leading-6 text-gray-700">
-                Nonprofits and agencies in {REGIONS.slice(0, 4).join(', ')}, and {REGIONS[4]} use TGM today.
+                We built TGM for the states with the largest nonprofit communities: {REGIONS.slice(0, 4).join(', ')}, and {REGIONS[4]}.
               </p>
             </div>
             <div className="rounded-xl border border-[#E2E8F0] bg-[#F7F9FB] p-6">

@@ -76,7 +76,7 @@ const PURCHASING = [
 
 const PROOF_ROADMAP = [
   { status: 'Launched', detail: 'The Grants Master public beta', done: true },
-  { status: 'Users', detail: 'Nonprofits and agencies across New York, Texas, California, Virginia & Canada', done: true },
+  { status: 'Coverage', detail: 'Built for the states with the most nonprofits — New York, Texas, California, Virginia & Canada', done: true },
   { status: 'In progress', detail: 'First named customer case study (publishing with permission)', done: false },
   { status: 'In progress', detail: 'G2, Capterra, and Trustpilot profiles', done: false },
   { status: 'Upcoming', detail: 'Product Hunt launch', done: false },
@@ -137,8 +137,8 @@ export default function TrustPage() {
         </div>
       </Section>
 
-      <Section id="usage" n="02" title="Where Our Users Are">
-        <p style={{ marginTop: 0 }}>TGM is actively used by nonprofits and agencies in:</p>
+      <Section id="usage" n="02" title="Made for the States With the Most Nonprofits">
+        <p style={{ marginTop: 0 }}>TGM is built for the states and regions with the largest nonprofit communities:</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {REGIONS.map((r) => (
             <span key={r} style={{
@@ -149,9 +149,12 @@ export default function TrustPage() {
           ))}
         </div>
         <p>
-          This is drawn from our own account data, not an independently audited statistic. We
-          state it plainly rather than dress it up — and we&apos;ll publish named customers as
-          soon as they give us permission.
+          California, Texas and New York have the largest number of registered nonprofits in the
+          country — that&apos;s where the grant volume is, so that&apos;s where we built first. New
+          York has our most detailed coverage today: NYSCA, NYSED, ESD, NYC Arts and Robin Hood rules.
+        </p>
+        <p style={{ fontSize: 14, color: '#64748b' }}>
+          We&apos;ll publish named customers, with their permission, as they come on board.
         </p>
       </Section>
 
@@ -160,7 +163,7 @@ export default function TrustPage() {
           We&apos;re a new platform, and we&apos;re honest about it. We don&apos;t publish placeholder quotes, invented reviews, or case studies we can&apos;t verify.
         </p>
         <ul style={{ margin: '12px 0 0', paddingLeft: 20, lineHeight: 1.9 }}>
-          <li>Users across New York, Texas, California, Virginia, and Canada</li>
+          <li>Built for the states with the most nonprofits — New York, Texas, California, Virginia, and Canada</li>
           <li>Named founder, registered U.S. company, reachable by phone and email</li>
           <li>First customer case studies in progress — publishing only with written permission</li>
         </ul>

@@ -596,7 +596,7 @@ export default function LandingPage() {
           <p className="text-center text-gray-500 mb-12 max-w-2xl mx-auto">We don&apos;t publish placeholder quotes or invented reviews. Here is what we can show you today.</p>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              ["Where our users are", "Nonprofits and agencies in New York, Texas, California, Virginia, and Canada use TGM today."],
+              ["Made for the states with the most nonprofits", "We built TGM for the states with the largest nonprofit communities — New York, Texas, California, Virginia, and Canada."],
               ["A named founder and a real company", "Gee Oh Dee (Tech) LLC — reachable by phone and email. No anonymous AI wrapper."],
               ["A product you can judge yourself", "Run your own draft through Checkmate, free, with no credit card. Test the output, not the marketing."],
             ].map(([title, body]) => (
@@ -624,7 +624,7 @@ export default function LandingPage() {
           <div className="mt-10 grid gap-5 sm:grid-cols-2">
             {[
               ["A real founder and a real company", "The Grants Master is built and run by Thomas Clottey, founder of Gee Oh Dee (Tech) LLC in Roanoke, Virginia. Named, reachable, and accountable."],
-              ["Used across the U.S. and Canada", "Nonprofits and agencies in New York, Texas, California, Virginia, and Canada use TGM today. We'd rather show real adoption than inflate numbers."],
+              ["Made for the states with the most nonprofits", "California, Texas and New York have the largest number of registered nonprofits in the country. That's where the grant volume is, so that's where we built first."],
               ["Audited infrastructure", "We run on Railway, Vercel, Supabase and GitHub — each independently audited (SOC 2 Type II, ISO 27001). Payments by Stripe. Drafts encrypted at rest. Your data is never used to train AI models."],
               ["Pricing with no surprises", "The Free plan is forever free. No credit card to start. Cancel anytime. Transparent pricing with no hidden fees."],
             ].map(([title, body]) => (

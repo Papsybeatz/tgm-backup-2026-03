@@ -234,13 +234,45 @@ test('usage is stated as our own data, not as public proof', () => {
   }
 });
 
-test('the trust page labels its usage figures as self-reported', () => {
-  // The honest replacement, pinned so it cannot be quietly dropped back to a
-  // bare adoption claim. Naming the source is what makes the number checkable
-  // by the reader on their own terms.
+test('the geography is framed as who we built for, not who uses it', () => {
+  // "Made for" is a design-intent claim the founder can back with the product's
+  // actual coverage — the New York module is real and ships NYSCA, NYSED, ESD,
+  // NYC Arts and Robin Hood rules. "Used by" is an adoption claim that needs
+  // evidence we do not publish. Same states, honest verb.
+  //
+  // Note "most nonprofits" (total count, where CA/TX/NY genuinely lead) and NOT
+  // "densest" (per-capita, where Montana/Vermont/Iowa/Wyoming lead). The two are
+  // different claims and only one is true of our states.
   const trust = fs.readFileSync(path.join(SRC, 'components', 'TrustPage.jsx'), 'utf8');
-  assert.match(trust, /our own account data/i);
-  assert.match(trust, /not an independently audited statistic/i);
+  assert.match(trust, /Made for the States With the Most Nonprofits/i);
+  assert.match(trust, /built for the states and regions with the largest nonprofit communities/i);
+});
+
+test('no page claims present-tense adoption in those states', () => {
+  for (const { f, text } of readAll()) {
+    assert.doesNotMatch(
+      text,
+      /use TGM today/i,
+      `${path.relative(SRC, f)} claims present-tense adoption`,
+    );
+    assert.doesNotMatch(
+      text,
+      /actively used by/i,
+      `${path.relative(SRC, f)} claims active usage`,
+    );
+  }
+});
+
+test('the geography is never called the "densest"', () => {
+  // We do not lead on per-capita nonprofit density. Saying we do would be a
+  // checkable, wrong claim — the exact failure mode these tests exist for.
+  for (const { f, text } of readAll()) {
+    assert.doesNotMatch(
+      text,
+      /densest|highest concentration of nonprofits/i,
+      `${path.relative(SRC, f)} claims per-capita nonprofit density`,
+    );
+  }
 });
 
 test('the geography itself is still published', () => {
