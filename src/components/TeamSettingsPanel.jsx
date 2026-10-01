@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useUser } from './UserContext';
+import { TIERS } from '../config/tiers';
 
 /**
  * Team settings — seats and invites.
@@ -19,8 +20,11 @@ export default function TeamSettingsPanel({ onSeatUpgrade }) {
   const [toast, setToast] = useState('');
   const [lastLink, setLastLink] = useState('');
 
-  // Only enable for Agency Unlimited
-  const isAgencyUnlimited = user && (user.tier === 'agency_unlimited' || (user.tier === 'agency' && user.seats === 'unlimited'));
+  // Any tier that actually grants seats can manage them: Pro (3), Agency (10),
+  // Agency+ (unlimited). This used to be hardcoded to agency_unlimited, so Pro
+  // and Agency customers paid for seats they had no way to use.
+  const seatCap = user ? TIERS[user.tier]?.limits?.teamSeats ?? 0 : 0;
+  const canManageSeats = seatCap > 0;
 
   const authHeaders = useCallback(() => {
     const token = typeof window !== 'undefined' ? window.localStorage.getItem('token') || '' : '';
@@ -32,7 +36,7 @@ export default function TeamSettingsPanel({ onSeatUpgrade }) {
 
   /** Read the seat readout from the server. No local guessing. */
   const loadStatus = useCallback(async () => {
-    if (!isAgencyUnlimited) return;
+    if (!canManageSeats) return;
     try {
       const res = await fetch('/api/team/status', { headers: authHeaders(), credentials: 'same-origin' });
       const data = await res.json().catch(() => ({}));
@@ -45,7 +49,7 @@ export default function TeamSettingsPanel({ onSeatUpgrade }) {
     } catch {
       setToast('Could not reach the server.');
     }
-  }, [authHeaders, isAgencyUnlimited]);
+  }, [authHeaders, canManageSeats]);
 
   useEffect(() => {
     loadStatus();
@@ -157,7 +161,7 @@ export default function TeamSettingsPanel({ onSeatUpgrade }) {
   };
 
   if (!user) return <div>Loading user data...</div>;
-  if (!isAgencyUnlimited) return null;
+  if (!canManageSeats) return null;
 
   return (
     <section>
