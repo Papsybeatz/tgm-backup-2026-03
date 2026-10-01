@@ -64,10 +64,23 @@ const requireAuth = require('./middleware/auth');
 const { requireFeature } = require('./middleware/tierAuth');
 
 // Health check endpoint â€” used by Railway and monitoring systems
-app.get("/health", (req, res) => {
+// Cached readiness probe. Deliberately never changes the health status code:
+// a database hiccup must not make Railway consider the service unhealthy.
+let errorCaptureProbe = { ok: null, reason: null, checkedAt: 0 };
+
+app.get('/health', async (req, res) => {
+  const now = Date.now();
+  if (errorCaptureProbe.ok === null || now - errorCaptureProbe.checkedAt > 60000) {
+    const { verifyErrorCapture } = require('./utils/ensureSchema');
+    const result = await verifyErrorCapture();
+    errorCaptureProbe = { ok: result.ok, reason: result.reason || null, checkedAt: now };
+  }
+
   res.status(200).json({
-    status: "ok",
-    timestamp: Date.now(),
+    status: 'ok',
+    errorCapture: errorCaptureProbe.ok === true,
+    ...(errorCaptureProbe.ok === false ? { errorCaptureReason: errorCaptureProbe.reason } : {}),
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -278,25 +291,8 @@ app.get('/api/analytics', requireAuth, requireFeature('analytics_advanced'), (re
 app.use('/api/agency', requireAuth, requireFeature('client_folders'));
 
 // Health check for Railway
-// Cached readiness probe. Deliberately never changes the health status code:
-// a database hiccup must not make Railway consider the service unhealthy.
-let errorCaptureProbe = { ok: null, reason: null, checkedAt: 0 };
-
-app.get('/health', async (req, res) => {
-  const now = Date.now();
-  if (errorCaptureProbe.ok === null || now - errorCaptureProbe.checkedAt > 60000) {
-    const { verifyErrorCapture } = require('./utils/ensureSchema');
-    const result = await verifyErrorCapture();
-    errorCaptureProbe = { ok: result.ok, reason: result.reason || null, checkedAt: now };
-  }
-
-  res.status(200).json({
-    status: 'ok',
-    errorCapture: errorCaptureProbe.ok === true,
-    ...(errorCaptureProbe.ok === false ? { errorCaptureReason: errorCaptureProbe.reason } : {}),
-    timestamp: new Date().toISOString(),
-  });
-});
+// The readiness probe lives on the health route above — the one that actually
+// matches. This duplicate was unreachable dead code.
 
 
 // Global error handler.

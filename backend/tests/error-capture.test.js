@@ -193,3 +193,23 @@ test('the ErrorLog migration is additive and idempotent', () => {
   }
   assert.doesNotMatch(sql, /DROP\s/i, 'the migration must not drop anything');
 });
+
+/* ───────────────────────────── health route ───────────────────────────── */
+
+test('there is exactly one /health route, and it reports capture readiness', () => {
+  // This is a regression guard with a real story: server.js had TWO health
+  // routes. The one registered first (a multi-line handler) was the one that
+  // actually matched, so a probe added to the second was unreachable — the
+  // endpoint kept reporting the old shape and the check looked broken.
+  const single = (SERVER_SRC.match(/app\.get\('\/health'/g) || []).length;
+  const double = (SERVER_SRC.match(/app\.get\("\/health"/g) || []).length;
+  assert.equal(single + double, 1, 'a duplicate health route silently shadows the real one');
+
+  assert.match(SERVER_SRC, /errorCapture: errorCaptureProbe\.ok === true/);
+  assert.match(SERVER_SRC, /verifyErrorCapture/);
+});
+
+test('the health check can never fail the service on a database hiccup', () => {
+  // The probe reports readiness; it must not decide the status code.
+  assert.match(SERVER_SRC, /res\.status\(200\)\.json\(\{[\s\S]{0,120}errorCapture:/);
+});
