@@ -143,8 +143,8 @@ const SECURITY_POINTS = [
   'Client folders are isolated — access requires ownership or an explicit per-client permission',
   'Encrypted at rest and in transit',
   'Human-in-the-loop workflows',
-  'Security practices designed around SOC 2 principles',
-  'GDPR/CCPA aligned',
+  'Security practices designed around encryption and access control',
+  'GDPR & CCPA: deletion on request',
   'Secure document storage',
 ];
 
@@ -431,7 +431,7 @@ export default function PricingPage() {
               Security, privacy, and compliance — built for nonprofits
             </h2>
             <p style={{ margin: '0 0 22px', color: 'var(--tgm-muted)', lineHeight: 1.7 }}>
-              Your data is protected with enterprise-grade security.
+              Your data is protected with encryption and access control.
             </p>
             <Link to="/privacy" style={{ color: 'var(--tgm-blue)', fontWeight: 900, textDecoration: 'none' }}>
               View Security & Privacy →

@@ -23,7 +23,7 @@ const PILLARS = [
   {
     kicker: 'NY Intelligence',
     title: 'New York funder module',
-    body: 'Our deepest dataset covers NYSCA, NYSED, ESD, NYC Arts, and Robin Hood rules, deadlines, and grant opportunities \u2014 then the same workspace handles federal, foundation, and international work.',
+    body: 'Our most detailed coverage starts with NYSCA, NYSED, ESD, NYC Arts, and Robin Hood rules, deadlines, and grant opportunities \u2014 then the same workspace handles federal, foundation, and international work.',
     points: ['NYSCA / NYSED / ESD / NYC Arts / Robin Hood rules', 'Curated NY opportunities and reminders', 'NY Grant Fit Score', 'NY Grant Readiness Checklist'],
   },
   {
@@ -35,7 +35,7 @@ const PILLARS = [
   {
     kicker: 'Security',
     title: 'Data practices for sensitive proposals',
-    body: 'Grant proposals carry sensitive budgets and strategy. TGM protects them with encryption and human-in-the-loop workflows designed around SOC 2 principles.',
+    body: 'Grant proposals carry sensitive budgets and strategy. TGM protects them with encryption and human-in-the-loop workflows designed around encryption and access control.',
     points: ['Encrypted at rest and in transit', 'Payments processed by Stripe', 'Human-in-the-loop workflows', 'Transparent AI governance'],
   },
 ];

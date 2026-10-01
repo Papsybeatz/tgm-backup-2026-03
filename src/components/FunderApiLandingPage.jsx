@@ -334,7 +334,7 @@ export default function FunderApiLandingPage() {
 
   const trustStats = [
     ['Rubric-based', 'Your criteria, your weights'],
-    ['< 500ms', 'Avg API response time'],
+    ['Single or batch', 'Score one application or a full cycle'],
     ['Stripe', 'Secured payments'],
     ['U.S. company', 'Gee Oh Dee (Tech) LLC'],
   ];
@@ -463,8 +463,8 @@ export default function FunderApiLandingPage() {
       a: 'Application data is used only to return scores and fit analysis for that request. TGM does not train on your funder data or share it across clients. API-level data is isolated per funder.',
     },
     {
-      q: 'How fast is the API?',
-      a: 'Scoring a single application targets sub-500ms. Batch scoring of 100 applications typically completes in under 5 seconds. Cycle intelligence on a full cohort runs in seconds.',
+      q: 'How does the API handle volume?',
+      a: 'Scoring is synchronous — one call per application, or one call for a whole batch. Cycle intelligence covers a full cohort in a single request.',
     },
     {
       q: 'Can we customize the rubric?',

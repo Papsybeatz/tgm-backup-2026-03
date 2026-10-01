@@ -368,7 +368,7 @@ function AdvancedDashboard({ tier, tierConfig }) {
     agency_unlimited: {
       eyebrow: 'TGM Agency+',
       title: 'TGM Dashboard - Agency+ Plan',
-      subtitle: 'Unlimited seats, portfolio-level visibility, and enterprise-grade delivery controls.',
+      subtitle: 'Unlimited seats, portfolio-level visibility, and delivery controls.',
       badges: [
         'Agency+ - Unlimited Team Seats',
         'Agency+ - Portfolio Analytics',

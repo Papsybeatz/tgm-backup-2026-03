@@ -133,7 +133,7 @@ export default function LandingPage() {
   const outcomeStats = [
     ['Checkmate', 'Pre-submission scoring engine'],
     ['Steve', 'In-app drafting assistant'],
-    ['NY Intelligence', 'Our deepest funder module'],
+    ['NY Intelligence', 'Our most detailed funder module'],
     ['< 24 hrs', 'Support response, Mon–Fri'],
   ];
 
@@ -149,7 +149,7 @@ export default function LandingPage() {
     'Encrypted at rest and in transit',
     'Human-in-the-loop workflows',
     'Transparent AI governance for nonprofits',
-    'Security practices designed around SOC 2 principles',
+    'Security practices designed around encryption and access control',
   ];
 
   const alignmentBullets = [
@@ -363,7 +363,7 @@ export default function LandingPage() {
             <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest mb-2">Trust & security</p>
             <h2 className="text-3xl font-bold mb-4">Built for trust, privacy, and compliance</h2>
             <p className="text-gray-300 leading-7 mb-6">
-              Grant proposals contain sensitive data. TGM protects it with enterprise-grade security.
+              Grant proposals contain sensitive data. TGM protects it with encryption and access control.
             </p>
             <Link
               to="/privacy"
@@ -426,7 +426,7 @@ export default function LandingPage() {
             <p className="leading-7 text-gray-600">TGM turns scattered funder signals into practical decisions your team can use before the deadline.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            {['Funder alignment rules', 'Past winner analysis', 'Award size benchmarks', 'Compliance checks', 'Success probability indicator', 'NY Intelligence Module: deepest dataset'].map((item) => (
+            {['Funder alignment rules', 'Past winner analysis', 'Award size benchmarks', 'Compliance checks', 'Success probability indicator', 'NY Intelligence Module: detailed NY funder rules'].map((item) => (
               <div key={item} className="rounded-lg border border-[#E2E8F0] bg-white p-4 text-sm font-bold text-[#003A8C] shadow-sm">{item}</div>
             ))}
           </div>
@@ -438,7 +438,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center">
           <div>
             <p className="text-[#B8960C] text-xs font-bold uppercase tracking-widest mb-2">New York beachhead</p>
-            <h2 className="text-3xl font-bold text-[#0A0F1A] mb-4">NY Intelligence is our deepest module. TGM works for all U.S. and international grants.</h2>
+            <h2 className="text-3xl font-bold text-[#0A0F1A] mb-4">NY Intelligence is our most detailed module. TGM works for all U.S. and international grants.</h2>
             <p className="text-gray-600 leading-7 mb-6">
               Start with the local intelligence nonprofits need, then use the same workspace for federal, foundation, and international opportunities.
             </p>
@@ -625,7 +625,7 @@ export default function LandingPage() {
             {[
               ["A real founder and a real company", "The Grants Master is built and run by Thomas Clottey, founder of Gee Oh Dee (Tech) LLC in Roanoke, Virginia. Named, reachable, and accountable."],
               ["Used across the U.S. and Canada", "Nonprofits and agencies in New York, Texas, California, Virginia, and Canada use TGM today. We'd rather show real adoption than inflate numbers."],
-              ["Enterprise-grade data practices", "Payments secured by Stripe. SSL-encrypted sessions. Drafts encrypted at rest. GDPR & CCPA aligned. Your data is never used to train AI models."],
+              ["Encryption and access control", "Payments secured by Stripe. SSL-encrypted sessions. Drafts encrypted at rest. GDPR & CCPA: deletion on request. Your data is never used to train AI models."],
               ["Pricing with no surprises", "The Free plan is forever free. No credit card to start. Cancel anytime. Transparent pricing with no hidden fees."],
             ].map(([title, body]) => (
               <div key={title} className="rounded-xl border border-white/10 bg-white/5 p-6">

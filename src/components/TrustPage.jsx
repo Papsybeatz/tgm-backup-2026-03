@@ -15,11 +15,11 @@ const SECURITY = [
   'Payments processed by Stripe — card details never touch our servers',
   'SSL-encrypted sessions in transit',
   'Draft content encrypted at rest (Supabase / PostgreSQL on AWS, US-East)',
-  'GDPR & CCPA aligned — deletion on request within 30 days',
+  'GDPR & CCPA: deletion on request within 30 days',
   'No advertising trackers or third-party tracking cookies',
   'Your drafts are never used to train AI models — our AI provider (Groq) does not train on API data (Groq Services Agreement §8.2)',
   'Client folders are isolated — a folder and its drafts, templates, Checkmate reports, and documents are reachable only by the owner or users granted explicit per-client access (owner / editor / viewer)',
-  'Security practices designed around SOC 2 principles',
+  'Security practices designed around encryption and access control',
 ];
 
 const PURCHASING = [
@@ -124,7 +124,7 @@ export default function TrustPage() {
       </Section>
 
       <Section id="security" n="04" title="Transparent Security & Data Practices">
-        <p style={{ marginTop: 0 }}>Your data is protected with enterprise-grade safeguards:</p>
+        <p style={{ marginTop: 0 }}>Your data is protected with encryption and access control:</p>
         <ul style={{ margin: '12px 0 0', paddingLeft: 0, listStyle: 'none', lineHeight: 1.9 }}>
           {SECURITY.map((s) => (
             <li key={s} style={{ display: 'flex', gap: 10 }}>
@@ -134,7 +134,7 @@ export default function TrustPage() {
           ))}
         </ul>
         <p>
-          We treat nonprofit data with the same seriousness as a financial institution.
+          We treat nonprofit data as sensitive by default — encrypted in transit and at rest, and never used to train AI models.
         </p>
       </Section>
 

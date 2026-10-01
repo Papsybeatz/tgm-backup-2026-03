@@ -131,3 +131,71 @@ test('the trust page states it does not claim unearned awards or reviews', () =>
   assert.match(trust, /claim awards we/i);
   assert.match(trust, /invented reviews/i);
 });
+
+/* ───────── attestations, compliance badges, and superlatives ─────────
+ *
+ * The second heycatch pass flagged three more classes of unbacked claim: a
+ * certification we have not been audited for, a compliance badge that asserts
+ * an assessment rather than a right, and superlatives with nothing to compare
+ * against. Each was rewritten to state the underlying practice instead, and
+ * each replacement is pinned below so it cannot be swapped back for the badge.
+ */
+
+test('no page claims a SOC 2 attestation we do not hold', () => {
+  // "Security practices designed around SOC 2 principles" reads as an audit
+  // result. There is no audit. The practices are still named — encryption and
+  // access control — so the claim is concrete rather than borrowed.
+  for (const { f, text } of readAll()) {
+    assert.doesNotMatch(text, /SOC\s*2/i, `${path.relative(SRC, f)} claims a SOC 2 attestation`);
+  }
+});
+
+test('the SOC 2 replacement names real practices instead', () => {
+  const all = readAll().map((r) => r.text).join('\n');
+  assert.match(all, /designed around encryption and access control/);
+});
+
+test('GDPR/CCPA is stated as a right, not a compliance badge', () => {
+  // "aligned" asserts an assessment. "deletion on request" is the concrete
+  // thing the regulations require and the product actually offers.
+  for (const { f, text } of readAll()) {
+    assert.doesNotMatch(
+      text,
+      /GDPR\s*\/?\s*&?\s*CCPA[-\s]+aligned/i,
+      `${path.relative(SRC, f)} claims GDPR/CCPA alignment`,
+    );
+  }
+  const all = readAll().map((r) => r.text).join('\n');
+  assert.match(all, /GDPR & CCPA: deletion on request/);
+});
+
+test('no superlative asserts a dataset nobody can measure', () => {
+  // "deepest dataset" and "Enterprise-grade" are comparative claims with no
+  // stated comparison. The replacement says what is actually in the module.
+  for (const { f, text } of readAll()) {
+    assert.doesNotMatch(text, /\bdeepest\b/i, `${path.relative(SRC, f)} claims the deepest dataset`);
+    assert.doesNotMatch(text, /Enterprise-grade/i, `${path.relative(SRC, f)} claims enterprise-grade practices`);
+  }
+});
+
+test('no unmeasured API latency figure is advertised', () => {
+  // "< 500ms avg response time" was never benchmarked under real load.
+  for (const { f, text } of readAll()) {
+    assert.doesNotMatch(text, /500\s*ms/i, `${path.relative(SRC, f)} advertises an unmeasured latency`);
+  }
+});
+
+test('the latency replacement describes what the API actually does', () => {
+  const funder = fs.readFileSync(path.join(SRC, 'components', 'FunderApiLandingPage.jsx'), 'utf8');
+  assert.match(funder, /Single or batch/);
+  assert.match(funder, /Score one application or a full cycle/);
+  assert.match(funder, /How does the API handle volume\?/);
+});
+
+test('data handling is described concretely, not by analogy', () => {
+  // "the same seriousness as a financial institution" borrows credibility from
+  // a sector we are not in. The replacement states the actual controls.
+  const trust = fs.readFileSync(path.join(SRC, 'components', 'TrustPage.jsx'), 'utf8');
+  assert.doesNotMatch(trust, /financial institution/i);
+  assert.match(trust, /as sensitive by default/);
+});
