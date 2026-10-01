@@ -8,6 +8,7 @@
     "test:brevo": "node --test tests/brevo.test.js",
     "smoke:steve": "node scripts/smoke-steve.js",
     "test:tiers": "node --test tests/tier-gates.test.js",
+    "test:team": "node --test tests/team-invites.test.js",
     "baseline:migrations": "node scripts/baseline-migrations.js"
   },
   "dependencies": {

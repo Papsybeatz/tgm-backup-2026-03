@@ -1,52 +1,87 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useUser } from './UserContext';
 
+/**
+ * Team settings — seats and invites.
+ *
+ * Every call here now authenticates with the session token and hits the
+ * DB-backed /api/team router. It used to call an unauthenticated /api/team/status
+ * that returned the same two fake pending invites to every account, and an /add
+ * that wrote nothing to the database.
+ */
 export default function TeamSettingsPanel({ onSeatUpgrade }) {
-  const { user = null, ...userContextRest } = useUser() ?? {};
+  const { user = null } = useUser() ?? {};
   const [addEmail, setAddEmail] = useState('');
   const [removeEmail, setRemoveEmail] = useState('');
   const [pendingInvites, setPendingInvites] = useState([]);
   const [seatUsage, setSeatUsage] = useState({ used: 0, total: user && user.seats ? user.seats : 1 });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
+  const [lastLink, setLastLink] = useState('');
 
   // Only enable for Agency Unlimited
   const isAgencyUnlimited = user && (user.tier === 'agency_unlimited' || (user.tier === 'agency' && user.seats === 'unlimited'));
-    if (!user) {
-      return <div>Loading user data...</div>;
+
+  const authHeaders = useCallback(() => {
+    const token = typeof window !== 'undefined' ? window.localStorage.getItem('token') || '' : '';
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  }, []);
+
+  /** Read the seat readout from the server. No local guessing. */
+  const loadStatus = useCallback(async () => {
+    if (!isAgencyUnlimited) return;
+    try {
+      const res = await fetch('/api/team/status', { headers: authHeaders(), credentials: 'same-origin' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        setToast(data.message || 'Could not load team status.');
+        return;
+      }
+      setSeatUsage({ used: data.used, total: data.total });
+      setPendingInvites(data.pendingInvites || []);
+    } catch {
+      setToast('Could not reach the server.');
     }
+  }, [authHeaders, isAgencyUnlimited]);
+
   useEffect(() => {
-    if (isAgencyUnlimited) {
-      fetch('/api/team/status')
-        .then(res => res.json())
-        .then(data => {
-          setSeatUsage({ used: data.used, total: data.total });
-          setPendingInvites(data.pendingInvites || []);
-        });
-    }
-  }, [user.tier, user.seats, isAgencyUnlimited]);
+    loadStatus();
+  }, [loadStatus, user?.tier]);
 
   const showToast = (msg) => {
     setToast(msg);
-    setTimeout(() => setToast(''), 2500);
+    setTimeout(() => setToast(''), 6000);
   };
 
   const handleAdd = async () => {
     setLoading(true);
+    setLastLink('');
     try {
       const res = await fetch('/api/team/add', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: addEmail })
+        headers: authHeaders(),
+        credentials: 'same-origin',
+        body: JSON.stringify({ email: addEmail }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (data.success) {
-        showToast('Invite sent!');
-        setPendingInvites([...pendingInvites, { email: addEmail, status: 'pending' }]);
+        // If the email could not be sent, hand the inviter the link to copy.
+        if (data.emailed === false && data.inviteLink) {
+          setLastLink(data.inviteLink);
+          showToast(data.message || 'Invite created, but the email could not be sent.');
+        } else {
+          showToast('Invite sent!');
+        }
         setAddEmail('');
+        await loadStatus();
       } else {
         showToast(data.message || 'Failed to send invite.');
       }
+    } catch {
+      showToast('Could not reach the server.');
     } finally {
       setLoading(false);
     }
@@ -57,16 +92,20 @@ export default function TeamSettingsPanel({ onSeatUpgrade }) {
     try {
       const res = await fetch('/api/team/remove', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: removeEmail })
+        headers: authHeaders(),
+        credentials: 'same-origin',
+        body: JSON.stringify({ email: removeEmail }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (data.success) {
-        showToast('Member removed.');
+        showToast(data.message || 'Member removed.');
         setRemoveEmail('');
+        await loadStatus();
       } else {
         showToast(data.message || 'Failed to remove member.');
       }
+    } catch {
+      showToast('Could not reach the server.');
     } finally {
       setLoading(false);
     }
@@ -74,14 +113,21 @@ export default function TeamSettingsPanel({ onSeatUpgrade }) {
 
   const handleResend = async (email) => {
     setLoading(true);
+    setLastLink('');
     try {
       const res = await fetch('/api/team/resend-invite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        headers: authHeaders(),
+        credentials: 'same-origin',
+        body: JSON.stringify({ email }),
       });
-      const data = await res.json();
-      showToast(data.success ? 'Invite resent.' : 'Failed to resend invite.');
+      const data = await res.json().catch(() => ({}));
+      if (data.success && data.emailed === false && data.inviteLink) {
+        setLastLink(data.inviteLink);
+      }
+      showToast(data.success ? data.message || 'Invite resent.' : data.message || 'Failed to resend invite.');
+    } catch {
+      showToast('Could not reach the server.');
     } finally {
       setLoading(false);
     }
@@ -92,21 +138,25 @@ export default function TeamSettingsPanel({ onSeatUpgrade }) {
     try {
       const res = await fetch('/api/team/cancel-invite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        headers: authHeaders(),
+        credentials: 'same-origin',
+        body: JSON.stringify({ email }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (data.success) {
-        setPendingInvites(pendingInvites.filter(i => i.email !== email));
-        showToast('Invite cancelled.');
+        showToast(data.message || 'Invite cancelled.');
+        await loadStatus();
       } else {
-        showToast('Failed to cancel invite.');
+        showToast(data.message || 'Failed to cancel invite.');
       }
+    } catch {
+      showToast('Could not reach the server.');
     } finally {
       setLoading(false);
     }
   };
 
+  if (!user) return <div>Loading user data...</div>;
   if (!isAgencyUnlimited) return null;
 
   return (
@@ -128,16 +178,28 @@ export default function TeamSettingsPanel({ onSeatUpgrade }) {
       <button onClick={onSeatUpgrade} disabled={loading}>Upgrade Seats</button>
       <div style={{ margin: '1rem 0' }}>
         <b>Pending Invites:</b>
-        <ul>
-          {pendingInvites.map(invite => (
-            <li key={invite.email}>
-              {invite.email} ({invite.status})
-              <button onClick={() => handleResend(invite.email)} disabled={loading}>Resend</button>
-              <button onClick={() => handleCancel(invite.email)} disabled={loading}>Cancel</button>
-            </li>
-          ))}
-        </ul>
+        {pendingInvites.length === 0 ? (
+          <p style={{ color: '#64748B', fontSize: 13, margin: '6px 0 0' }}>No pending invites.</p>
+        ) : (
+          <ul>
+            {pendingInvites.map(invite => (
+              <li key={invite.email}>
+                {invite.email} ({invite.status})
+                <button onClick={() => handleResend(invite.email)} disabled={loading}>Resend</button>
+                <button onClick={() => handleCancel(invite.email)} disabled={loading}>Cancel</button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
+      {lastLink && (
+        <div style={{ background: '#F7F9FB', border: '1px solid #E2E8F0', borderRadius: 8, padding: 12, margin: '1rem 0' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#003A8C', margin: '0 0 6px' }}>
+            Email not sent — copy this invite link and send it yourself:
+          </p>
+          <input readOnly value={lastLink} onFocus={e => e.target.select()} style={{ width: '100%', fontSize: 12, padding: 8, borderRadius: 6, border: '1px solid #CBD5E1' }} />
+        </div>
+      )}
       {toast && <div style={{ background: '#222', color: '#fff', padding: '0.5rem 1rem', borderRadius: 4, margin: '1rem 0' }}>{toast}</div>}
     </section>
   );

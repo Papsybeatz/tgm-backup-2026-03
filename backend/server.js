@@ -50,7 +50,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 const checkoutRoutes = require('./routes/checkout');
-const teamRoutes = require('./routes/team');
 const teamInvitesRoutes = require('./routes/teamInvites');
 const authRoutes = require('./routes/auth');
 const draftsRoutes = require('./routes/drafts');
@@ -147,7 +146,9 @@ const leadMagnetRoutes = require('./routes/leadMagnet');
 app.use('/api/lead-magnet', leadMagnetRoutes);
 const funderApiRequestRoutes = require('./routes/funderApiRequest');
 app.use('/api/funder-api', funderIntakeLimiter, funderApiRequestRoutes);
-app.use('/api/team', teamRoutes);
+// routes/team.js (the in-memory stub) is deleted. It was mounted here FIRST,
+// so it shadowed every DB-backed handler below and served hardcoded fake
+// invite data. One router owns /api/team now.
 app.use('/api/team', teamInvitesRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/assistant', steveLimiter, steveHourlyLimiter, assistantRoutes);
