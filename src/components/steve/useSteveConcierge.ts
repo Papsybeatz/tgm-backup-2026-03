@@ -34,7 +34,7 @@ export type Download = { pdf: string; docx: string } | null;
 export type SteveStatus = 'intake' | 'drafting' | 'ready_for_review' | 'delivered';
 
 const GREETING =
-  "Hi, I'm Steve — your grant concierge. Tell me what you need and I'll take your order: I ask for whatever's missing, write your grant letter, score it, and hand it over ready to download.";
+  "Hi, I'm Steve — your grant concierge. Fill in the order once and I'll write your grant letter, score it, and hand it over ready to download.";
 
 const newMessage = (role: AssistantMessage['role'], content: string): AssistantMessage => ({
   id: `${role}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,

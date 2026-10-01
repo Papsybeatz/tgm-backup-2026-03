@@ -24,8 +24,17 @@ type ScoreReport = {
 };
 type Download = { pdf: string; docx: string } | null;
 
-const GREETING =
-  "Hi, I'm Steve — your grant concierge. Tell me about the grant you need and I'll take your order: I'll ask for whatever's missing, write your grant letter, score it, and hand it over ready to download.";
+/**
+ * Intake is the form now, so this panel is a post-draft assistant. Its greeting
+ * says what Steve can actually do here — revise the open draft — instead of
+ * inviting a conversation that no longer happens on this surface.
+ */
+function greetingFor(mode: AssistantChatPanelProps['mode']) {
+  if (mode === 'drafting') {
+    return "I've got your draft open. Tell me what to change — tighten a section, make it stronger, or ask me to rewrite one — and I'll revise it in place.";
+  }
+  return "Hi, I'm Steve. Ask me anything about the grant process, or open a draft and I'll help you revise it.";
+}
 
 const createMessage = (role: AssistantMessage['role'], content: string): AssistantMessage => ({
   id: `${role}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -50,7 +59,7 @@ export default function AssistantChatPanel({ open, onClose, mode }: AssistantCha
   const navigate = useNavigate();
   const { user } = useUser() || {};
   const [messages, setMessages] = useState<AssistantMessage[]>([
-    createMessage('assistant', GREETING),
+    createMessage('assistant', greetingFor(mode)),
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -236,7 +245,7 @@ export default function AssistantChatPanel({ open, onClose, mode }: AssistantCha
     } catch {
       /* ignore */
     }
-    setMessages([createMessage('assistant', GREETING)]);
+    setMessages([createMessage('assistant', greetingFor(mode))]);
     setProgress(null);
     setScoreReport(null);
     setDraftId(null);
