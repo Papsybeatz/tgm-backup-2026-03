@@ -293,6 +293,31 @@ async function ensureSchema() {
   }
 
   return { ok: verify.ok, applied, failed, verify };
+
+  // Testimonial: social proof from real users. Parachuted for the same reason as
+  // InviteRequest — a failed `prisma migrate deploy` must not stop us collecting
+  // quotes, because the quotes are the thing that takes time to accumulate.
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "Testimonial" (
+      "id" TEXT NOT NULL,
+      "quote" TEXT NOT NULL,
+      "role" TEXT,
+      "orgType" TEXT,
+      "region" TEXT,
+      "email" TEXT,
+      "status" TEXT NOT NULL DEFAULT 'pending',
+      "source" TEXT NOT NULL DEFAULT 'website',
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "Testimonial_pkey" PRIMARY KEY ("id")
+    );
+  `);
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "Testimonial_status_idx" ON "Testimonial"("status");`
+  );
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "Testimonial_createdAt_idx" ON "Testimonial"("createdAt");`
+  );
 }
 
 /**

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+import TestimonialWall from './TestimonialWall';
+import ShareStoryForm from './ShareStoryForm';
 const LINKEDIN = 'https://www.linkedin.com/in/thomas-clottey';
 const FACEBOOK = 'https://www.facebook.com/TheGrantsMaster';
 const PHONE = '(540) 566-9760';
@@ -57,6 +59,46 @@ const INFRASTRUCTURE = [
 ];
 
 // The part we do control: what we do with the data once it reaches us.
+// What the product does, in our own voice.
+//
+// This is deliberately NOT dressed as a testimonial. A capability claim is true
+// whoever says it, so there is nothing to gain by putting these words in a
+// customer's mouth — and everything to lose, because a reader who asks around
+// and finds no such customer concludes the whole page is theatre.
+//
+// Every line here is checkable inside the product.
+const CAPABILITIES = [
+  {
+    title: 'Scores a draft against a funder\u2019s actual rubric',
+    detail:
+      'Not a vibe check. A deterministic score against the published criteria, with the gaps named, so you know what to fix before you submit.',
+  },
+  {
+    title: 'New York in the most detail',
+    detail:
+      'NYSCA, NYSED, ESD, NYC Arts and Robin Hood rule sets, deadlines and opportunities \u2014 then the same workspace handles federal, foundation and international work.',
+  },
+  {
+    title: 'A structured brief, not a chat',
+    detail:
+      'Steve takes an itemized intake form, turns it into an order ticket, and drafts against that ticket \u2014 so answering a question never silently rewrites your draft.',
+  },
+  {
+    title: 'Client folders with per-client access',
+    detail:
+      'Owner, editor or viewer. A folder\u2019s drafts, templates, Checkmate reports and documents are reachable only by the people you explicitly grant.',
+  },
+  {
+    title: 'Every draft versioned',
+    detail:
+      'Rewrite a section without losing the version that worked. One click back.',
+  },
+  {
+    title: 'Founding member lifetime access',
+    detail: '100 seats, one payment, no renewal. When they are gone, that tier is closed.',
+  },
+];
+
 const SECURITY = [
   'Payments processed by Stripe — card details never touch our servers',
   'SSL-encrypted sessions in transit',
@@ -158,19 +200,41 @@ export default function TrustPage() {
         </p>
       </Section>
 
-      <Section id="results" n="03" title="Real Results — Published Only With Permission">
+                        <Section id="results" n="03" title="What TGM Does — In Our Words">
         <p style={{ marginTop: 0 }}>
-          We&apos;re a new platform, and we&apos;re honest about it. We don&apos;t publish placeholder quotes, invented reviews, or case studies we can&apos;t verify.
+          We&apos;d rather show you the product than quote a customer we don&apos;t have yet. Here
+          is what TGM actually does, stated by us, and checkable inside the product:
         </p>
-        <ul style={{ margin: '12px 0 0', paddingLeft: 20, lineHeight: 1.9 }}>
-          <li>Built for the states with the most nonprofits — New York, Texas, California, Virginia, and Canada</li>
-          <li>Named founder, registered U.S. company, reachable by phone and email</li>
-          <li>First customer case studies in progress — publishing only with written permission</li>
-        </ul>
-        <p>
-          Want to be one of our first featured stories?{' '}
-          <a href={`mailto:${EMAIL}?subject=My%20TGM%20story`} style={{ color: '#003A8C', fontWeight: 600 }}>{EMAIL}</a>.
+
+        <div style={{ marginTop: 18, display: 'grid', gap: 12 }}>
+          {CAPABILITIES.map((c) => (
+            <div
+              key={c.title}
+              style={{
+                border: '1px solid #E2E8F0',
+                background: '#F8F9FC',
+                borderRadius: 12,
+                padding: '14px 16px',
+              }}
+            >
+              <p style={{ margin: 0, fontWeight: 700, color: '#0A0F1A' }}>{c.title}</p>
+              <p style={{ margin: '6px 0 0', fontSize: 14, lineHeight: 1.6, color: '#475569' }}>
+                {c.detail}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <p style={{ marginTop: 26, marginBottom: 0, fontWeight: 700, color: '#0A0F1A' }}>
+          From users who gave permission
         </p>
+        <p style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 1.6, color: '#475569' }}>
+          We don&apos;t claim awards we haven&apos;t earned, and we don&apos;t publish invented reviews.
+          Every quote here will come from a real user \u2014 anonymously, and only with their
+          consent. The wall stays empty until one does.
+        </p>
+        <TestimonialWall />
+        <ShareStoryForm />
       </Section>
 
       <Section id="security" n="04" title="Transparent Security & Data Practices">

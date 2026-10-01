@@ -589,4 +589,60 @@ router.get('/invite-requests', requireAdmin, async (req, res) => {
   }
 });
 
+
+// ── Testimonials ────────────────────────────────────────────────────────────
+// Moderation for the real-quote pipeline. Approving is the only way a quote
+// reaches the public endpoint, so this is the gate that keeps a fabricated or
+// off-topic submission off the trust page.
+
+router.get('/testimonials', requireAdmin, async (req, res) => {
+  try {
+    const status = typeof req.query.status === 'string' ? req.query.status : null;
+    const testimonials = await prisma.testimonial.findMany({
+      where: status ? { status } : {},
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    });
+    res.json({ success: true, testimonials });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Could not load testimonials.',
+      detail: errorDetail(err),
+    });
+  }
+});
+
+router.post('/testimonials/:id/approve', requireAdmin, async (req, res) => {
+  try {
+    const testimonial = await prisma.testimonial.update({
+      where: { id: req.params.id },
+      data: { status: 'approved' },
+    });
+    res.json({ success: true, testimonial });
+  } catch (err) {
+    res.status(404).json({
+      success: false,
+      message: 'No testimonial with that id.',
+      detail: errorDetail(err),
+    });
+  }
+});
+
+router.post('/testimonials/:id/reject', requireAdmin, async (req, res) => {
+  try {
+    const testimonial = await prisma.testimonial.update({
+      where: { id: req.params.id },
+      data: { status: 'rejected' },
+    });
+    res.json({ success: true, testimonial });
+  } catch (err) {
+    res.status(404).json({
+      success: false,
+      message: 'No testimonial with that id.',
+      detail: errorDetail(err),
+    });
+  }
+});
+
 module.exports = router;

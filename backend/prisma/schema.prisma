@@ -317,3 +317,24 @@ model AssistantMessage {
 
   @@index([sessionId, createdAt])
 }
+
+
+/// A testimonial submitted by a real user. Anonymous by design: the quote is
+/// genuine and the attribution names a role, an org type and a region rather
+/// than a person — anonymity hides *who* said it, never *whether* someone did.
+/// Rows land as "pending" and are only ever shown once an admin approves them.
+model Testimonial {
+  id        String   @id @default(cuid())
+  quote     String
+  role      String?
+  orgType   String?
+  region    String?
+  email     String?
+  status    String   @default("pending")
+  source    String   @default("website")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}

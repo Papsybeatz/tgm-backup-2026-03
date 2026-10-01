@@ -184,6 +184,7 @@ app.use('/api/admin/funders', adminFundersRoutes);
 app.use('/api/billing', billingRoutes);
 const inviteRoutes = require('./routes/invite');
 app.use('/api/invite', inviteRoutes);
+app.use('/api/testimonials', require('./routes/testimonials'));
 const funderReviewerRoutes = require('./routes/funderReviewer');
 app.use('/api/funder', funderReviewerRoutes);
 
