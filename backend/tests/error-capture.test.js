@@ -168,10 +168,19 @@ test('the captured row is attributed to the account and tier', () => {
 
 /* ───────────────────────── one logger, not two ───────────────────────── */
 
-test('the in-memory ring buffer is gone and the old module delegates', () => {
-  const loggerSrc = fs.readFileSync(path.join(ROOT, 'utils', 'logger.js'), 'utf8');
-  assert.doesNotMatch(loggerSrc, /ERROR_BUFFER|MAX_BUFFER|AI_BUFFER/, 'the ring buffer must not come back');
-  assert.match(loggerSrc, /require\('\.\/logging'\)/, 'it must delegate to the persisted logger');
+test('the in-memory ring buffer is gone, and the old logger is out of the live tree', () => {
+  // utils/logger.js was a deprecated shim over ./logging. Once nothing imported
+  // it, it was isolated to _orphaned/ rather than deleted (TGM keeps dead code
+  // parked until the project is complete), so it cannot creep back in as a
+  // second logger.
+  assert.ok(
+    !fs.existsSync(path.join(ROOT, 'utils', 'logger.js')),
+    'the retired logger must not sit in the live tree',
+  );
+
+  const loggingSrc = fs.readFileSync(path.join(ROOT, 'utils', 'logging.js'), 'utf8');
+  assert.doesNotMatch(loggingSrc, /ERROR_BUFFER|MAX_BUFFER|AI_BUFFER/, 'the ring buffer must not come back');
+  assert.match(loggingSrc, /async function captureError/, 'captureError is the single entry point');
 });
 
 test('nothing still imports the retired ring-buffer readers', () => {
