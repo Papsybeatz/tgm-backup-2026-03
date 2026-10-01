@@ -518,4 +518,48 @@ router.get('/export-usage', requireAdmin, async (req, res) => {
   }
 });
 
+// GET /api/admin/errors — the failure list, filtered.
+//
+// This is the "show me everything that failed for this account" view. The
+// metrics endpoint only ever returns the last 20; when a real user reports a
+// problem the first question is which account, which tier, which endpoint and
+// which request id — so every one of those is a filter here.
+router.get('/errors', requireAdmin, async (req, res) => {
+  try {
+    const parsed = Number.parseInt(req.query.limit, 10);
+    const limit = Math.min(Math.max(Number.isFinite(parsed) ? parsed : 50, 1), 200);
+
+    const where = {};
+    if (req.query.userId) where.userId = String(req.query.userId);
+    if (req.query.userEmail) where.userEmail = String(req.query.userEmail).trim().toLowerCase();
+    if (req.query.tier) where.tier = String(req.query.tier);
+    if (req.query.severity) where.severity = String(req.query.severity);
+    if (req.query.fingerprint) where.fingerprint = String(req.query.fingerprint);
+    if (req.query.path) where.path = { contains: String(req.query.path) };
+
+    if (req.query.since) {
+      const since = new Date(String(req.query.since));
+      if (!Number.isNaN(since.getTime())) where.createdAt = { gte: since };
+    }
+
+    const [errors, total] = await Promise.all([
+      prisma.errorLog.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        select: {
+          id: true, message: true, endpoint: true, path: true, method: true,
+          status: true, severity: true, source: true, userId: true, userEmail: true,
+          tier: true, requestId: true, fingerprint: true, createdAt: true,
+        },
+      }),
+      prisma.errorLog.count({ where }),
+    ]);
+
+    res.json({ success: true, total, count: errors.length, errors });
+  } catch (err) {
+    res.status(500).json({ success: false, message: errorDetail(err) });
+  }
+});
+
 module.exports = router;

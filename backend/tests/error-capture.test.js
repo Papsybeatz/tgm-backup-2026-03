@@ -213,3 +213,22 @@ test('the health check can never fail the service on a database hiccup', () => {
   // The probe reports readiness; it must not decide the status code.
   assert.match(SERVER_SRC, /res\.status\(200\)\.json\(\{[\s\S]{0,120}errorCapture:/);
 });
+
+/* ───────────────────────── the mounted admin router ───────────────────────── */
+
+test('the failure list is on the router that is actually mounted', () => {
+  // Second regression guard with a story: the /errors route was first added to
+  // backend/routes/adminMetrics.js, which nothing imports — an orphan. The live
+  // router is admin.js (mounted at /api/admin), so the endpoint 404'd in
+  // production while the code looked correct in review.
+  const adminSrc = fs.readFileSync(path.join(__dirname, '..', 'routes', 'admin.js'), 'utf8');
+  assert.match(
+    adminSrc,
+    /router\.get\('\/errors',\s*requireAdmin/,
+    'GET /api/admin/errors must be registered on the live admin router',
+  );
+  assert.ok(
+    !fs.existsSync(path.join(__dirname, '..', 'routes', 'adminMetrics.js')),
+    'the unmounted duplicate router must not come back',
+  );
+});
