@@ -3,6 +3,8 @@
   "isolatedAt": "2026-10-01",
   "files": [
     "backend/middleware/roleAuth.js",
+    "backend/routes/adminInvite.js",
+    "backend/routes/adminMetrics.js",
     "backend/routes/stripeWebhook.js",
     "backend/utils/assistantStore.js",
     "backend/utils/logger.js",

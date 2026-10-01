@@ -23,10 +23,10 @@ any textual mention elsewhere before being moved.
 
 ## What is here
 
-64 files:
+66 files:
 
 - `backend/middleware/` — 1 file(s)
-- `backend/routes/` — 1 file(s)
+- `backend/routes/` — 3 file(s)
 - `backend/utils/` — 4 file(s)
 - `src/` — 1 file(s)
 - `src/agents/` — 1 file(s)
