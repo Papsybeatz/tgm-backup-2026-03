@@ -188,6 +188,37 @@ const STATEMENTS = [
     label: 'ErrorLog severity index',
     sql: `CREATE INDEX IF NOT EXISTS "ErrorLog_severity_idx" ON "ErrorLog"("severity")`,
   },
+
+  // ---------------------------------------------------------------------------
+  // Invite-request waitlist.
+  //
+  // Same reasoning as ErrorLog above, but with a sharper edge: the data this
+  // replaces was destroyed by exactly the event this parachute guards against.
+  // A redeploy wiping the waitlist is the bug; if the migration did not apply
+  // we would simply reproduce it with a table instead of a file.
+  // ---------------------------------------------------------------------------
+  {
+    label: 'InviteRequest table',
+    sql: `CREATE TABLE IF NOT EXISTS "InviteRequest" (
+      "id" TEXT NOT NULL,
+      "name" TEXT,
+      "email" TEXT NOT NULL,
+      "organization" TEXT,
+      "reason" TEXT,
+      "tier" TEXT,
+      "status" TEXT NOT NULL DEFAULT 'pending',
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "InviteRequest_pkey" PRIMARY KEY ("id")
+    )`,
+  },
+  {
+    label: 'InviteRequest email unique index',
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "InviteRequest_email_key" ON "InviteRequest"("email")`,
+  },
+  {
+    label: 'InviteRequest status index',
+    sql: `CREATE INDEX IF NOT EXISTS "InviteRequest_status_createdAt_idx" ON "InviteRequest"("status", "createdAt")`,
+  },
 ];
 
 /** Is the Steve store actually able to use the database now? */

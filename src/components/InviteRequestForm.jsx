@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import styles from './LandingPage.module.css';
 
 export default function InviteRequestForm({ tier, user, onClose }) {
-  const [email, setEmail] = useState(user.email || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
@@ -16,12 +16,18 @@ export default function InviteRequestForm({ tier, user, onClose }) {
       return;
     }
     try {
-      const res = await fetch('/request-invite', {
+      // This posted to '/request-invite', which the SPA catch-all answered with
+      // 405 — so no request ever reached the backend. The API is mounted under
+      // /api/invite, and Vercel proxies /api/* to it.
+      const res = await fetch('/api/invite/request-invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, tier }),
+        body: JSON.stringify({ email, name: user?.name || '', tier }),
       });
-      if (!res.ok) throw new Error('Network error');
+      // Check the body, not just the status: a 200 that is not a real success is
+      // exactly how a silent failure gets shown to the user as "submitted".
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body.success) throw new Error(body.message || 'Network error');
       setSubmitted(true);
     } catch (err) {
       setError('Submission failed. Please try again later.');

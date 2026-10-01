@@ -198,6 +198,31 @@ model Invite {
   acceptedAt DateTime?
 }
 
+// Public waitlist: someone who is not yet a customer asking for access.
+//
+// This is deliberately NOT the Invite table. An Invite is a seat handed out by
+// an existing customer to a named address, and it carries an inviterId and a
+// tier that the invitee inherits. A request has no inviter and grants nothing —
+// it is just a lead. Conflating them would put unvetted strangers in the same
+// table as granted seats.
+//
+// It replaces a JSON file under backend/data/, which was lost on every Railway
+// redeploy (the filesystem is ephemeral), so the waitlist never survived a
+// deploy. Email is unique so a repeat submission is idempotent rather than a
+// duplicate row.
+model InviteRequest {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  organization String?
+  reason       String?
+  tier         String? // which plan they asked about, when the caller knows
+  status       String   @default("pending") // "pending" | "approved" | "denied"
+  createdAt    DateTime @default(now())
+
+  @@index([status, createdAt])
+}
+
 model DraftVersion {
   id        String   @id @default(cuid())
   draftId   String

@@ -562,4 +562,31 @@ router.get('/errors', requireAdmin, async (req, res) => {
   }
 });
 
+// GET /api/admin/invite-requests — the public waitlist.
+//
+// Distinct from /invite-queue, which lists granted seats (the Invite table).
+// These are people with no account asking for access; before this they were
+// written to a JSON file that every redeploy erased, so they were unreachable
+// even in principle.
+router.get('/invite-requests', requireAdmin, async (req, res) => {
+  try {
+    const parsed = Number.parseInt(req.query.limit, 10);
+    const limit = Math.min(Math.max(Number.isFinite(parsed) ? parsed : 100, 1), 500);
+
+    const where = {};
+    if (req.query.status) where.status = String(req.query.status);
+
+    const [requests, total] = await Promise.all([
+      prisma.inviteRequest.findMany({ where, orderBy: { createdAt: 'desc' }, take: limit }),
+      prisma.inviteRequest.count({ where }),
+    ]);
+
+    res.json({ success: true, total, count: requests.length, requests });
+  } catch (e) {
+    console.error('[ADMIN] /invite-requests error', e.message);
+    res.status(500).json({
+      detail: errorDetail(e), success: false, message: 'Server error' });
+  }
+});
+
 module.exports = router;
