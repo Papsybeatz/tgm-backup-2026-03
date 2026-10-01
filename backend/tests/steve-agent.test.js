@@ -390,3 +390,45 @@ test('client context is not loaded without a user or a client id', async () => {
   assert.equal(await loadClientContext({ userId: 'u1', clientId: null }), null);
   assert.equal(await loadClientContext({ userId: '', clientId: '' }), null);
 });
+
+/* ─────────────────── single-shot drafting (the editor panel) ─────────────────── */
+
+test('drafting mode is single-shot: an instruction revises a section, a question does not', async () => {
+  delete process.env.GROQ_API_KEY;
+  delete process.env.OPENAI_API_KEY;
+  llm.isEnabled = () => false;
+
+  const userId = `single_${Date.now()}`;
+  await store.resetSession(userId);
+
+  // Build a complete order and a draft with the deterministic planner.
+  await runSteveTurn({ user: null, userId, message: 'start' });
+  let turn;
+  for (const answer of REQUIRED_SLOTS.map((key) => FULL_ORDER[key])) {
+    turn = await runSteveTurn({ user: null, userId, message: answer });
+  }
+  turn = await runSteveTurn({ user: null, userId, message: 'yes' });
+  assert.equal(turn.hasDraft, true, 'a draft must exist before the editor panel is used');
+
+  // An instruction takes the single-shot revise path — not the tool loop, and
+  // not the conversational intake.
+  const revised = await runSteveTurn({
+    user: null,
+    userId,
+    message: 'tighten the Statement of Need',
+    context: { mode: 'drafting' },
+  });
+  assert.equal(revised.intent, 'revise', 'drafting instructions must be single-shot revisions');
+  assert.equal(revised.hasDraft, true);
+  assert.ok(revised.docHtml && revised.docHtml.length > 0);
+
+  // A question is not an instruction: it must not rewrite anything.
+  const question = await runSteveTurn({
+    user: null,
+    userId,
+    message: 'how long is this letter?',
+    context: { mode: 'drafting' },
+  });
+  assert.equal(question.intent, 'revise_guidance', 'a question must not mutate the draft');
+  assert.equal(question.docHtml, revised.docHtml, 'the draft must be byte-for-byte unchanged');
+});

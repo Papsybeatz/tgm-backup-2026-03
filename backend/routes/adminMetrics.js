@@ -7,7 +7,9 @@ const router = express.Router();
 const { getPlausibleStats } = require('../utils/plausible');
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.FOUNDER_EMAIL || 'Clotteythomas41@gmail.com';
-const LIFETIME_CAP = 200;
+// Same source as checkout.js: the dashboard must report the cap that is
+// actually enforced, not a second, drifting number.
+const LIFETIME_CAP = Number(process.env.FOUNDING_MEMBER_SEATS || 100);
 const PASSWORD_RESET_TOKEN_PREFIX = 'pwdreset_';
 
 let metricsCache = null;

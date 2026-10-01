@@ -207,6 +207,7 @@ function createWorkspaceState(isStarterPlus, rawContent = '') {
   const sections = isStarterPlus ? STARTER_SECTIONS : FREE_SECTIONS;
   const emptyMap = createEmptySectionMap(sections);
   const historyMap = createEmptySectionMap(sections);
+  const redoMap = createEmptySectionMap(sections);
   const hasContent = Boolean(rawContent && rawContent.trim());
 
   if (!hasContent) {
@@ -215,6 +216,7 @@ function createWorkspaceState(isStarterPlus, rawContent = '') {
       activeSection: sections[0],
       sectionContentMap: emptyMap,
       sectionHistoryMap: historyMap,
+      sectionRedoMap: redoMap,
       contentHtml: '',
     };
   }
@@ -231,6 +233,7 @@ function createWorkspaceState(isStarterPlus, rawContent = '') {
     activeSection: sections[0],
     sectionContentMap,
     sectionHistoryMap: historyMap,
+    sectionRedoMap: redoMap,
     contentHtml: hasParsedSectionContent ? buildHtmlFromSections(sectionContentMap, sections) : normalized,
   };
 }
@@ -258,12 +261,14 @@ function workspaceReducer(state, action) {
       const sections = [...state.sections, section];
       const sectionContentMap = { ...state.sectionContentMap, [section]: '' };
       const sectionHistoryMap = { ...state.sectionHistoryMap, [section]: '' };
+      const sectionRedoMap = { ...state.sectionRedoMap, [section]: '' };
       return {
         ...state,
         sections,
         activeSection: section,
         sectionContentMap,
         sectionHistoryMap,
+        sectionRedoMap,
         contentHtml: buildHtmlFromSections(sectionContentMap, sections),
       };
     }
@@ -273,16 +278,20 @@ function workspaceReducer(state, action) {
       const previous = state.sectionContentMap[section] || '';
       const sectionContentMap = { ...state.sectionContentMap, [section]: html };
       let sectionHistoryMap = state.sectionHistoryMap;
+      let sectionRedoMap = state.sectionRedoMap;
       if (pushHistory && previous !== html) {
         sectionHistoryMap = {
           ...state.sectionHistoryMap,
           [section]: state.sectionHistoryMap[section] ? `${state.sectionHistoryMap[section]}\u0000${previous}` : previous,
         };
+        // A fresh edit invalidates any redo for this section.
+        sectionRedoMap = { ...state.sectionRedoMap, [section]: '' };
       }
       return {
         ...state,
         sectionContentMap,
         sectionHistoryMap,
+        sectionRedoMap,
         contentHtml: buildHtmlFromSections(sectionContentMap, state.sections),
       };
     }
@@ -292,11 +301,35 @@ function workspaceReducer(state, action) {
       const stack = String(state.sectionHistoryMap[section] || '').split('\u0000').filter(Boolean);
       const previous = stack.pop();
       if (previous === undefined) return state;
+      // Remember what we are undoing FROM, so REDO can put it back.
+      const redoStack = String(state.sectionRedoMap[section] || '').split('\u0000').filter(Boolean);
+      const current = state.sectionContentMap[section] || '';
+      if (current) redoStack.push(current);
       const sectionContentMap = { ...state.sectionContentMap, [section]: previous };
       return {
         ...state,
         sectionContentMap,
         sectionHistoryMap: { ...state.sectionHistoryMap, [section]: stack.join('\u0000') },
+        sectionRedoMap: { ...state.sectionRedoMap, [section]: redoStack.join('\u0000') },
+        contentHtml: buildHtmlFromSections(sectionContentMap, state.sections),
+      };
+    }
+    case 'REDO_SECTION': {
+      const section = action.payload.section;
+      if (!state.sections.includes(section)) return state;
+      const redoStack = String(state.sectionRedoMap[section] || '').split('\u0000').filter(Boolean);
+      const next = redoStack.pop();
+      if (next === undefined) return state;
+      // Put the current content back on the undo stack, so UNDO stays symmetric.
+      const historyStack = String(state.sectionHistoryMap[section] || '').split('\u0000').filter(Boolean);
+      const current = state.sectionContentMap[section] || '';
+      if (current) historyStack.push(current);
+      const sectionContentMap = { ...state.sectionContentMap, [section]: next };
+      return {
+        ...state,
+        sectionContentMap,
+        sectionHistoryMap: { ...state.sectionHistoryMap, [section]: historyStack.join('\u0000') },
+        sectionRedoMap: { ...state.sectionRedoMap, [section]: redoStack.join('\u0000') },
         contentHtml: buildHtmlFromSections(sectionContentMap, state.sections),
       };
     }
@@ -321,6 +354,7 @@ function workspaceReducer(state, action) {
       const currentBody = state.sectionContentMap[state.activeSection] || '';
       const headingCount = (String(html).match(/<h2[^>]*>/gi) || []).length;
       let sectionHistoryMap = state.sectionHistoryMap;
+      let sectionRedoMap = state.sectionRedoMap;
       if (pushHistory && currentBody && currentBody !== nextActiveBody) {
         sectionHistoryMap = {
           ...state.sectionHistoryMap,
@@ -328,6 +362,8 @@ function workspaceReducer(state, action) {
             ? `${state.sectionHistoryMap[state.activeSection]}\u0000${currentBody}`
             : currentBody,
         };
+        // A fresh edit invalidates any redo for this section.
+        sectionRedoMap = { ...state.sectionRedoMap, [state.activeSection]: '' };
       }
       const sectionContentMap = mergeKnownSections(state.sectionContentMap, parsed, state.sections);
       const shouldCanonicalize = headingCount < state.sections.length;
@@ -336,6 +372,7 @@ function workspaceReducer(state, action) {
         ...state,
         sectionContentMap,
         sectionHistoryMap,
+        sectionRedoMap,
         contentHtml: nextHtml,
       };
     }
@@ -625,6 +662,11 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
   const undoSection = (section) => {
     syncEditorFromStateRef.current = true;
     dispatchWorkspace({ type: 'UNDO_SECTION', payload: { section } });
+  };
+
+  const redoSection = (section) => {
+    syncEditorFromStateRef.current = true;
+    dispatchWorkspace({ type: 'REDO_SECTION', payload: { section } });
   };
 
   const handleToggleDoc = (docId) => {
@@ -1136,9 +1178,22 @@ export default function DraftPage({ draftId: draftIdProp = null, initialTitle = 
                 <button onClick={() => scrollToSection(activeSection, true)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
                   Edit Section
                 </button>
-                <button onClick={() => undoSection(activeSection)} className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37]">
-                  UNDO
-                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => undoSection(activeSection)}
+                    disabled={!String(workspace.sectionHistoryMap?.[activeSection] || '')}
+                    className="rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    UNDO
+                  </button>
+                  <button
+                    onClick={() => redoSection(activeSection)}
+                    disabled={!String(workspace.sectionRedoMap?.[activeSection] || '')}
+                    className="rounded-md border border-slate-200 bg-white px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    REDO
+                  </button>
+                </div>
               </div>
 
               <div className="mt-4 border-t border-slate-100 pt-4">

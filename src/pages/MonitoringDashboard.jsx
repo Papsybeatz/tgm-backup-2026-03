@@ -817,8 +817,8 @@ export default function MonitoringDashboard() {
       <div style={{ ...s.grid2, ...s.sectionBlock }}>
         <LifetimeTierCountdown 
           used={data.system?.lifetimeTierCount || 0} 
-          remaining={data.system?.lifetimeTierRemaining || 200}
-          cap={data.system?.lifetimeTierCap || 200}
+          remaining={data.system?.lifetimeTierRemaining || 100}
+          cap={data.system?.lifetimeTierCap || 100}
         />
         <div style={s.card}>
           <div style={s.sectionTitle}>AI Usage Breakdown</div>

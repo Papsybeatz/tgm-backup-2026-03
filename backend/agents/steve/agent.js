@@ -15,7 +15,7 @@
  */
 const llm = require('./llm');
 const store = require('./store');
-const { createToolkit, parseSections } = require('./tools');
+const { createToolkit, parseSections, pickSectionForFix } = require('./tools');
 const { notifyReadyForReview } = require('./persist');
 const {
   SLOTS,
@@ -379,6 +379,9 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
   }
 
   const clientId = String(context?.clientId || '').trim() || null;
+  // The editor's Steve panel posts mode:'drafting'. It is a revision command
+  // surface, not a conversation, so it takes a dedicated single-shot path.
+  const draftingMode = String(context?.mode || '').trim() === 'drafting';
 
   // Loaded once per turn. loadClientContext enforces ownership, so a clientId
   // that is not this user's client is ignored rather than honoured.
@@ -520,6 +523,52 @@ async function runSteveTurn({ user, userId, message, context = {} }) {
       await store.appendMessage(session, 'assistant', reply);
       await store.saveSession(session, state);
       return { reply, intent, ...statePayload(state), engine };
+    }
+
+    // ── Single-shot drafting ──
+    // The editor's Steve panel is a revision command, not a conversation: one
+    // instruction in, one targeted revise + score against the order ticket, with
+    // NO transcript and NO tool loop. That keeps its token profile as
+    // predictable as the form's, instead of re-sending a growing transcript on
+    // every tool-loop step (the failure mode the conversational intake had).
+    if (draftingMode && state.docHtml && (intent === 'general' || intent === 'edit')) {
+      const looksLikeInstruction =
+        /\b(tighten|shorten|expand|rewrite|reword|strengthen|improve|change|update|add|remove|cut|fix|adjust|polish|clarify|simplify|make|more|less|better|stronger|weaker|longer|punch|trim|rework)\b/i.test(
+          message,
+        );
+
+      // A question is not an instruction. Answer it without touching the draft,
+      // so a stray "how long is this?" can never rewrite a section.
+      if (!looksLikeInstruction) {
+        const reply =
+          'Tell me what to change — name a section (e.g. "tighten the Statement of Need") and I\u2019ll revise it in place.';
+        await store.appendMessage(session, 'assistant', reply, { intent: 'revise_guidance' });
+        await store.saveSession(session, state);
+        return { reply, intent: 'revise_guidance', ...statePayload(state), suggestions: suggestionsFor(state), engine };
+      }
+
+      // The SAME tool the conversation used, called exactly once. It revises one
+      // section and re-scores; it does not read history or loop.
+      const sections = parseSections(state.docHtml);
+      const target = pickSectionForFix(sections, message);
+      const toolkit = createToolkit({ state, user, tier });
+      const result = await toolkit.execute('write_section', { section: target, instruction: message });
+      state.usedLLM = Boolean(result.usedLLM);
+
+      const reply = result.ok
+        ? `Updated \u201c${result.section}\u201d. Checkmate now scores it ${result.scoreReport?.score ?? 'n/a'}/100.`
+        : 'I couldn\u2019t find that section — try naming it, e.g. "tighten the Statement of Need".';
+
+      await store.appendMessage(session, 'assistant', reply, { intent: 'revise', draftId: state.draftId });
+      await store.saveSession(session, state);
+      return {
+        reply,
+        intent: 'revise',
+        ...statePayload(state),
+        ...buildDownloadPayload(state, user),
+        suggestions: suggestionsFor(state),
+        engine,
+      };
     }
 
     // ── Primary path: the agent (or the planner fallback) ──
