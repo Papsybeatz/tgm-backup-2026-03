@@ -57,7 +57,9 @@ export default function InviteRequestForm({ tier, user, onClose }) {
           Your request has been submitted. We’ll be in touch soon.
         </div>
       )}
-      <button className={styles.closeButton} onClick={onClose}>Close</button>
+      {onClose && (
+        <button className={styles.closeButton} onClick={onClose}>Close</button>
+      )}
     </div>
   );
 }

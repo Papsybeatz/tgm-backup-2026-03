@@ -133,3 +133,27 @@ test('the form asserts on the body, so a 200 that is not a success cannot look l
 test('the form sends the name when it has one', () => {
   assert.match(FORM_SRC, /name: user\?\.name \|\| ''/);
 });
+
+/* ───────────────────────── reachability ───────────────────────── */
+
+test('the waitlist form is actually reachable from a route', () => {
+  // Third time this class of bug has appeared in this codebase: the team panel
+  // was bundled but unrouted, then the errors endpoint sat on an unmounted
+  // router, and now the waitlist form lived only behind an orphaned modal. An
+  // endpoint that no reachable UI calls records nothing, however correct it is.
+  const appSrc = fs.readFileSync(path.join(__dirname, '..', '..', 'src', 'App.jsx'), 'utf8');
+  const pageSrc = fs.readFileSync(
+    path.join(__dirname, '..', '..', 'src', 'components', 'RequestAccessPage.jsx'),
+    'utf8',
+  );
+
+  assert.match(appSrc, /import RequestAccessPage from '\.\/components\/RequestAccessPage'/);
+  assert.match(appSrc, /<Route path="\/request-access" element=\{<RequestAccessPage \/>\}/);
+  assert.match(pageSrc, /import InviteRequestForm from '\.\/InviteRequestForm'/);
+  assert.match(pageSrc, /<InviteRequestForm/);
+});
+
+test('the form can render as a page, without a close button', () => {
+  assert.match(FORM_SRC, /\{onClose && \(/);
+  assert.match(FORM_SRC, /user\?\.email/);
+});

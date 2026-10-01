@@ -40,6 +40,7 @@ import NewWorkspacePage from './components/workspace/NewWorkspacePage';
 // Admin
 import MonitoringDashboard from './pages/MonitoringDashboard';
 import TeamPage from './pages/TeamPage';
+import RequestAccessPage from './components/RequestAccessPage';
 import AdminBillingPage from './components/AdminBillingPage';
 import GrantWorkflowBlueprintPage from './pages/lead-magnet/grant-workflow-blueprint/index';
 import GrantWorkflowBlueprintSuccess from './pages/lead-magnet/grant-workflow-blueprint/Success';
@@ -77,6 +78,7 @@ function App() {
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/plans" element={<PricingPage />} />
                 <Route path="/upgrade" element={<UpgradePage />} />
+                <Route path="/request-access" element={<RequestAccessPage />} />
                 <Route path="/billing" element={<RequireOnboarding><BillingPage /></RequireOnboarding>} />
                 <Route path="/team" element={<RequireOnboarding><TeamPage /></RequireOnboarding>} />
                 <Route path="/billing/processing" element={<BillingProcessingPage />} />
