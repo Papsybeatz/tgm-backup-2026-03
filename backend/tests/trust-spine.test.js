@@ -141,18 +141,59 @@ test('the trust page states it does not claim unearned awards or reviews', () =>
  * each replacement is pinned below so it cannot be swapped back for the badge.
  */
 
-test('no page claims a SOC 2 attestation we do not hold', () => {
-  // "Security practices designed around SOC 2 principles" reads as an audit
-  // result. There is no audit. The practices are still named — encryption and
-  // access control — so the claim is concrete rather than borrowed.
+/* ─────────── security: inherited from audited providers ───────────
+ *
+ * TGM holds no SOC 2 report of its own. Rather than describe ourselves in the
+ * language of an audit we have not had, the trust page names the providers we
+ * run on and links each one's trust centre. Their attestations are the evidence
+ * — and if their controls fail, ours fail, so they are the honest thing to
+ * point at rather than a self-description.
+ */
+
+test('TGM never claims a SOC 2 attestation for its own practices', () => {
+  // The removed shape: "Security practices designed around SOC 2 principles",
+  // which reads as an audit result. There is no audit.
   for (const { f, text } of readAll()) {
-    assert.doesNotMatch(text, /SOC\s*2/i, `${path.relative(SRC, f)} claims a SOC 2 attestation`);
+    assert.doesNotMatch(
+      text,
+      /designed around SOC\s*2/i,
+      `${path.relative(SRC, f)} claims SOC 2 for our own practices`,
+    );
+    assert.doesNotMatch(
+      text,
+      /SOC\s*2[-\s]*certified/i,
+      `${path.relative(SRC, f)} claims a SOC 2 certification`,
+    );
   }
 });
 
-test('the SOC 2 replacement names real practices instead', () => {
-  const all = readAll().map((r) => r.text).join('\n');
-  assert.match(all, /designed around encryption and access control/);
+test('the trust page says plainly that we hold no SOC 2 audit of our own', () => {
+  const trust = fs.readFileSync(path.join(SRC, 'components', 'TrustPage.jsx'), 'utf8');
+  assert.match(trust, /do not hold our own SOC 2/i);
+});
+
+test('security is attributed to audited providers, each with a trust centre link', () => {
+  const trust = fs.readFileSync(path.join(SRC, 'components', 'TrustPage.jsx'), 'utf8');
+  const providers = [
+    ['Railway', 'https://trust.railway.com'],
+    ['Vercel', 'https://security.vercel.com'],
+    ['Supabase', 'https://trust.supabase.com'],
+    ['GitHub', 'https://ghec.github.trust.page'],
+    ['Stripe', 'https://stripe.com/docs/security'],
+    ['Groq', 'https://trust.groq.com'],
+  ];
+  for (const [name, url] of providers) {
+    assert.ok(trust.includes(name), `${name} missing from the infrastructure list`);
+    assert.ok(trust.includes(url), `${name} trust centre is not linked`);
+  }
+});
+
+test('the homepage points at the same audited infrastructure', () => {
+  // The claim has to be consistent across pages, or the trust page reads as an
+  // isolated correction rather than the site's actual position.
+  const landing = fs.readFileSync(path.join(SRC, 'components', 'LandingPage.jsx'), 'utf8');
+  assert.match(landing, /Railway, Vercel, Supabase and GitHub/);
+  assert.match(landing, /Audited infrastructure/);
 });
 
 test('GDPR/CCPA is stated as a right, not a compliance badge', () => {

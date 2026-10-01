@@ -35,7 +35,7 @@ const PILLARS = [
   {
     kicker: 'Security',
     title: 'Data practices for sensitive proposals',
-    body: 'Grant proposals carry sensitive budgets and strategy. TGM protects them with encryption and human-in-the-loop workflows designed around encryption and access control.',
+    body: 'Grant proposals carry sensitive budgets and strategy. TGM runs on Railway, Vercel, Supabase and GitHub — each independently audited to SOC 2 Type II and ISO 27001 — with human-in-the-loop workflows on top.',
     points: ['Encrypted at rest and in transit', 'Payments processed by Stripe', 'Human-in-the-loop workflows', 'Transparent AI governance'],
   },
 ];

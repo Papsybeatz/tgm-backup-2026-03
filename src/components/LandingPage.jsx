@@ -149,7 +149,7 @@ export default function LandingPage() {
     'Encrypted at rest and in transit',
     'Human-in-the-loop workflows',
     'Transparent AI governance for nonprofits',
-    'Security practices designed around encryption and access control',
+    'Security inherited from independently audited providers (Railway, Vercel, Supabase, GitHub)',
   ];
 
   const alignmentBullets = [
@@ -363,7 +363,7 @@ export default function LandingPage() {
             <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest mb-2">Trust & security</p>
             <h2 className="text-3xl font-bold mb-4">Built for trust, privacy, and compliance</h2>
             <p className="text-gray-300 leading-7 mb-6">
-              Grant proposals contain sensitive data. TGM protects it with encryption and access control.
+              Grant proposals contain sensitive data. TGM runs on Railway, Vercel, Supabase and GitHub — each independently audited to SOC 2 Type II and ISO 27001.
             </p>
             <Link
               to="/privacy"
@@ -625,7 +625,7 @@ export default function LandingPage() {
             {[
               ["A real founder and a real company", "The Grants Master is built and run by Thomas Clottey, founder of Gee Oh Dee (Tech) LLC in Roanoke, Virginia. Named, reachable, and accountable."],
               ["Used across the U.S. and Canada", "Nonprofits and agencies in New York, Texas, California, Virginia, and Canada use TGM today. We'd rather show real adoption than inflate numbers."],
-              ["Encryption and access control", "Payments secured by Stripe. SSL-encrypted sessions. Drafts encrypted at rest. GDPR & CCPA: deletion on request. Your data is never used to train AI models."],
+              ["Audited infrastructure", "We run on Railway, Vercel, Supabase and GitHub — each independently audited (SOC 2 Type II, ISO 27001). Payments by Stripe. Drafts encrypted at rest. Your data is never used to train AI models."],
               ["Pricing with no surprises", "The Free plan is forever free. No credit card to start. Cancel anytime. Transparent pricing with no hidden fees."],
             ].map(([title, body]) => (
               <div key={title} className="rounded-xl border border-white/10 bg-white/5 p-6">

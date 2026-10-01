@@ -11,6 +11,52 @@ const ADDRESS = '4210 Electric Road #1038, Roanoke, VA 24018, United States';
 
 const REGIONS = ['New York', 'Texas', 'California', 'Virginia', 'Canada'];
 
+// TGM's security posture is inherited, not invented. Every layer we run on is a
+// provider with an independently audited control set — if their controls fail,
+// ours fail. So we link the reports instead of describing ourselves.
+//
+// These attestations are the providers' own, published on their trust centres.
+// We hold no SOC 2 report of our own, and the section says so.
+const INFRASTRUCTURE = [
+  {
+    name: 'Railway',
+    role: 'Backend hosting & API',
+    certified: 'SOC 2 Type II · SOC 3 · HIPAA · GDPR',
+    url: 'https://trust.railway.com',
+  },
+  {
+    name: 'Vercel',
+    role: 'Frontend hosting & delivery',
+    certified: 'SOC 2 Type 2 · ISO 27001:2022 · PCI DSS',
+    url: 'https://security.vercel.com',
+  },
+  {
+    name: 'Supabase',
+    role: 'Database, authentication & file storage',
+    certified: 'SOC 2 Type 2 · ISO 27001 · HIPAA',
+    url: 'https://trust.supabase.com',
+  },
+  {
+    name: 'GitHub',
+    role: 'Source code & deployment pipeline',
+    certified: 'SOC 2 Type 2 · SOC 1 Type 2 · ISO 27001:2022 · CSA STAR L2',
+    url: 'https://ghec.github.trust.page',
+  },
+  {
+    name: 'Stripe',
+    role: 'Payments',
+    certified: 'PCI DSS Level 1 · SOC 2',
+    url: 'https://stripe.com/docs/security',
+  },
+  {
+    name: 'Groq',
+    role: 'AI inference',
+    certified: 'SOC 2 Type II · GDPR · HIPAA',
+    url: 'https://trust.groq.com',
+  },
+];
+
+// The part we do control: what we do with the data once it reaches us.
 const SECURITY = [
   'Payments processed by Stripe — card details never touch our servers',
   'SSL-encrypted sessions in transit',
@@ -19,7 +65,6 @@ const SECURITY = [
   'No advertising trackers or third-party tracking cookies',
   'Your drafts are never used to train AI models — our AI provider (Groq) does not train on API data (Groq Services Agreement §8.2)',
   'Client folders are isolated — a folder and its drafts, templates, Checkmate reports, and documents are reachable only by the owner or users granted explicit per-client access (owner / editor / viewer)',
-  'Security practices designed around encryption and access control',
 ];
 
 const PURCHASING = [
@@ -124,7 +169,41 @@ export default function TrustPage() {
       </Section>
 
       <Section id="security" n="04" title="Transparent Security & Data Practices">
-        <p style={{ marginTop: 0 }}>Your data is protected with encryption and access control:</p>
+        <p style={{ marginTop: 0 }}>
+          We run on providers that are independently audited. Our security is theirs — if their
+          controls fail, ours fail. So rather than describe ourselves, we point at the reports.
+        </p>
+
+        <div style={{ marginTop: 18, display: 'grid', gap: 10 }}>
+          {INFRASTRUCTURE.map((p) => (
+            <div key={p.name} style={{
+              border: '1px solid #E2E8F0', background: '#F8F9FC',
+              borderRadius: 12, padding: '14px 16px',
+              display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '6px 14px',
+            }}>
+              <a
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#003A8C', fontWeight: 800, fontSize: 15, textDecoration: 'none' }}
+              >
+                {p.name} ↗
+              </a>
+              <span style={{ fontSize: 14, color: '#475569' }}>{p.role}</span>
+              <span style={{
+                fontSize: 13, color: '#92400E', background: 'rgba(212,175,55,.12)',
+                border: '1px solid rgba(212,175,55,.5)', borderRadius: 999,
+                padding: '2px 10px', fontWeight: 700, marginLeft: 'auto',
+              }}>
+                {p.certified}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <p style={{ marginTop: 22, marginBottom: 0, fontWeight: 700, color: '#0A0F1A' }}>
+          What we control ourselves:
+        </p>
         <ul style={{ margin: '12px 0 0', paddingLeft: 0, listStyle: 'none', lineHeight: 1.9 }}>
           {SECURITY.map((s) => (
             <li key={s} style={{ display: 'flex', gap: 10 }}>
@@ -133,8 +212,15 @@ export default function TrustPage() {
             </li>
           ))}
         </ul>
+
         <p>
-          We treat nonprofit data as sensitive by default — encrypted in transit and at rest, and never used to train AI models.
+          We treat nonprofit data as sensitive by default — encrypted in transit and at rest,
+          and never used to train AI models.
+        </p>
+        <p>
+          We do not hold our own SOC 2 audit yet. We&apos;ll say we&apos;re built with SOC 2
+          principles in mind once that&apos;s true — until then the audited reports above are the
+          real evidence, and we&apos;d rather point at them than describe ourselves.
         </p>
       </Section>
 
