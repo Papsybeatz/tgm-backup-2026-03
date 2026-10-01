@@ -42,6 +42,11 @@ app.use(function(req, res, next) {
 app.set('trust proxy', 1);
 const stripeWebhooksRouter = require('./routes/webhooks/stripe');
 
+// Request id + request-scoped context, mounted before anything else, so every
+// captured failure can be tied back to the request that caused it.
+const { requestContext } = require('./middleware/requestContext');
+app.use(requestContext);
+
 // Mount webhook routes BEFORE express.json() so raw body is preserved for HMAC signature verification
 app.use('/api/webhooks', stripeWebhooksRouter);
 app.use('/api/stripe', stripeWebhooksRouter);
@@ -273,14 +278,89 @@ app.get('/api/analytics', requireAuth, requireFeature('analytics_advanced'), (re
 app.use('/api/agency', requireAuth, requireFeature('client_folders'));
 
 // Health check for Railway
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+// Cached readiness probe. Deliberately never changes the health status code:
+// a database hiccup must not make Railway consider the service unhealthy.
+let errorCaptureProbe = { ok: null, reason: null, checkedAt: 0 };
+
+app.get('/health', async (req, res) => {
+  const now = Date.now();
+  if (errorCaptureProbe.ok === null || now - errorCaptureProbe.checkedAt > 60000) {
+    const { verifyErrorCapture } = require('./utils/ensureSchema');
+    const result = await verifyErrorCapture();
+    errorCaptureProbe = { ok: result.ok, reason: result.reason || null, checkedAt: now };
+  }
+
+  res.status(200).json({
+    status: 'ok',
+    errorCapture: errorCaptureProbe.ok === true,
+    ...(errorCaptureProbe.ok === false ? { errorCaptureReason: errorCaptureProbe.reason } : {}),
+    timestamp: new Date().toISOString(),
+  });
+});
 
 
-// Global error handler — ensures every unhandled error returns JSON instead of dropping the connection
-app.use(function(err, req, res, next) {
-  console.error('[SERVER ERROR]', err.message);
-  if (res.headersSent) return next(err);
-  res.status(err.status || 500).json({ success: false, message: err.message || 'Internal server error' });
+// Global error handler.
+//
+// Every unhandled error is captured with full context — account, tier,
+// endpoint, request id — before a response goes out, so a real user's failure
+// is something you can act on rather than a console line that scrolls away.
+// It also stops leaking raw internal messages to the client on a 5xx.
+app.use(async function(err, req, res, next) {
+  try {
+    const status = Number.isInteger(err?.status || err?.statusCode)
+      ? (err.status || err.statusCode)
+      : 500;
+
+    const { captureError } = require('./utils/logging');
+    await captureError({
+      error: err,
+      source: 'http',
+      severity: status >= 500 ? 'error' : 'warning',
+      status,
+      method: req.method,
+      path: String(req.originalUrl || req.path || '').split('?')[0],
+      requestId: req.requestId,
+      userId: req.user?.id,
+      userEmail: req.user?.email,
+      tier: req.user?.tier,
+      meta: { query: req.query },
+    });
+
+    if (res.headersSent) return next(err);
+    return res.status(status).json({
+      success: false,
+      message: status >= 500 ? 'Something went wrong on our end.' : (err.message || 'Request failed'),
+      requestId: req.requestId,
+    });
+  } catch (handlerError) {
+    console.error('[SERVER ERROR] handler failed:', handlerError?.message || handlerError);
+    if (!res.headersSent) {
+      return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+    return next(err);
+  }
+});
+
+// Failures that never reach Express: an unawaited promise, or a throw outside
+// any request. These used to vanish silently or take the process down.
+process.on('unhandledRejection', (reason) => {
+  const error = reason instanceof Error ? reason : new Error(String(reason));
+  require('./utils/logging').captureError({
+    error,
+    source: 'process',
+    severity: 'critical',
+    message: `Unhandled rejection: ${error.message}`,
+  }).catch(() => {});
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('[FATAL] uncaught exception:', error);
+  require('./utils/logging').captureError({
+    error,
+    source: 'process',
+    severity: 'critical',
+    message: `Uncaught exception: ${error?.message || error}`,
+  }).catch(() => {});
 });
 
 const PORT = process.env.PORT || 4000;

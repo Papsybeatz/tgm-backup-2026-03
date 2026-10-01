@@ -3,7 +3,8 @@ const { errorDetail } = require('../utils/errorDetail');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const router = express.Router();
-const { getRecentErrors, getRecentAiActions } = require('../utils/logger');
+// Errors and AI actions are read from the database. They used to come from an
+// in-memory ring buffer that emptied on every restart.
 
 const ADMIN_EMAIL = process.env.FOUNDER_EMAIL || 'clotteythomas41@gmail.com';
 const MANUAL_ACCESS_TIERS = new Set(['starter', 'pro', 'agency_starter', 'agency_unlimited']);
@@ -362,13 +363,21 @@ router.get('/metrics', requireAdmin, async (req, res) => {
       take: 20,
     });
 
-    const recentErrors = getRecentErrors(20);
-    const recentAiActions = getRecentAiActions(20);
+    // Most recent failures, with the context needed to act on them.
+    const recentErrors = await prisma.errorLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      select: {
+        id: true, message: true, endpoint: true, path: true, method: true,
+        status: true, severity: true, source: true, userId: true, userEmail: true,
+        tier: true, requestId: true, fingerprint: true, createdAt: true,
+      },
+    });
 
-    // Aggregate AI usage by action type
-    const aiUsageMap = {};
-    recentAiActions.forEach(a => { aiUsageMap[a.action] = (aiUsageMap[a.action] || 0) + 1; });
-    const aiUsage = Object.entries(aiUsageMap).map(([action, count]) => ({ action, count }));
+    // AI usage by action, aggregated over a real window rather than the last
+    // 20 in-memory entries.
+    const aiRows = await prisma.aiLog.groupBy({ by: ['action'], _count: { action: true } });
+    const aiUsage = aiRows.map(r => ({ action: r.action, count: r._count.action }));
 
     // Subscriptions by tier for bar chart
     const subscriptionsByTier = tierRows.map(r => ({ tier: r.tier, _count: { tier: r._count.tier } }));
@@ -386,7 +395,6 @@ router.get('/metrics', requireAdmin, async (req, res) => {
       tierBreakdown,
       recentSignups,
       errors: recentErrors,
-      recentAiActions,
       // shaped for MonitoringDashboard frontend
       visitors: { last24h: activeSessions },
       system: {

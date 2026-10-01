@@ -41,7 +41,7 @@ async function loadMetrics() {
   const startOfDay = new Date(now.setHours(0, 0, 0, 0));
   const startOf7d = new Date(now - 7 * 24 * 60 * 60 * 1000);
 
-  const [subscriptions, aiUsage, recentSignups, errors, lifetimeClaimed, newSignups7d, todayDrafts, activeSubscriptions] = 
+  const [subscriptions, aiUsage, recentSignups, errors, lifetimeClaimed, newSignups7d, todayDrafts, activeSubscriptions, failuresToday] =
     await prisma.$transaction([
       prisma.user.groupBy({ by: ['tier'], _count: { tier: true } }),
       prisma.aiLog.groupBy({ by: ['action'], _count: { action: true } }),
@@ -51,9 +51,10 @@ async function loadMetrics() {
       prisma.user.count({ where: { createdAt: { gte: startOf7d } } }),
       prisma.aiLog.count({ where: { action: 'generate', createdAt: { gte: startOfDay } } }),
       prisma.user.count({ where: { tier: { not: 'free' } } }),
+      prisma.errorLog.count({ where: { createdAt: { gte: startOfDay } } }),
     ]);
 
-  return { subscriptions, aiUsage, recentSignups, errors, lifetimeClaimed, newSignups7d, todayDrafts, activeSubscriptions };
+  return { subscriptions, aiUsage, recentSignups, errors, lifetimeClaimed, newSignups7d, todayDrafts, activeSubscriptions, failuresToday };
 }
 
 router.get('/metrics', adminOnly, async (req, res) => {
@@ -75,6 +76,7 @@ router.get('/metrics', adminOnly, async (req, res) => {
         lifetimeTierCount: dbMetrics.lifetimeClaimed,
         lifetimeTierCap: LIFETIME_CAP,
         lifetimeTierRemaining: LIFETIME_CAP - dbMetrics.lifetimeClaimed,
+        failuresToday: dbMetrics.failuresToday,
       },
       subscriptionsByTier: dbMetrics.subscriptions,
       aiUsage: dbMetrics.aiUsage,
@@ -82,7 +84,10 @@ router.get('/metrics', adminOnly, async (req, res) => {
         id: u.id, email: u.email, name: u.name || 'N/A', tier: u.tier, createdAt: u.createdAt.toISOString()
       })),
       errors: dbMetrics.errors.map(e => ({
-        id: e.id, message: e.message, endpoint: e.endpoint, severity: e.severity, userId: e.userId, createdAt: e.createdAt.toISOString()
+        id: e.id, message: e.message, endpoint: e.endpoint, path: e.path, method: e.method,
+        status: e.status, severity: e.severity, source: e.source, userId: e.userId,
+        userEmail: e.userEmail, tier: e.tier, requestId: e.requestId,
+        fingerprint: e.fingerprint, createdAt: e.createdAt.toISOString()
       })),
     };
 
@@ -92,6 +97,43 @@ router.get('/metrics', adminOnly, async (req, res) => {
     console.error('Admin metrics error:', err);
     res.status(500).json({
       detail: errorDetail(err), success: false, message: 'Error fetching metrics' });
+  }
+});
+
+/**
+ * The failure list, filtered.
+ *
+ * This is the "show me everything that failed for this account" view: filter by
+ * user, tier, path, severity or fingerprint. Every occurrence is here — only
+ * the alert EMAIL is throttled, never the record.
+ */
+router.get('/errors', adminOnly, async (req, res) => {
+  try {
+    const parsed = Number.parseInt(req.query.limit, 10);
+    const limit = Math.min(Math.max(Number.isInteger(parsed) ? parsed : 50, 1), 200);
+
+    const where = {};
+    if (req.query.userId) where.userId = String(req.query.userId);
+    if (req.query.userEmail) where.userEmail = String(req.query.userEmail).trim().toLowerCase();
+    if (req.query.tier) where.tier = String(req.query.tier);
+    if (req.query.severity) where.severity = String(req.query.severity);
+    if (req.query.fingerprint) where.fingerprint = String(req.query.fingerprint);
+    if (req.query.path) where.path = { contains: String(req.query.path) };
+
+    if (req.query.since) {
+      const since = new Date(String(req.query.since));
+      if (!Number.isNaN(since.getTime())) where.createdAt = { gte: since };
+    }
+
+    const [errors, total] = await Promise.all([
+      prisma.errorLog.findMany({ where, orderBy: { createdAt: 'desc' }, take: limit }),
+      prisma.errorLog.count({ where }),
+    ]);
+
+    return res.json({ success: true, total, count: errors.length, errors });
+  } catch (err) {
+    console.error('Admin errors error:', err);
+    return res.status(500).json({ detail: errorDetail(err), success: false, message: 'Error fetching errors' });
   }
 });
 

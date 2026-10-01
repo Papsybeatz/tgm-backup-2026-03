@@ -219,15 +219,27 @@ model AiLog {
 }
 
 model ErrorLog {
-  id        String   @id @default(cuid())
-  message   String
-  endpoint String?
-  userId   String?
-  severity String   @default("info") // "critical" | "warning" | "info"
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  severity    String   @default("error") // "critical" | "error" | "warning" | "info"
+  source      String?  // "http" | "app" | "ai" | "webhook" | "process"
+  message     String
+  stack       String?
+  status      Int?     // HTTP status, when the failure came from a request
+  method      String?
+  path        String?
+  endpoint    String?  // kept for the older callers
+  userId      String?
+  userEmail   String?
+  tier        String?  // the column that answers "which plan broke?"
+  requestId   String?
+  meta        Json?    // redacted context only — never secrets or payloads
+  fingerprint String?  // hash of path+status+message, for grouping and alert throttling
 
   @@index([createdAt])
   @@index([severity])
+  @@index([userId])
+  @@index([fingerprint, createdAt])
 }
 
 model LifetimeTier {

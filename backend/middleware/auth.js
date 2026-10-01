@@ -20,6 +20,10 @@ module.exports = async function requireAuth(req, res, next) {
     const user = await prisma.user.findUnique({ where: { email: session.email } });
     if (!user) return res.status(401).json({ success: false, message: 'User not found' });
     req.user = user;
+    // Let the request context carry the identity, so a failure captured
+    // anywhere downstream is attributed to this account without the caller
+    // having to pass it.
+    require('./requestContext').setRequestUser(user);
     next();
   } catch (e) {
     console.error('[AUTH] middleware error', e);

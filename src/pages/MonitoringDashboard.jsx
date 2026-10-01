@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import FailureLogPanel from '../components/FailureLogPanel';
 
 const BUILD_MARKER = 'build-2026-08-02-funder-leads';
 
@@ -183,54 +184,6 @@ function PieChart({ data }) {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-function DataTable({ title, columns, data }) {
-  if (!data || data.length === 0) {
-    return (
-      <div style={{ ...s.card }}>
-        <div style={s.sectionTitle}>{title}</div>
-        <div style={{ color: '#94a3b8', fontSize: 14, textAlign: 'center', padding: 24 }}>No data available</div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ ...s.card }}>
-      <div style={s.sectionTitle}>{title}</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            {columns.map((col, i) => (
-              <th key={i} style={{ ...s.tableHeader, textAlign: i === 0 ? 'left' : 'right' }}>{col}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, i) => (
-            <tr key={i} style={s.tableRow}>
-              {Object.values(row).map((cell, j) => (
-                <td key={j} style={{ ...s.tableCell, textAlign: j === 0 ? 'left' : 'right' }}>
-                  {typeof cell === 'string' && cell.startsWith('critical|warning|info') ? (
-                    <span style={{ 
-                      ...s.severity[cell] || s.severity.info, 
-                      padding: '4px 8px', 
-                      borderRadius: 6, 
-                      fontSize: 12, 
-                      fontWeight: 600,
-                      textTransform: 'capitalize'
-                    }}>
-                      {cell}
-                    </span>
-                  ) : cell}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }
@@ -826,18 +779,15 @@ export default function MonitoringDashboard() {
         </div>
       </div>
 
-      <div style={{ ...s.grid2, ...s.sectionBlock }}>
+      <div style={{ ...s.sectionBlock }}>
         <RecentSignupsCard users={recentSignups.slice(0, 5)} />
-        <DataTable 
-          title="Error Logs" 
-          columns={['Error', 'Endpoint', 'Severity', 'Time']} 
-          data={(data.errors || []).map(e => ({
-            message: e.message?.substring(0, 45) + (e.message?.length > 45 ? '...' : ''),
-            endpoint: e.endpoint || '-',
-            severity: e.severity || 'info',
-            createdAt: new Date(e.createdAt).toLocaleDateString(),
-          }))} 
-        />
+      </div>
+
+      {/* Failures — filter by account, tier, endpoint or severity.
+          Replaces the old 4-column error table, which could only ever show the
+          most recent 20 rows with no way to ask "what failed for this user?" */}
+      <div style={{ ...s.sectionBlock }}>
+        <FailureLogPanel />
       </div>
 
       <div style={{ ...s.sectionBlock }}>

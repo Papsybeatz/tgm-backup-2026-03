@@ -5,7 +5,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const router = express.Router();
 const requireAuth = require('../middleware/auth');
-const { logError, logAiAction } = require('../utils/logger');
+const { logError, logAiAction } = require('../utils/logging');
 
 /* ── Groq API call (returns plain text) ── */
 async function groqChat(messages, maxTokens = 1800) {

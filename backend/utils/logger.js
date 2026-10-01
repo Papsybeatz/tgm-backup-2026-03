@@ -1,43 +1,14 @@
-// Lightweight structured logger — writes to console + in-memory ring buffer
-// for the admin /api/admin/metrics endpoint to surface recent errors.
+// backend/utils/logger.js
+//
+// DEPRECATED — kept only so existing imports keep resolving.
+//
+// This used to own a 200-entry in-memory ring buffer. It was lost on every
+// Railway restart, was not shared across instances, and only four AI routes
+// ever wrote to it, while the persisted ErrorLog table sat empty. Everything
+// now goes through utils/logging.js and lands in the database.
+//
+// New code should import from './logging' directly.
 
-const ERROR_BUFFER = [];
-const AI_BUFFER = [];
-const MAX_BUFFER = 200;
+const { logError, logAiAction } = require('./logging');
 
-function push(buf, entry) {
-  buf.unshift(entry);
-  if (buf.length > MAX_BUFFER) buf.pop();
-}
-
-function logError(context, error, meta = {}) {
-  const entry = {
-    ts: new Date().toISOString(),
-    context,
-    message: error?.message || String(error),
-    stack: error?.stack || null,
-    ...meta,
-  };
-  push(ERROR_BUFFER, entry);
-  console.error(`[ERROR][${context}]`, entry.message, meta);
-}
-
-function logAiAction(action, meta = {}) {
-  const entry = {
-    ts: new Date().toISOString(),
-    action,
-    ...meta,
-  };
-  push(AI_BUFFER, entry);
-  console.log(`[AI][${action}]`, JSON.stringify(meta));
-}
-
-function getRecentErrors(limit = 50) {
-  return ERROR_BUFFER.slice(0, limit);
-}
-
-function getRecentAiActions(limit = 50) {
-  return AI_BUFFER.slice(0, limit);
-}
-
-module.exports = { logError, logAiAction, getRecentErrors, getRecentAiActions };
+module.exports = { logError, logAiAction };
