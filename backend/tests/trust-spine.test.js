@@ -1,0 +1,133 @@
+/**
+ * Trust spine.
+ *
+ * heycatch (the marketing agent) audited TGM's credibility signals and found a
+ * set of unbacked claims: invented metrics, placeholder testimonials, an
+ * "Award-Winning Platform" badge with no awards, and a legal-entity name that
+ * disagreed between the founder section and the footer.
+ *
+ * Those were corrected. These tests exist so they cannot quietly come back —
+ * each one encodes a specific correction that was already made once.
+ *
+ * They assert on source, not on the rendered page, because a claim that is in
+ * the source is a claim that can ship again.
+ */
+
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const SRC = path.join(__dirname, '..', '..', 'src');
+
+function walk(dir, out = []) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name === '_orphaned') continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) walk(full, out);
+    else if (/\.(jsx?|tsx?)$/.test(entry.name)) out.push(full);
+  }
+  return out;
+}
+
+const FILES = walk(SRC);
+const readAll = () => FILES.map((f) => ({ f, text: fs.readFileSync(f, 'utf8') }));
+
+/* ───────────────────────── legal entity ───────────────────────── */
+
+test('every copyright line names the registered entity, not the product', () => {
+  // The /funder-api footer said "The Grants Master. All rights reserved." while
+  // every other page named Gee Oh Dee (Tech) LLC. A product name is not a legal
+  // entity, and the mismatch is exactly what a due-diligence reader notices.
+  const offenders = [];
+  for (const { f, text } of readAll()) {
+    for (const line of text.split('\n')) {
+      if (!/All rights reserved/.test(line)) continue;
+      if (!/Gee Oh Dee \(Tech\) LLC/.test(line)) {
+        offenders.push(`${path.relative(SRC, f)}: ${line.trim().slice(0, 90)}`);
+      }
+    }
+  }
+  assert.deepEqual(offenders, [], `copyright lines missing the LLC:\n${offenders.join('\n')}`);
+});
+
+test('the product/company distinction is stated explicitly', () => {
+  const trust = fs.readFileSync(path.join(SRC, 'components', 'TrustPage.jsx'), 'utf8');
+  assert.match(trust, /Gee Oh Dee \(Tech\) LLC/, 'the trust page must name the entity');
+});
+
+/* ───────────────────────── unbacked claims ───────────────────────── */
+
+test('the funder API headline does not claim present-tense funder reliance', () => {
+  // It read "The infrastructure funders rely on." while the same page advertised
+  // "Pilot program - 3 slots open" — no funder can rely on it yet.
+  const api = fs.readFileSync(path.join(SRC, 'components', 'FunderApiLandingPage.jsx'), 'utf8');
+  assert.doesNotMatch(api, /The infrastructure funders rely on\./);
+  assert.match(
+    api,
+    /Built to be the infrastructure funders rely on\./,
+    'the headline should state design intent, which is true today',
+  );
+});
+
+test('network lock-in is not advertised as a benefit', () => {
+  // "That's network lock-in." is investor-deck framing on a customer-facing
+  // page: it warns the buyer rather than giving them a reason to buy.
+  for (const { f, text } of readAll()) {
+    assert.doesNotMatch(text, /network lock-in/i, `${path.relative(SRC, f)} still advertises lock-in`);
+  }
+});
+
+test("heycatch's invented metrics have not returned", () => {
+  // Every one of these was a fabricated number with nothing behind it.
+  const banned = [
+    [/180k|180,000/, '$180k won in the first 90 days'],
+    [/\b41%/, '41% win rate'],
+    [/\b98%/, '98% scoring accuracy'],
+    [/\b500\+/, '500+ organizations'],
+    [/2\.4M/, '$2.4M+ in grants drafted'],
+  ];
+  for (const { f, text } of readAll()) {
+    for (const [re, label] of banned) {
+      assert.doesNotMatch(text, re, `${path.relative(SRC, f)} reintroduces: ${label}`);
+    }
+  }
+});
+
+test('no award claims without awards', () => {
+  for (const { f, text } of readAll()) {
+    assert.doesNotMatch(
+      text,
+      /Award-[Ww]inning\s+(Platform|Grant)/,
+      `${path.relative(SRC, f)} claims an award`,
+    );
+  }
+});
+
+test('no placeholder testimonial copy', () => {
+  // These shipped to production: "Testimonial pending", "Photo + LinkedIn
+  // pending", "Replace with a verified customer quote".
+  const banned = [/Testimonial pending/i, /Photo \+ LinkedIn pending/i, /Replace with a verified customer quote/i];
+  for (const { f, text } of readAll()) {
+    for (const re of banned) {
+      assert.doesNotMatch(text, re, `${path.relative(SRC, f)} still has placeholder testimonial copy`);
+    }
+  }
+});
+
+/* ───────────────────────── the honest replacement ───────────────────────── */
+
+test('the homepage says plainly that proof is still being earned', () => {
+  // The correction was not just to delete the fake proof but to say why. This
+  // pins the replacement so the section is not quietly removed later.
+  const landing = fs.readFileSync(path.join(SRC, 'components', 'LandingPage.jsx'), 'utf8');
+  assert.match(landing, /earn proof than fake it/i);
+});
+
+test('the trust page states it does not claim unearned awards or reviews', () => {
+  const trust = fs.readFileSync(path.join(SRC, 'components', 'TrustPage.jsx'), 'utf8');
+  // Apostrophe-agnostic: the source writes it as &apos; in JSX, so matching a
+  // literal "haven't" fails against a statement that is plainly there.
+  assert.match(trust, /claim awards we/i);
+  assert.match(trust, /invented reviews/i);
+});

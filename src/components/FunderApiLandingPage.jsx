@@ -821,8 +821,7 @@ export default function FunderApiLandingPage() {
           The Grants Master — Funder Intelligence API
         </p>
         <p style={{ color: 'rgba(255,255,255,.6)', fontSize: 14, marginBottom: 20, maxWidth: 480, margin: '8px auto 20px' }}>
-          The infrastructure funders rely on. Once funders adopt TGM scoring, nonprofits and consultants
-          must use TGM to stay aligned. That's network lock-in.
+          Built to be the infrastructure funders rely on. As funders adopt TGM scoring, a shared standard emerges. A strong application then reads as strong to every funder using it.
         </p>
         <Link
           to="/"
@@ -835,7 +834,7 @@ export default function FunderApiLandingPage() {
           Back to TGM →
         </Link>
         <p style={{ color: 'rgba(255,255,255,.3)', fontSize: 12, marginTop: 24 }}>
-          © {new Date().getFullYear()} The Grants Master. All rights reserved.
+          © {new Date().getFullYear()} Gee Oh Dee (Tech) LLC. All rights reserved.
         </p>
       </section>
     </div>

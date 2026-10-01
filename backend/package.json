@@ -11,7 +11,8 @@
     "test:team": "node --test tests/team-invites.test.js",
     "test:observability": "node --test tests/error-capture.test.js",
     "baseline:migrations": "node scripts/baseline-migrations.js",
-    "test:invite": "node --test tests/invite-requests.test.js"
+    "test:invite": "node --test tests/invite-requests.test.js",
+    "test:trust": "node --test tests/trust-spine.test.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
