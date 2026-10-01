@@ -196,6 +196,63 @@ test('the homepage points at the same audited infrastructure', () => {
   assert.match(landing, /Audited infrastructure/);
 });
 
+/* ─────────────────── the geography claim ───────────────────
+ *
+ * The page claimed "Proven Use", "This geographic spread is verifiable today"
+ * and "Real users". Those are three ways of asserting a verification the reader
+ * cannot actually perform — there is no public user list, no audited metric,
+ * nothing to click. The users are real; the public proof is not.
+ *
+ * The geography itself stays, because the founder can stand behind it from his
+ * own account data. What goes is the framing that dresses self-reported usage
+ * up as independently evidenced usage.
+ */
+
+test('usage is stated as our own data, not as public proof', () => {
+  for (const { f, text } of readAll()) {
+    assert.doesNotMatch(
+      text,
+      /verifiable today/i,
+      `${path.relative(SRC, f)} claims the geographic spread is publicly verifiable`,
+    );
+    assert.doesNotMatch(
+      text,
+      /\bProven Use\b/i,
+      `${path.relative(SRC, f)} labels usage "proven"`,
+    );
+    // Line-aware: "real users" in a code comment is an engineering note, not a
+    // claim shown to anyone. Only shipped copy is in scope.
+    for (const line of text.split('\n')) {
+      const t = line.trim();
+      if (t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) continue;
+      assert.doesNotMatch(
+        line,
+        /\bReal users\b/i,
+        `${path.relative(SRC, f)} asserts users as "real" without naming any`,
+      );
+    }
+  }
+});
+
+test('the trust page labels its usage figures as self-reported', () => {
+  // The honest replacement, pinned so it cannot be quietly dropped back to a
+  // bare adoption claim. Naming the source is what makes the number checkable
+  // by the reader on their own terms.
+  const trust = fs.readFileSync(path.join(SRC, 'components', 'TrustPage.jsx'), 'utf8');
+  assert.match(trust, /our own account data/i);
+  assert.match(trust, /not an independently audited statistic/i);
+});
+
+test('the geography itself is still published', () => {
+  // Guarding the other direction: the fix was to re-frame the claim, not to
+  // delete a real signal. If a later edit strips the regions, that is a
+  // different decision and should be made deliberately.
+  const trust = fs.readFileSync(path.join(SRC, 'components', 'TrustPage.jsx'), 'utf8');
+  for (const region of ['New York', 'Texas', 'California', 'Virginia', 'Canada']) {
+    assert.ok(trust.includes(region), `${region} dropped from the trust page`);
+  }
+});
+
 test('GDPR/CCPA is stated as a right, not a compliance badge', () => {
   // "aligned" asserts an assessment. "deletion on request" is the concrete
   // thing the regulations require and the product actually offers.

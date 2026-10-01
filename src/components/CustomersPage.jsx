@@ -37,7 +37,7 @@ export default function CustomersPage() {
         <div className="mx-auto max-w-5xl">
           <div className="grid gap-6 md:grid-cols-3">
             <div className="rounded-xl border border-[#E2E8F0] bg-[#F7F9FB] p-6">
-              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Real users, real places</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Where our users are</p>
               <p className="text-sm leading-6 text-gray-700">
                 Nonprofits and agencies in {REGIONS.slice(0, 4).join(', ')}, and {REGIONS[4]} use TGM today.
               </p>
@@ -105,7 +105,7 @@ export default function CustomersPage() {
           <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#92400E]">Honest by default</p>
           <p className="leading-7 text-gray-700">
             We treat every outward claim as either verifiable, demonstrable, or honestly staged. Right now our customer proof is
-            honestly staged: real users, a named company, and a product you can test. That changes as users approve being named
+            honestly staged: users who exist, a named company, and a product you can test. That changes as users approve being named
             &mdash; not before.
           </p>
         </div>

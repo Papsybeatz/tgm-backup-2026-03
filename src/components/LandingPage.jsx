@@ -596,7 +596,7 @@ export default function LandingPage() {
           <p className="text-center text-gray-500 mb-12 max-w-2xl mx-auto">We don&apos;t publish placeholder quotes or invented reviews. Here is what we can show you today.</p>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              ["Real users, real places", "Nonprofits and agencies in New York, Texas, California, Virginia, and Canada use TGM today."],
+              ["Where our users are", "Nonprofits and agencies in New York, Texas, California, Virginia, and Canada use TGM today."],
               ["A named founder and a real company", "Gee Oh Dee (Tech) LLC — reachable by phone and email. No anonymous AI wrapper."],
               ["A product you can judge yourself", "Run your own draft through Checkmate, free, with no credit card. Test the output, not the marketing."],
             ].map(([title, body]) => (

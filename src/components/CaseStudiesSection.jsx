@@ -16,7 +16,7 @@ import { Link } from 'react-router-dom';
 const PROOF_POINTS = [
   {
     icon: '📍',
-    title: 'Real users, real places',
+    title: 'Where our users are',
     body: 'Nonprofits and agencies in New York, Texas, California, Virginia, and Canada use TGM today.',
   },
   {
