@@ -102,6 +102,8 @@ export default function GrantWorkflowBlueprintSuccess() {
       <footer style={{ background: '#0A0F1A', padding: '24px', textAlign: 'center' }}>
         <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,.3)' }}>
           © {new Date().getFullYear()} The Grants Master ·{' '}
+          <Link to="/about" style={{ color: 'rgba(255,255,255,.3)', textDecoration: 'none' }}>About</Link>
+          {' · '}
           <Link to="/privacy" style={{ color: 'rgba(255,255,255,.3)', textDecoration: 'none' }}>Privacy</Link>
         </p>
       </footer>

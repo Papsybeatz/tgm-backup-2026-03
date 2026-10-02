@@ -61,7 +61,7 @@ const draftsRoutes = require('./routes/drafts');
 const assistantRoutes = require('./routes/assistant');
 const { agentLimiter, uploadLimiter, funderIntakeLimiter, steveLimiter, steveHourlyLimiter } = require('./middleware/rateLimit');
 const requireAuth = require('./middleware/auth');
-const { requireFeature } = require('./middleware/tierAuth');
+const { requireFeature, TIERS } = require('./middleware/tierAuth');
 
 // Health check endpoint â€” used by Railway and monitoring systems
 // Cached readiness probe. Deliberately never changes the health status code:
@@ -136,6 +136,8 @@ const billingRoutes = require('./routes/billing');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { scoreDraft } = require('./agents/steve/scoring');
+const { checkScoreQuota, applyScoreGate, FREE_SCORE_LIMIT, SCORE_ACTION } = require('./utils/scoreGate');
+const { logAiAction } = require('./utils/logging');
 
 app.post('/api/agency/request', async (req, res) => {
   const { name, org, email, teamSize } = req.body;
@@ -232,6 +234,32 @@ app.post('/api/score', requireAuth, requireFeature('scoring_basic'), async (req,
   const content = String(req.body?.content || '');
   const draftId = req.body?.draftId ? String(req.body.draftId) : null;
 
+  // Model A: Free is metered. Count prior scores from the usage ledger before
+  // doing any work, so a rejected request never costs an LLM call.
+  let priorScores = 0;
+  if ((TIERS[req.user.tier] ? req.user.tier : 'free') === 'free') {
+    try {
+      priorScores = await prisma.aiLog.count({
+        where: { userId: req.user.id, action: SCORE_ACTION },
+      });
+    } catch (e) {
+      // Fail OPEN: a metering outage must not block a real user from scoring.
+      console.warn('[SCORE] could not read score usage:', e?.message || e);
+    }
+  }
+  const quota = checkScoreQuota(req.user.tier, priorScores);
+  if (!quota.allowed) {
+    return res.status(402).json({
+      success: false,
+      error: quota.reason,
+      message: `You've used all ${FREE_SCORE_LIMIT} free Checkmate scores. Upgrade to Starter for unlimited scoring and the recommended fixes.`,
+      limit: quota.limit,
+      used: quota.used,
+      remaining: 0,
+      upgradeUrl: '/pricing',
+    });
+  }
+
   // Structural stats are cheap and the Fit insights panel shows them, so they
   // must not cost an LLM call.
   const text = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -256,17 +284,31 @@ app.post('/api/score', requireAuth, requireFeature('scoring_basic'), async (req,
 
   try {
     const report = await scoreDraft(order, content, { style: order?.style });
+
+    // Record the score in the usage ledger the quota reads back. Awaited so the
+    // next request counts it, but a ledger failure must not fail the score.
+    try {
+      await logAiAction(req.user.id, SCORE_ACTION);
+    } catch (e) {
+      console.warn('[SCORE] could not record score usage:', e?.message || e);
+    }
+
+    // Model A: Free keeps the diagnosis and loses the fixes.
+    const gated = applyScoreGate(req.user.tier, report);
+
     return res.json({
       success: true,
-      score: report.score,
-      label: report.label,
-      criteria: report.criteria,
-      criteriaDefs: report.criteriaDefs,
-      strengths: report.strengths || [],
-      weaknesses: report.weaknesses || [],
-      missingComponents: report.missingComponents || [],
-      fixes: report.fixes || [],
-      style: report.style,
+      score: gated.score,
+      label: gated.label,
+      criteria: gated.criteria,
+      criteriaDefs: gated.criteriaDefs,
+      strengths: gated.strengths || [],
+      weaknesses: gated.weaknesses || [],
+      missingComponents: gated.missingComponents || [],
+      fixes: gated.fixes || [],
+      fixesLocked: gated.fixesLocked,
+      style: gated.style,
+      scoreQuota: { used: quota.used + 1, remaining: quota.remaining - 1, limit: FREE_SCORE_LIMIT },
       ...stats,
     });
   } catch (error) {

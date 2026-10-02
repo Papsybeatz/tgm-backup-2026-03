@@ -7,7 +7,7 @@
     "test:form": "node --test tests/form-order.test.js",
     "test:brevo": "node --test tests/brevo.test.js",
     "smoke:steve": "node scripts/smoke-steve.js",
-    "test:tiers": "node --test tests/tier-gates.test.js",
+    "test:tiers": "node --test tests/tier-gates.test.js tests/tier-gates-config.test.js tests/tier-config-agreement.test.js",
     "test:team": "node --test tests/team-invites.test.js",
     "test:observability": "node --test tests/error-capture.test.js",
     "baseline:migrations": "node scripts/baseline-migrations.js",
@@ -15,7 +15,9 @@
     "test:trust": "node --test tests/trust-spine.test.js",
     "test:testimonials": "node --test tests/testimonials.test.js",
     "test:checkout": "node --test tests/checkout-price-map.test.js",
-    "test:funder-persistence": "node --test tests/funder-persistence.test.js"
+    "test:funder-persistence": "node --test tests/funder-persistence.test.js",
+    "test:score-gate": "node --test tests/scoring-gate.test.js",
+    "test:ai-gates": "node --test tests/ai-endpoint-gates.test.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

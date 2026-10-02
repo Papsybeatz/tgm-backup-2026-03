@@ -179,6 +179,8 @@ export default function GrantWorkflowBlueprintPage() {
         }}>
           <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,.35)' }}>
             © {new Date().getFullYear()} The Grants Master ·{' '}
+            <Link to="/about" style={{ color: 'rgba(255,255,255,.35)', textDecoration: 'none' }}>About</Link>
+            {' · '}
             <Link to="/privacy" style={{ color: 'rgba(255,255,255,.35)', textDecoration: 'none' }}>Privacy</Link>
             {' · '}
             <Link to="/terms" style={{ color: 'rgba(255,255,255,.35)', textDecoration: 'none' }}>Terms</Link>

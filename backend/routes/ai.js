@@ -1,4 +1,5 @@
 const express = require('express');
+const { requireFeature } = require('../middleware/tierAuth');
 const { errorDetail } = require('../utils/errorDetail');
 const https = require('https');
 const { PrismaClient } = require('@prisma/client');
@@ -123,7 +124,7 @@ function templateBrainstorm(prompt) {
 }
 
 /* ── POST /api/ai/brainstorm ── */
-router.post('/brainstorm', requireAuth, async (req, res) => {
+router.post('/brainstorm', requireAuth, requireFeature('draft_basic'), async (req, res) => {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ message: 'prompt is required' });
 
@@ -154,7 +155,7 @@ router.post('/brainstorm', requireAuth, async (req, res) => {
 });
 
 /* ── POST /api/ai/draft ── */
-router.post('/draft', requireAuth, async (req, res) => {
+router.post('/draft', requireAuth, requireFeature('draft_unlimited'), async (req, res) => {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ message: 'prompt is required' });
 
@@ -187,7 +188,7 @@ Be specific, compelling, and funder-focused. Use formal but accessible language.
 });
 
 /* ── POST /api/ai/improve ── */
-router.post('/improve', requireAuth, async (req, res) => {
+router.post('/improve', requireAuth, requireFeature('draft_unlimited'), async (req, res) => {
   const { content } = req.body;
   if (!content) return res.status(400).json({ message: 'content is required' });
 
@@ -220,7 +221,7 @@ Return the improved content as HTML using <h2>, <h3>, <p>, <ul>, <li> tags. Outp
 });
 
 /* ── POST /api/ai/rewrite-basic ── */
-router.post('/rewrite-basic', requireAuth, async (req, res) => {
+router.post('/rewrite-basic', requireAuth, requireFeature('draft_basic'), async (req, res) => {
   const { action, content, draftId } = req.body;
   if (!action || !content) return res.status(400).json({ message: 'action and content are required' });
 

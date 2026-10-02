@@ -11,8 +11,14 @@ const TIERS = {
   free: {
     // Full capability, nothing kept: one grant, no history, no email. They can
     // still DOWNLOAD it — the payoff is what makes them upgrade.
-    features: ['draft_basic', 'view_drafts', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'ai_rewrite', 'export_pdf', 'export_doc', 'ny_grants', 'email_support'],
-    limits: { drafts: 1, scoring: Infinity, matching: 0 }
+    //
+    // Model A: the paid unlock is the FIX, not the diagnosis. Free runs the
+    // engine (scoring_basic + scoring_engine) and sees its score, criteria and
+    // gaps, but NOT scoring_detailed — so /api/score withholds the recommended
+    // fixes until Starter. Free is also capped at 3 scores; that cap is
+    // enforced in utils/scoreGate.js, counted from the AiLog ledger.
+    features: ['draft_basic', 'view_drafts', 'scoring_basic', 'scoring_engine', 'ai_rewrite', 'export_pdf', 'export_doc', 'ny_grants', 'email_support'],
+    limits: { drafts: 1, scoring: 3, matching: 0 }
   },
   starter: {
     // The upgrade reason is "don't lose your work".

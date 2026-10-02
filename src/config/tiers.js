@@ -17,7 +17,7 @@ export const TIERS = {
     name: 'Starter',
     features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'matching_basic', 'matching_engine', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'project_templates', 'priority_support'],
     limits: {
-      drafts: 100,
+      drafts: Infinity,
       scoring: Infinity,
       matching: Infinity,
       exports: true,
@@ -121,16 +121,30 @@ export function getTierGates(tier) {
     aiActionsUnlocked:    tierAtLeast(tier, 'starter'),
     templatesUnlocked:    tierAtLeast(tier, 'starter'),
     grantMatchesUnlocked: tierAtLeast(tier, 'starter'),
-    exportUnlocked:       tierAtLeast(tier, 'starter'),
+
+    // Free — download is the payoff that makes them upgrade, so it is never
+    // gated. Free ships export_pdf and export_doc (see the feature list above),
+    // and the pricing page advertises "Export to PDF" on Free. This said
+    // tierAtLeast(tier, 'starter'), which locked a feature Free already had.
+    exportUnlocked:       true,
+
+    // Starter+ — Checkmate scoring. Free gets scoring_basic only; Starter adds
+    // scoring_engine and scoring_detailed. This said tierAtLeast(tier, 'pro'),
+    // which locked scoring for paying Starter customers. The pricing table and
+    // the editor's own isStarterPlus gate both put scoring at Starter.
+    scoringUnlocked:      tierAtLeast(tier, 'starter'),
 
     // Pro+
-    scoringUnlocked:      tierAtLeast(tier, 'pro'),
     analyticsUnlocked:    tierAtLeast(tier, 'pro'),
     calendarUnlocked:     tierAtLeast(tier, 'pro'),
     goldBadge:            tierAtLeast(tier, 'pro'),
 
+    // Pro+ — Pro ships team_seats_3, shared_workspace and the team activity log.
+    // This said tierAtLeast(tier, 'agency_starter'), which locked team features
+    // for paying Pro customers.
+    teamFeaturesUnlocked: tierAtLeast(tier, 'pro'),
+
     // Agency+
-    teamFeaturesUnlocked: tierAtLeast(tier, 'agency_starter'),
     clientFoldersUnlocked:tierAtLeast(tier, 'agency_starter'),
     whiteLabelUnlocked:   tierAtLeast(tier, 'agency_starter'),
 

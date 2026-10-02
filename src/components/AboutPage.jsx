@@ -77,6 +77,18 @@ export default function AboutPage() {
         We built TGM to give every nonprofit the grant-writing capacity of a full-time staff member — without the cost. Clearer proposals. Faster drafting. Better alignment. Less stress.
       </p>
 
+      {/* New York funder depth */}
+      <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0A0F1A', margin: '40px 0 12px' }}>New York funder depth</h2>
+      <p style={{ fontSize: 15, lineHeight: 1.8, color: '#334155' }}>
+        TGM is built for the states with the most nonprofits — New York, Texas, California, Virginia, and Canada — and New York is where the coverage goes funder by funder. NYSCA, NYSED, ESD, NYC Arts, and Robin Hood are each scored against that funder's published rubric, so the feedback reflects the criteria that funder actually grades on rather than a generic checklist.
+      </p>
+
+      {/* Security and trust */}
+      <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0A0F1A', margin: '40px 0 12px' }}>Security and trust</h2>
+      <p style={{ fontSize: 15, lineHeight: 1.8, color: '#334155' }}>
+        We do not claim certifications we do not hold. The Grants Master has no SOC 2 attestation of its own. Security comes from the infrastructure we actually run on: Railway for backend hosting, Vercel for frontend hosting, Supabase for the database, and GitHub for source control. Payments are processed by Stripe. Your drafts are encrypted in transit and at rest, and are never used to train AI models.
+      </p>
+
       {/* Contact */}
       <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0A0F1A', margin: '40px 0 12px' }}>Get in touch</h2>
       <p style={{ fontSize: 15, lineHeight: 1.8, color: '#334155', marginTop: 0 }}>
