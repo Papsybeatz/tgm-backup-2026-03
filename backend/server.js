@@ -76,10 +76,17 @@ app.get('/health', async (req, res) => {
     errorCaptureProbe = { ok: result.ok, reason: result.reason || null, checkedAt: now };
   }
 
+  // Alerting readiness as booleans only — never the key or the address. A
+  // suppressed alert is now logged loudly, but this makes the state visible
+  // without having to wait for something to fail first.
+  const { isAlertingConfigured } = require('./utils/alerting');
+  const alerting = isAlertingConfigured();
+
   res.status(200).json({
     status: 'ok',
     errorCapture: errorCaptureProbe.ok === true,
     ...(errorCaptureProbe.ok === false ? { errorCaptureReason: errorCaptureProbe.reason } : {}),
+    alerting,
     timestamp: new Date().toISOString(),
   });
 });

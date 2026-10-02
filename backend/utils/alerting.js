@@ -33,6 +33,31 @@ function shouldSend(fingerprint, now = Date.now()) {
   return true;
 }
 
+/** Best-effort string for a log line. Never throws, even on hostile input. */
+function safe(value) {
+  if (value === null || value === undefined || value === '') return 'none';
+  try {
+    return typeof value === 'string' ? value : String(value);
+  } catch {
+    return '<unprintable>';
+  }
+}
+
+/**
+ * Report whether alerting is actually wired up, as booleans only.
+ *
+ * Deliberately never returns the key or the recipient address: this exists so
+ * production readiness can be checked without leaking a secret.
+ */
+function isAlertingConfigured() {
+  const recipient = process.env.ALERT_EMAIL || process.env.FOUNDER_EMAIL || '';
+  return {
+    brevoConfigured: Boolean(process.env.BREVO_API_KEY),
+    recipientConfigured: Boolean(recipient),
+    defaultsToFounder: !recipient,
+  };
+}
+
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => (
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
@@ -93,8 +118,15 @@ async function alertOnServerError(entry) {
     if (!entry) return { sent: false, reason: 'no_entry' };
 
     const to = process.env.ALERT_EMAIL || process.env.FOUNDER_EMAIL || 'clotteythomas41@gmail.com';
+    // A missing key must never silently swallow an alert. Log loudly at ERROR
+    // level with the reason so an unconfigured deploy is visible in the logs.
     if (!process.env.BREVO_API_KEY) {
-      console.warn('[ALERT] suppressed (BREVO_API_KEY unset):', entry.message);
+      console.error(
+        '[ALERT][SUPPRESSED] server error NOT delivered — reason=no_api_key. ' +
+        `status=${safe(entry.status)} path=${safe(entry.path || entry.endpoint)} ` +
+        `fingerprint=${safe(entry.fingerprint)} message=${safe(entry.message)}. ` +
+        'Set BREVO_API_KEY (and ALERT_EMAIL) to deliver server-error alerts.'
+      );
       return { sent: false, reason: 'no_api_key' };
     }
     if (!shouldSend(entry.fingerprint)) return { sent: false, reason: 'throttled' };
@@ -130,8 +162,16 @@ async function alertOnBusinessFailure(event = {}) {
     if (!event || !event.kind) return { sent: false, reason: 'no_kind' };
 
     const to = process.env.ALERT_EMAIL || process.env.FOUNDER_EMAIL || 'clotteythomas41@gmail.com';
+    // The whole point of this branch: a missing key must not be able to swallow
+    // a checkout failure quietly. Log loudly at ERROR level, carrying the
+    // reason, the kind and the subject ref so the line is actionable.
     if (!process.env.BREVO_API_KEY) {
-      console.warn('[ALERT] business failure suppressed (BREVO_API_KEY unset):', event.kind, event.message);
+      console.error(
+        '[ALERT][SUPPRESSED] business failure NOT delivered — reason=no_api_key. ' +
+        `kind=${safe(event.kind)} subjectRef=${safe(event.subjectRef)} ` +
+        `message=${safe(event.message)}. ` +
+        'Set BREVO_API_KEY (and ALERT_EMAIL) to deliver business-failure alerts.'
+      );
       return { sent: false, reason: 'no_api_key' };
     }
 
@@ -156,6 +196,7 @@ async function alertOnBusinessFailure(event = {}) {
 module.exports = {
   alertOnServerError,
   alertOnBusinessFailure,
+  isAlertingConfigured,
   shouldSend,
   buildAlertHtml,
   THROTTLE_MS,
