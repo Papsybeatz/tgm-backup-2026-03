@@ -3,6 +3,7 @@ const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { sendBrevoEmail } = require('../../utils/brevo');
+const { alertOnBusinessFailure } = require('../../utils/alerting');
 // Funder prices are intentionally NOT mapped in this file. The funder flow is
 // handled earlier, by checkout_context === 'funder_cycle'. A funder price
 // reaching the subscription paths below is a wiring mistake, and it is better
@@ -286,8 +287,29 @@ async function handleStripeEvent(req, res) {
         const email = session.customer_details?.email || session.customer_email || null;
         const user = await findUser({ userId: session.metadata?.user_id, customerId, email });
 
-        if (!user) { await logStripeEvent(event, null, 'no matching user'); return res.status(200).send('no user'); }
-        if (!tier) { await logStripeEvent(event, user.id, `unknown price ${priceId}`); return res.status(200).send('unknown price'); }
+        if (!user) {
+          await logStripeEvent(event, null, 'no matching user');
+          alertOnBusinessFailure({
+            kind: 'checkout_completed_no_user',
+            subjectRef: session.id,
+            title: 'Paid checkout with no matching user',
+            userEmail: email,
+            message: `Stripe checkout ${session.id} completed but no account matched (email ${email || 'unknown'}, customer ${customerId || 'unknown'}). The customer paid and received no access.`,
+          }).catch(() => {});
+          return res.status(200).send('no user');
+        }
+        if (!tier) {
+          await logStripeEvent(event, user.id, `unknown price ${priceId}`);
+          alertOnBusinessFailure({
+            kind: 'checkout_unknown_price',
+            subjectRef: priceId || 'no-price',
+            title: 'Paid checkout with an unmapped price',
+            userEmail: user.email,
+            tier: user.tier,
+            message: `Stripe checkout ${session.id} completed with price ${priceId}, which maps to no tier. The customer paid and received no access.`,
+          }).catch(() => {});
+          return res.status(200).send('unknown price');
+        }
 
         const isLifetime = priceId === LIFETIME_PRICE_ID;
         let currentPeriodEnd = null;
@@ -317,8 +339,28 @@ async function handleStripeEvent(req, res) {
         const priceId = sub.items?.data?.[0]?.price?.id || null;
         const tier = PRICE_TIER_MAP[priceId] || null;
         const user = await findUser({ userId: sub.metadata?.user_id, customerId: sub.customer });
-        if (!user) { await logStripeEvent(event, null, `no matching user for ${sub.id}`); return res.status(200).send('no user'); }
-        if (!tier) { await logStripeEvent(event, user.id, `unknown price ${priceId}`); return res.status(200).send('unknown price'); }
+        if (!user) {
+          await logStripeEvent(event, null, `no matching user for ${sub.id}`);
+          alertOnBusinessFailure({
+            kind: 'subscription_no_user',
+            subjectRef: sub.id,
+            title: 'Subscription event with no matching user',
+            message: `Subscription ${sub.id} (price ${priceId}) matched no account, so access was not granted.`,
+          }).catch(() => {});
+          return res.status(200).send('no user');
+        }
+        if (!tier) {
+          await logStripeEvent(event, user.id, `unknown price ${priceId}`);
+          alertOnBusinessFailure({
+            kind: 'subscription_unknown_price',
+            subjectRef: priceId || 'no-price',
+            title: 'Subscription with an unmapped price',
+            userEmail: user.email,
+            tier: user.tier,
+            message: `Subscription ${sub.id} carries price ${priceId}, which maps to no tier, so access was not granted.`,
+          }).catch(() => {});
+          return res.status(200).send('unknown price');
+        }
 
         await applyStripeAccess({
           event,
@@ -340,7 +382,16 @@ async function handleStripeEvent(req, res) {
         const details = await getSubscriptionDetails(stripe, subscriptionId);
         const tier = PRICE_TIER_MAP[details.priceId] || undefined;
         const user = await findUser({ customerId: details.customerId });
-        if (!user) { await logStripeEvent(event, null, `no user for ${subscriptionId}`); return res.status(200).send('no user'); }
+        if (!user) {
+          await logStripeEvent(event, null, `no user for ${subscriptionId}`);
+          alertOnBusinessFailure({
+            kind: 'invoice_paid_no_user',
+            subjectRef: subscriptionId,
+            title: 'Paid invoice with no matching user',
+            message: `Invoice paid for subscription ${subscriptionId} but no account matched, so renewal access was not applied.`,
+          }).catch(() => {});
+          return res.status(200).send('no user');
+        }
 
         await applyStripeAccess({
           event,

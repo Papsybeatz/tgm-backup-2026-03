@@ -54,11 +54,11 @@ function buildAlertHtml(entry = {}) {
   return `
     <div style="font-family:Inter,sans-serif;max-width:620px;margin:0 auto;background:#F7F9FB;padding:32px 24px;">
       <div style="background:#0A0F1A;border-radius:12px;padding:20px 24px;margin-bottom:20px;">
-        <div style="color:#F87171;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;">
-          Server error
+        <div style="color:${entry.kind === 'business' ? '#FBBF24' : '#F87171'};font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;">
+          ${entry.kind === 'business' ? 'Business failure' : 'Server error'}
         </div>
         <div style="color:#fff;font-size:18px;font-weight:800;">
-          ${esc(entry.status || 500)} ${esc(entry.method || '')} ${esc(entry.path || entry.endpoint || '')}
+          ${entry.kind === 'business' ? esc(entry.title || entry.kind) : `${esc(entry.status || 500)} ${esc(entry.method || '')} ${esc(entry.path || entry.endpoint || '')}`}
         </div>
       </div>
       <div style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:20px 24px;">
@@ -112,8 +112,50 @@ async function alertOnServerError(entry) {
   }
 }
 
+/**
+ * Email the founder about a business-outcome failure.
+ *
+ * These are failures that never throw and never return a 5xx, so
+ * alertOnServerError cannot see them by construction — the request succeeded.
+ * The canonical case: Stripe reports a completed checkout, but no user matches
+ * the session (or the price maps to no tier), so the customer paid and got no
+ * access. The webhook correctly answers 200 so Stripe does not retry, which is
+ * exactly why nothing was ever raised.
+ *
+ * Same throttle, same email channel, same dashboard — a different trigger.
+ * Never throws; alerting must not be able to break the request path.
+ */
+async function alertOnBusinessFailure(event = {}) {
+  try {
+    if (!event || !event.kind) return { sent: false, reason: 'no_kind' };
+
+    const to = process.env.ALERT_EMAIL || process.env.FOUNDER_EMAIL || 'clotteythomas41@gmail.com';
+    if (!process.env.BREVO_API_KEY) {
+      console.warn('[ALERT] business failure suppressed (BREVO_API_KEY unset):', event.kind, event.message);
+      return { sent: false, reason: 'no_api_key' };
+    }
+
+    // Fingerprint by kind (plus any subject ref) so one broken checkout price
+    // cannot flood the channel, but a different kind still gets through.
+    const fingerprint = event.fingerprint || `business:${event.kind}`;
+    if (!shouldSend(fingerprint)) return { sent: false, reason: 'throttled' };
+
+    const suffix = event.subjectRef ? ` — ${event.subjectRef}` : '';
+    return await sendBrevoEmail({
+      to,
+      toName: 'Founder',
+      subject: `[TGM] Business failure: ${event.kind}${suffix}`,
+      htmlContent: buildAlertHtml({ ...event, kind: 'business' }),
+    });
+  } catch (error) {
+    console.error('[ALERT] business alert failed:', error?.message || error);
+    return { sent: false, reason: 'exception' };
+  }
+}
+
 module.exports = {
   alertOnServerError,
+  alertOnBusinessFailure,
   shouldSend,
   buildAlertHtml,
   THROTTLE_MS,
