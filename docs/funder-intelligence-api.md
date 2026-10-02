@@ -200,3 +200,118 @@ npm run test:funder-api
 ```bash
 node backend/funder-intelligence-api/smoke-test.js https://your-railway-url.up.railway.app
 ```
+
+---
+
+## Deploying the sidecar alongside the backend
+
+This service is **not** part of the main backend process. It is a standalone
+Express app with its own `package.json` and its own `railway.json`, and it must
+run as a **second Railway service in the same project**.
+
+| | Main backend | Funder Intelligence sidecar |
+|---|---|---|
+| Root directory | repo root | `backend/funder-intelligence-api` |
+| Start command | `node server.js` (from `railway.json`) | `node server.js` (from its own `railway.json`) |
+| Health check | — | `/health` |
+| Listens on | `process.env.PORT` | `process.env.PORT`, then `FUNDER_INTELLIGENCE_PORT`, then `4500` |
+| Persists to | Postgres (`DATABASE_URL`) | a JSON file on disk (see volume note) |
+
+The sidecar's HTTP surface, for reference:
+
+| Route | Auth | Used by |
+|---|---|---|
+| `GET /health` | none | Railway health check |
+| `POST /internal/funders/provision` | `x-internal-secret` | `adminFunders.js` |
+| `POST /internal/cycles/activate` | `x-internal-secret` | `webhooks/stripe.js` (`activateFunderCycle`) |
+| `POST /funder/register` | `x-internal-secret` | key minting (see below) |
+| `GET /funder/...`, `POST /funder-fit` | `x-api-key` | `funderReviewer.js`, funder API clients |
+
+### ⚠️ The volume is not optional
+
+The sidecar stores everything — funders, API keys, cycles, entitlements — in a
+single JSON file:
+
+```js
+path.join(__dirname, '..', 'data', 'sidecar-db.json')
+```
+
+That path is built from `__dirname` and there is **no environment variable to
+override it**. Railway's container filesystem is ephemeral, so without a volume
+every deploy wipes the file.
+
+**Attach a Railway volume mounted at the sidecar's `data/` directory** (i.e.
+`/app/data` when the root directory is `backend/funder-intelligence-api`).
+
+This matters more than it looks. The `FUNDER_INTELLIGENCE_REVIEWER_KEY` you set
+on the backend is an API key that lives *inside this file*. Wipe the file and the
+key you configured becomes orphaned — reviewer calls start returning 401 and the
+key must be re-minted. The volume is what keeps the backend's configuration
+valid.
+
+## Environment variables across both services
+
+**Sidecar service:**
+
+| Variable | Required | Value |
+|---|---|---|
+| `FUNDER_INTELLIGENCE_INTERNAL_SECRET` | yes | Long random string you generate. Gates every `/internal/*` route and `/funder/register`. |
+| `NODE_ENV` | yes | `production` |
+| `PORT` | — | Injected by Railway. Do not set it manually. |
+
+**Main backend service:**
+
+| Variable | Required | Value |
+|---|---|---|
+| `FUNDER_INTELLIGENCE_BASE_URL` | yes | The sidecar's public URL, e.g. `https://<sidecar>.up.railway.app`. No trailing slash. |
+| `FUNDER_INTELLIGENCE_INTERNAL_SECRET` | yes | **Exactly the same string** as on the sidecar. |
+| `FUNDER_INTELLIGENCE_REVIEWER_KEY` | yes for reviewer mode | An API key **minted by the sidecar** — not a value you invent. See below. |
+
+`FUNDER_INTELLIGENCE_REVIEWER_KEY` is the one that is easy to get wrong. It is
+not a generated secret: it is a funder API key issued by the sidecar, because the
+reviewer is just another API client authenticating with `x-api-key`. The string
+`REVIEWER_KEY` appears in exactly one file — `backend/routes/funderReviewer.js`.
+
+## Minting the reviewer key
+
+1. Deploy the sidecar with `FUNDER_INTELLIGENCE_INTERNAL_SECRET` set, and wait
+   for `/health` to return healthy.
+2. Register a platform funder through `POST /funder/register`, sending the
+   internal secret in the `x-internal-secret` header. The response contains an
+   `api_key` (`tgm_fi_pk_...`).
+3. Put that key into `FUNDER_INTELLIGENCE_REVIEWER_KEY` on the backend service
+   and redeploy.
+
+Confirm with `GET /api/funder/reviewer/status` (requires a signed-in session):
+it returns `{ "configured": true }` once both the base URL and the key resolve.
+
+## What breaks at each step
+
+Each of these fails differently, which is why the staged order matters.
+
+| State | Symptom |
+|---|---|
+| Nothing configured | `/api/funder/reviewer/*` → **503 `sidecar_not_configured`**. Funder checkout still creates a Stripe session, but after payment the webhook cannot activate the cycle — **the customer pays and no cycle activates.** |
+| Sidecar running, `BASE_URL` unset | Identical to the above. The backend does not know where the sidecar is. |
+| `BASE_URL` set, secret missing or mismatched | `/internal/*` → **401**. Provisioning and cycle activation fail. Reviewer still 503. This is the deceptive one: the service is reachable, so it looks configured. |
+| Secret correct, `REVIEWER_KEY` unset | Reviewer worklist → **503 `reviewer_not_configured`**. Provisioning and cycle activation now work. |
+| All three set | Reviewer worklist returns a real worklist. |
+| All three set, **no volume** | Works until the next deploy. Then the JSON file is wiped, funders and cycles vanish, and the configured reviewer key becomes orphaned → reviewer calls return 401. |
+
+**Until the sidecar is reachable and the secret matches, keep the funder plans
+un-purchasable.** `create-funder-session` creates real Stripe sessions in live
+mode, and the failure lands *after* the charge — the worst shape a payment bug
+can take.
+
+## Known gap: the smoke test cannot register a funder
+
+`smoke-test.js` calls `/funder/register`, which is gated by
+`requireInternalSecret`, but the script sends only an `x-api-key` header and
+contains no reference to the internal secret at all. As written it will get a 401
+at the registration step.
+
+Step 2 of "Minting the reviewer key" above therefore has to be done with a direct
+HTTP call (curl, Postman) rather than `npm run smoke-test`. Fixing the smoke
+script to accept the internal secret — the other scripts take the base URL as
+`argv[2]`, so an `argv[3]` or an env var would be consistent — is worth doing
+before this is handed to anyone else.
