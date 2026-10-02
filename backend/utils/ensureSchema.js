@@ -219,6 +219,120 @@ const STATEMENTS = [
     label: 'InviteRequest status index',
     sql: `CREATE INDEX IF NOT EXISTS "InviteRequest_status_createdAt_idx" ON "InviteRequest"("status", "createdAt")`,
   },
+
+  // ---------------------------------------------------------------------------
+  // Testimonial — social proof from real users.
+  //
+  // This block previously sat AFTER the `return` in ensureSchema(), so it never
+  // ran. On a database that did not already have the table, quotes could never
+  // have been collected. Moved into STATEMENTS, where it is actually reached.
+  // ---------------------------------------------------------------------------
+  {
+    label: 'Testimonial table',
+    sql: `CREATE TABLE IF NOT EXISTS "Testimonial" (
+      "id" TEXT NOT NULL,
+      "quote" TEXT NOT NULL,
+      "role" TEXT,
+      "orgType" TEXT,
+      "region" TEXT,
+      "email" TEXT,
+      "status" TEXT NOT NULL DEFAULT 'pending',
+      "source" TEXT NOT NULL DEFAULT 'website',
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "Testimonial_pkey" PRIMARY KEY ("id")
+    )`,
+  },
+  {
+    label: 'Testimonial status index',
+    sql: `CREATE INDEX IF NOT EXISTS "Testimonial_status_idx" ON "Testimonial"("status")`,
+  },
+  {
+    label: 'Testimonial createdAt index',
+    sql: `CREATE INDEX IF NOT EXISTS "Testimonial_createdAt_idx" ON "Testimonial"("createdAt")`,
+  },
+
+  // ---------------------------------------------------------------------------
+  // Funder Intelligence API — intake and paid cycles.
+  //
+  // No mechanism ever created these tables. The only migration defining them
+  // lives in the legacy root prisma/migrations, while nothing in the deploy runs
+  // `prisma migrate deploy` — railway.json starts `node server.js`, and this
+  // parachute is what actually creates tables. With no table and no client
+  // model, every funder write threw, and the public intake swallowed the error
+  // and reported success to the applicant. Both halves are now fixed: the models
+  // are in backend/prisma/schema.prisma, and the tables are created here.
+  //
+  // `status` is TEXT rather than a Postgres enum, matching the schema, so these
+  // statements stay idempotent and safe to run on every boot.
+  // ---------------------------------------------------------------------------
+  {
+    label: 'FunderLead table',
+    sql: `CREATE TABLE IF NOT EXISTS "FunderLead" (
+      "id" TEXT NOT NULL,
+      "name" TEXT NOT NULL,
+      "orgName" TEXT NOT NULL,
+      "email" TEXT NOT NULL,
+      "role" TEXT,
+      "website" TEXT,
+      "country" TEXT,
+      "planRequested" TEXT,
+      "cycleName" TEXT,
+      "cycleYear" INTEGER,
+      "expectedVolume" INTEGER,
+      "message" TEXT,
+      "source" TEXT NOT NULL DEFAULT 'funder-api-request',
+      "riskScore" INTEGER,
+      "riskReasons" TEXT[],
+      "status" TEXT NOT NULL DEFAULT 'pending_review',
+      "sidecarFunderId" TEXT,
+      "orgApiKey" TEXT,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "FunderLead_pkey" PRIMARY KEY ("id")
+    )`,
+  },
+  {
+    label: 'FunderLead email index',
+    sql: `CREATE INDEX IF NOT EXISTS "FunderLead_email_idx" ON "FunderLead"("email")`,
+  },
+  {
+    label: 'FunderLead status index',
+    sql: `CREATE INDEX IF NOT EXISTS "FunderLead_status_idx" ON "FunderLead"("status")`,
+  },
+  {
+    label: 'FunderCycle table',
+    sql: `CREATE TABLE IF NOT EXISTS "FunderCycle" (
+      "id" TEXT NOT NULL,
+      "funderLeadId" TEXT NOT NULL,
+      "cycleName" TEXT NOT NULL,
+      "cycleYear" INTEGER NOT NULL,
+      "planKey" TEXT NOT NULL,
+      "status" TEXT NOT NULL DEFAULT 'pending_payment',
+      "stripeCheckoutSessionId" TEXT,
+      "stripePaymentIntentId" TEXT,
+      "stripeCustomerId" TEXT,
+      "stripePriceId" TEXT,
+      "sidecarCycleId" TEXT,
+      "applicationsAllowed" INTEGER NOT NULL DEFAULT 50,
+      "applicationsUsed" INTEGER NOT NULL DEFAULT 0,
+      "activatedAt" TIMESTAMP(3),
+      "expiresAt" TIMESTAMP(3),
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "FunderCycle_pkey" PRIMARY KEY ("id"),
+      CONSTRAINT "FunderCycle_funderLeadId_fkey" FOREIGN KEY ("funderLeadId")
+        REFERENCES "FunderLead"("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    )`,
+  },
+  {
+    label: 'FunderCycle unique index',
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "FunderCycle_funderLeadId_cycleName_cycleYear_key" ON "FunderCycle"("funderLeadId", "cycleName", "cycleYear")`,
+  },
+  {
+    label: 'FunderCycle status index',
+    sql: `CREATE INDEX IF NOT EXISTS "FunderCycle_status_idx" ON "FunderCycle"("status")`,
+  },
 ];
 
 /** Is the Steve store actually able to use the database now? */
@@ -293,31 +407,6 @@ async function ensureSchema() {
   }
 
   return { ok: verify.ok, applied, failed, verify };
-
-  // Testimonial: social proof from real users. Parachuted for the same reason as
-  // InviteRequest — a failed `prisma migrate deploy` must not stop us collecting
-  // quotes, because the quotes are the thing that takes time to accumulate.
-  await prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS "Testimonial" (
-      "id" TEXT NOT NULL,
-      "quote" TEXT NOT NULL,
-      "role" TEXT,
-      "orgType" TEXT,
-      "region" TEXT,
-      "email" TEXT,
-      "status" TEXT NOT NULL DEFAULT 'pending',
-      "source" TEXT NOT NULL DEFAULT 'website',
-      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      CONSTRAINT "Testimonial_pkey" PRIMARY KEY ("id")
-    );
-  `);
-  await prisma.$executeRawUnsafe(
-    `CREATE INDEX IF NOT EXISTS "Testimonial_status_idx" ON "Testimonial"("status");`
-  );
-  await prisma.$executeRawUnsafe(
-    `CREATE INDEX IF NOT EXISTS "Testimonial_createdAt_idx" ON "Testimonial"("createdAt");`
-  );
 }
 
 /**

@@ -338,3 +338,87 @@ model Testimonial {
   @@index([status])
   @@index([createdAt])
 }
+
+// ---------------------------------------------------------------------------
+// Funder Intelligence API — intake and paid cycles.
+//
+// These two models existed ONLY in the legacy root prisma/schema.prisma, while
+// package.json points `prisma generate` at this file. The generated client
+// therefore had no prisma.funderLead / prisma.funderCycle, so all 15 call sites
+// across funderApiRequest.js, adminFunders.js, checkout.js and the Stripe
+// webhook threw at runtime — and the public intake swallowed the error and
+// reported success. Porting them here is what makes those calls possible.
+//
+// `status` is a String rather than a Postgres enum, matching every other status
+// field in this schema (User.tier, User.subscriptionStatus, Testimonial.status).
+// It also means the parachute in utils/ensureSchema.js can create the columns as
+// plain TEXT, and reads/writes stay valid whichever way the table was created.
+// ---------------------------------------------------------------------------
+
+/// A funder organisation that applied for API access. Rows start as
+/// `pending_review` and only an admin moves them on.
+model FunderLead {
+  id             String   @id @default(cuid())
+  name           String
+  orgName        String
+  email          String
+  role           String?
+  website        String?
+  country        String?
+  planRequested  String?
+  cycleName      String?
+  cycleYear      Int?
+  expectedVolume Int?
+  message        String?
+  source         String   @default("funder-api-request")
+  riskScore      Int?
+  riskReasons    String[]
+
+  status String @default("pending_review")
+
+  // Set after sidecar provisioning
+  sidecarFunderId String?
+  orgApiKey       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cycles FunderCycle[]
+
+  @@index([email])
+  @@index([status])
+}
+
+/// One paid review cycle for a funder. `stripe*` fields mirror the checkout,
+/// and `sidecar*` fields mirror the funder-intelligence service after
+/// provisioning.
+model FunderCycle {
+  id           String    @id @default(cuid())
+  funderLeadId String
+  funderLead   FunderLead @relation(fields: [funderLeadId], references: [id])
+
+  cycleName String
+  cycleYear Int
+  planKey   String
+
+  status String @default("pending_payment")
+
+  stripeCheckoutSessionId String?
+  stripePaymentIntentId   String?
+  stripeCustomerId        String?
+  stripePriceId           String?
+
+  // Mirrored from sidecar after activation
+  sidecarCycleId      String?
+  applicationsAllowed Int      @default(50)
+  applicationsUsed    Int      @default(0)
+
+  activatedAt DateTime?
+  expiresAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([funderLeadId, cycleName, cycleYear])
+  @@index([status])
+}

@@ -14,7 +14,8 @@
     "test:invite": "node --test tests/invite-requests.test.js",
     "test:trust": "node --test tests/trust-spine.test.js",
     "test:testimonials": "node --test tests/testimonials.test.js",
-    "test:checkout": "node --test tests/checkout-price-map.test.js"
+    "test:checkout": "node --test tests/checkout-price-map.test.js",
+    "test:funder-persistence": "node --test tests/funder-persistence.test.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

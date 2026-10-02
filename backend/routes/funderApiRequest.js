@@ -211,9 +211,19 @@ router.post('/request-key', async (req, res) => {
       },
     });
   } catch (dbErr) {
-    console.error('[FUNDER-API REQUEST] Prisma error:', dbErr);
-    // Graceful degradation: continue without Prisma if DB is unavailable
-    lead = { id: 'no-db', name: trimmedName, orgName: trimmedOrg };
+    // This used to "degrade gracefully": log the error, substitute a fake lead
+    // ({ id: 'no-db' }), and carry on to the 200 below. The effect was that a
+    // funder was told their application had been received and got a confirmation
+    // email, while the lead was silently discarded and the team never saw it.
+    //
+    // A false success on a write is worse than an honest failure: it costs the
+    // lead AND the applicant's trust, and it hides the fault that caused it. If
+    // the application cannot be persisted, the only truthful answer is to say so.
+    console.error('[FUNDER-API REQUEST] Could not persist lead:', dbErr);
+    return res.status(503).json({
+      error: 'We could not save your application right now. Please try again in a few minutes, or email us directly.',
+      reason: 'lead_persistence_failed',
+    });
   }
 
   console.log('[FUNDER-API REQUEST] Lead created', { id: lead?.id, email: trimmedEmail, riskScore, status: initialStatus });
