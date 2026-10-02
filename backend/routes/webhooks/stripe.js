@@ -3,9 +3,12 @@ const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { sendBrevoEmail } = require('../../utils/brevo');
-const FUNDER_PILOT_PRICE_ID = process.env.STRIPE_FUNDER_PILOT_PRICE_ID || 'price_1TxLdP64TrQMI3mIwohgkoSa';
-const FUNDER_SCALE_PRICE_ID = process.env.STRIPE_FUNDER_SCALE_PRICE_ID || 'price_1TxLku64TrQMI3mIiFBlby8P';
-const FUNDER_ENTERPRISE_PRICE_ID = process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'price_1TxLrO64TrQMI3mIKMEbGAvL';
+// Funder prices are intentionally NOT mapped in this file. The funder flow is
+// handled earlier, by checkout_context === 'funder_cycle'. A funder price
+// reaching the subscription paths below is a wiring mistake, and it is better
+// reported as an unknown price than written to a user's tier as `funder_pilot`
+// — a tier string with no entry in src/config/tiers.js, which every feature
+// accessor would silently resolve to free.
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -14,17 +17,15 @@ function getStripe() {
   catch (e) { console.warn('[STRIPE WEBHOOK] stripe SDK not available:', e.message); return null; }
 }
 
-function getPriceTierMap() {
+// User tiers only. Must stay in step with src/config/tiers.js and with
+// getUserPriceTierMap() in routes/checkout.js.
+function getUserPriceTierMap() {
   return {
     [process.env.STRIPE_STARTER_PRICE_ID]:          'starter',
     [process.env.STRIPE_PRO_PRICE_ID]:              'pro',
-    [process.env.STRIPE_ANNUAL_PRO_PRICE_ID]:       'pro',
     [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:   'agency_starter',
     [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
     [process.env.STRIPE_LIFETIME_PRICE_ID]:         'lifetime',
-    [FUNDER_PILOT_PRICE_ID]:                        'funder_pilot',
-    [FUNDER_SCALE_PRICE_ID]:                        'funder_scale',
-    [FUNDER_ENTERPRISE_PRICE_ID]:                   'funder_enterprise',
   };
 }
 
@@ -265,7 +266,7 @@ async function handleStripeEvent(req, res) {
   }
 
   try {
-    const PRICE_TIER_MAP = getPriceTierMap();
+    const PRICE_TIER_MAP = getUserPriceTierMap();
     const LIFETIME_PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID;
 
     switch (event.type) {

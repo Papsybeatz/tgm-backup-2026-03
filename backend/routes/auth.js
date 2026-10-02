@@ -11,6 +11,16 @@ const { passwordResetLimiter } = require('../middleware/rateLimit');
 
 const prisma = new PrismaClient();
 const router = express.Router();
+// Tiers that must be backed by a live Stripe subscription before we trust them.
+// Anything else is returned untouched.
+//
+// The three funder entries look out of place and are deliberate. No user
+// account should ever carry a `funder_*` tier — they have no entry in
+// src/config/tiers.js — so listing them here routes a stray funder tier through
+// Stripe verification, where getUserPriceTierMap() below no longer recognises a
+// funder price and the account is downgraded to free. That makes a stray funder
+// tier self-healing rather than silently permanent. Removing them would let a
+// bogus `funder_pilot` tier survive indefinitely.
 const STRIPE_PAID_TIERS = new Set([
   'starter',
   'pro',
@@ -26,9 +36,8 @@ const PREVIEW_PROVIDER = 'preview';
 const APP_URL = process.env.APP_URL || 'https://www.thegrantsmaster.com';
 const PASSWORD_RESET_TTL_MINUTES = 30;
 const PASSWORD_RESET_TOKEN_PREFIX = 'pwdreset_';
-const FUNDER_PILOT_PRICE_ID = process.env.STRIPE_FUNDER_PILOT_PRICE_ID || 'price_1TxLdP64TrQMI3mIwohgkoSa';
-const FUNDER_SCALE_PRICE_ID = process.env.STRIPE_FUNDER_SCALE_PRICE_ID || 'price_1TxLku64TrQMI3mIiFBlby8P';
-const FUNDER_ENTERPRISE_PRICE_ID = process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'price_1TxLrO64TrQMI3mIKMEbGAvL';
+// Funder prices are deliberately absent from the map below: funder plans are a
+// separate, cycle-based product, and they are not user tiers.
 
 function databaseReady(res) {
   if (process.env.DATABASE_URL) return true;
@@ -63,23 +72,25 @@ function normalizeEmail(input) {
   return String(input || '').trim().toLowerCase();
 }
 
-function getPriceTierMap() {
+// User tiers only. This drives subscription reconciliation for a signed-in
+// user, so a funder price must never resolve here: it would set a tier string
+// (`funder_pilot`) that has no entry in src/config/tiers.js, and the account
+// would silently fall back to free. A funder subscription is not a user tier,
+// so an unrecognised price correctly triggers the downgrade path below.
+// Must stay in step with src/config/tiers.js and routes/checkout.js.
+function getUserPriceTierMap() {
   return {
     [process.env.STRIPE_STARTER_PRICE_ID]: 'starter',
     [process.env.STRIPE_PRO_PRICE_ID]: 'pro',
-    [process.env.STRIPE_ANNUAL_PRO_PRICE_ID]: 'pro',
     [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]: 'agency_starter',
     [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
     [process.env.STRIPE_LIFETIME_PRICE_ID]: 'lifetime',
-    [FUNDER_PILOT_PRICE_ID]: 'funder_pilot',
-    [FUNDER_SCALE_PRICE_ID]: 'funder_scale',
-    [FUNDER_ENTERPRISE_PRICE_ID]: 'funder_enterprise',
   };
 }
 
 function tierForStripePrice(priceId) {
   if (!priceId) return null;
-  return getPriceTierMap()[priceId] || null;
+  return getUserPriceTierMap()[priceId] || null;
 }
 
 async function findUserByEmail(email) {

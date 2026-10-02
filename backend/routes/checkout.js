@@ -28,18 +28,38 @@ const FUNDER_PILOT_PRICE_ID = process.env.STRIPE_FUNDER_PILOT_PRICE_ID || 'price
 const FUNDER_SCALE_PRICE_ID = process.env.STRIPE_FUNDER_SCALE_PRICE_ID || 'price_1TxLku64TrQMI3mIiFBlby8P';
 const FUNDER_ENTERPRISE_PRICE_ID = process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID || 'price_1TxLrO64TrQMI3mIKMEbGAvL';
 
-// Built at request time so Railway env vars are always resolved
-function getPriceTierMap() {
+// Built at request time so Railway env vars are always resolved.
+//
+// This is the ONLY map /create-session may validate against, and it holds
+// exactly the user tiers in src/config/tiers.js: starter, pro, agency_starter,
+// agency_unlimited, and lifetime (the founding-member deal).
+//
+// Funder prices are deliberately absent. A funder price accepted here would
+// store a tier string (`funder_pilot`) that has no entry in src/config/tiers.js,
+// so every feature accessor would fall back to TIERS.free and the buyer would
+// pay and receive nothing. Funder plans are a separate, cycle-based product
+// sold through /create-funder-session.
+//
+// No `annual_pro` either: there is no annual toggle in the UI, so a price slot
+// that maps to an existing tier but is never sold only invites confusion.
+function getUserPriceTierMap() {
   return {
     [process.env.STRIPE_STARTER_PRICE_ID]:          'starter',
     [process.env.STRIPE_PRO_PRICE_ID]:              'pro',
-    [process.env.STRIPE_ANNUAL_PRO_PRICE_ID]:       'pro',
     [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:   'agency_starter',
     [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
     [process.env.STRIPE_LIFETIME_PRICE_ID]:         'lifetime',
-    [FUNDER_PILOT_PRICE_ID]:                         'funder_pilot',
-    [FUNDER_SCALE_PRICE_ID]:                         'funder_scale',
-    [FUNDER_ENTERPRISE_PRICE_ID]:                    'funder_enterprise',
+  };
+}
+
+// Funder plans are not tiers — they are a separate, cycle-based product with
+// their own webhook flow and sidecar provisioning. Kept in their own map so
+// they can never be mistaken for a user subscription.
+function getFunderPriceMap() {
+  return {
+    [FUNDER_PILOT_PRICE_ID]:      'funder_pilot',
+    [FUNDER_SCALE_PRICE_ID]:      'funder_scale',
+    [FUNDER_ENTERPRISE_PRICE_ID]: 'funder_enterprise',
   };
 }
 
@@ -104,10 +124,20 @@ router.post('/create-session', requireAuth, async (req, res) => {
 
   const normalizedPaths = normalizeCheckoutPaths(successPath, cancelPath);
 
-  const PRICE_TIER_MAP   = getPriceTierMap();
+  const PRICE_TIER_MAP   = getUserPriceTierMap();
 
   const tier = PRICE_TIER_MAP[priceId];
   if (!tier) {
+    // A funder price arriving here is the failure this split exists to prevent:
+    // it would charge the card and grant nothing. Name it explicitly so the log
+    // says which mistake was made rather than a bare "unknown price".
+    if (getFunderPriceMap()[priceId]) {
+      console.error('[CHECKOUT] Funder price submitted to create-session:', priceId);
+      return res.status(400).json({
+        error: 'Funder plans are not sold through this endpoint',
+        reason: 'funder_price_on_user_checkout',
+      });
+    }
     console.error('[CHECKOUT] Unknown priceId:', priceId, '| Known IDs:', Object.keys(PRICE_TIER_MAP));
     return res.status(400).json({ error: 'Unknown price ID' });
   }
@@ -203,14 +233,19 @@ router.post('/create-funder-session', async (req, res) => {
   if (!cycleName) return res.status(400).json({ error: 'cycleName is required' });
   if (!cycleYear) return res.status(400).json({ error: 'cycleYear is required' });
 
-  const PRICE_TIER_MAP = getPriceTierMap();
-  const planKey = PRICE_TIER_MAP[priceId];
+  const FUNDER_PRICE_MAP = getFunderPriceMap();
+  const planKey = FUNDER_PRICE_MAP[priceId];
   if (!planKey) {
-    console.error('[CHECKOUT] Unknown funder priceId:', priceId);
-    return res.status(400).json({ error: 'Unknown price ID' });
-  }
-  if (!planKey.startsWith('funder_')) {
-    return res.status(400).json({ error: 'Funder checkout only supports funder plan prices' });
+    // Mirror of the guard in /create-session: a user tier price reaching the
+    // funder route is a wiring mistake, so say which one it was.
+    const isUserPrice = Boolean(getUserPriceTierMap()[priceId]);
+    console.error('[CHECKOUT] Non-funder priceId submitted to create-funder-session:', priceId);
+    return res.status(400).json({
+      error: isUserPrice
+        ? 'Funder checkout only supports funder plan prices'
+        : 'Unknown price ID',
+      reason: isUserPrice ? 'user_price_on_funder_checkout' : 'unknown_price',
+    });
   }
 
   const normalizedYear = Number(cycleYear);
@@ -295,12 +330,14 @@ router.get('/prices', (req, res) => {
   res.json({
     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
     prices: {
+      // User tiers — these are the only prices /create-session will accept.
       starter:          process.env.STRIPE_STARTER_PRICE_ID,
       pro:              process.env.STRIPE_PRO_PRICE_ID,
-      annual_pro:       process.env.STRIPE_ANNUAL_PRO_PRICE_ID,
       agency_starter:   process.env.STRIPE_AGENCY_STARTER_PRICE_ID,
       agency_unlimited: process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID,
       lifetime:         process.env.STRIPE_LIFETIME_PRICE_ID,
+      // Funder plans, for the funder landing page. They must be sent to
+      // /create-funder-session, never to /create-session.
       funder: {
         pilot: FUNDER_PILOT_PRICE_ID,
         scale: FUNDER_SCALE_PRICE_ID,
@@ -311,3 +348,8 @@ router.get('/prices', (req, res) => {
 });
 
 module.exports = router;
+// Exported for tests: keeping funder prices out of the user checkout is a
+// correctness property, not an implementation detail, so it is asserted rather
+// than trusted.
+module.exports.getUserPriceTierMap = getUserPriceTierMap;
+module.exports.getFunderPriceMap = getFunderPriceMap;
