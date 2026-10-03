@@ -39,10 +39,15 @@ test('every copyright line names the registered entity, not the product', () => 
   // The /funder-api footer said "The Grants Master. All rights reserved." while
   // every other page named Gee Oh Dee (Tech) LLC. A product name is not a legal
   // entity, and the mismatch is exactly what a due-diligence reader notices.
+  //
+  // This originally matched only "All rights reserved", which let three footers
+  // through that used the bare © symbol and no such phrase: the app-shell footer
+  // every logged-in user sees, plus both lead-magnet footers. Match the © symbol
+  // itself so a copyright line cannot slip past on phrasing alone.
   const offenders = [];
   for (const { f, text } of readAll()) {
     for (const line of text.split('\n')) {
-      if (!/All rights reserved/.test(line)) continue;
+      if (!/©|All rights reserved/.test(line)) continue;
       if (!/Gee Oh Dee \(Tech\) LLC/.test(line)) {
         offenders.push(`${path.relative(SRC, f)}: ${line.trim().slice(0, 90)}`);
       }

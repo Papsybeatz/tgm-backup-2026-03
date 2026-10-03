@@ -178,7 +178,7 @@ export default function GrantWorkflowBlueprintPage() {
           background: '#0A0F1A', padding: '32px 24px', textAlign: 'center',
         }}>
           <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,.35)' }}>
-            © {new Date().getFullYear()} The Grants Master ·{' '}
+            © {new Date().getFullYear()} Gee Oh Dee (Tech) LLC · The Grants Master ·{' '}
             <Link to="/about" style={{ color: 'rgba(255,255,255,.35)', textDecoration: 'none' }}>About</Link>
             {' · '}
             <Link to="/privacy" style={{ color: 'rgba(255,255,255,.35)', textDecoration: 'none' }}>Privacy</Link>

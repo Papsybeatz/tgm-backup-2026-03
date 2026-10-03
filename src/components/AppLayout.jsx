@@ -16,7 +16,7 @@ export function AppLayout({ children }) {
       {showWorkspaceFooter && (
         <footer className="border-t border-[#E2E8F0] bg-white px-6 py-6">
           <div className="mx-auto flex max-w-6xl flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-            <p>© {new Date().getFullYear()} GrantsMaster</p>
+            <p>© {new Date().getFullYear()} Gee Oh Dee (Tech) LLC · The Grants Master</p>
             <div className="flex items-center gap-4">
               <Link to="/plans" className="text-gray-500 no-underline transition hover:text-[#003A8C]">Pricing</Link>
               <span aria-hidden="true">|</span>
