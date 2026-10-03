@@ -28,6 +28,7 @@ import ClientsPage from './components/ClientsPage';
 import ClientWorkspacePage from './components/ClientWorkspacePage';
 import ScottDistributionPage from './components/ScottDistributionPage';
 import SteveAssistantDock from './components/SteveAssistantDock';
+import RouteMeta from './components/RouteMeta';
 
 // Auth-gated pages
 import OnboardingPage from './components/OnboardingPage';
@@ -54,6 +55,7 @@ function App() {
   return (
     <SkinProvider>
       <Router>
+        <RouteMeta />
         <SteveAssistantDock />
         <Routes>
           {/* Workspace — full screen editor, no AppHeader */}

@@ -1,42 +1,114 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Generated from src/lib/pageMeta.js (PUBLIC_PATHS) — keep the two in step.
+  Deliberately excluded: auth-gated app routes (/dashboard, /workspace, /team,
+  /clients, /billing, /admin/*, /onboarding), post-submit pages, and the
+  duplicate-content aliases (/plans, /consultant-mode, /en, /es, /fr), which
+  canonical to a real page instead.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-  <!-- Core public pages -->
   <url>
     <loc>https://www.thegrantsmaster.com/</loc>
-    <lastmod>2026-07-29</lastmod>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.thegrantsmaster.com/pricing</loc>
-    <lastmod>2026-07-29</lastmod>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.thegrantsmaster.com/features</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.thegrantsmaster.com/new-york-grants</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.thegrantsmaster.com/funder-api</loc>
-    <lastmod>2026-07-29</lastmod>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.thegrantsmaster.com/contact</loc>
-    <lastmod>2026-07-29</lastmod>
-    <changefreq>yearly</changefreq>
+    <loc>https://www.thegrantsmaster.com/consultants</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.thegrantsmaster.com/about</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thegrantsmaster.com/trust</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thegrantsmaster.com/new-york-grants/checklist</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thegrantsmaster.com/customers</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.thegrantsmaster.com/login</loc>
-    <lastmod>2026-07-29</lastmod>
+    <loc>https://www.thegrantsmaster.com/request-access</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.thegrantsmaster.com/lead-magnet/grant-workflow-blueprint</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.thegrantsmaster.com/contact</loc>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.thegrantsmaster.com/signup</loc>
-    <lastmod>2026-07-29</lastmod>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thegrantsmaster.com/login</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.thegrantsmaster.com/privacy</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://www.thegrantsmaster.com/terms</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
   </url>
 
 </urlset>

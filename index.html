@@ -3,27 +3,97 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The Grants Master — AI-Powered Grant Intelligence Platform</title>
+    <!--
+      Static defaults only. RouteMeta replaces these per route at runtime; this
+      is the fallback for crawlers and scrapers that do not execute JS.
+    -->
+    <title>The Grants Master — AI Grant Writing &amp; Scoring</title>
 
     <!-- SEO -->
-    <meta name="description" content="The Grants Master — AI-powered funding intelligence platform. Grant scoring, funder-fit intelligence, proposal drafting, and cycle analytics for nonprofits, consultants, and funders." />
+    <meta name="description" content="Draft funder-ready grant proposals and score them before you submit. Pre-submission scoring, funder alignment, and compliance checks for nonprofits." />
+    <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://www.thegrantsmaster.com" />
 
     <!-- Open Graph -->
     <meta property="og:type"        content="website" />
     <meta property="og:url"         content="https://www.thegrantsmaster.com" />
-    <meta property="og:title"       content="The Grants Master — AI-Powered Grant Intelligence Platform" />
+    <meta property="og:title"       content="The Grants Master — AI Grant Writing &amp; Scoring" />
     <meta property="og:description" content="Pre-submission scoring, funder alignment, and compliance checks for nonprofits, consultants, and agencies." />
     <meta property="og:image"       content="https://www.thegrantsmaster.com/og-image.png" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card"        content="summary_large_image" />
-    <meta name="twitter:title"       content="The Grants Master — AI-Powered Grant Intelligence Platform" />
+    <meta name="twitter:title"       content="The Grants Master — AI Grant Writing &amp; Scoring" />
     <meta name="twitter:description" content="Pre-submission scoring, funder alignment, and compliance checks for nonprofits." />
     <meta name="twitter:image"       content="https://www.thegrantsmaster.com/og-image.png" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <!--
+      Structured data.
+
+      Deliberately carries NO aggregateRating and NO review count: TGM has no
+      third-party reviews yet, and inventing them here would be both dishonest
+      and a Google structured-data violation. Add those only when real ones
+      exist.
+    -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://www.thegrantsmaster.com/#organization",
+          "name": "The Grants Master",
+          "legalName": "Gee Oh Dee (Tech) LLC",
+          "url": "https://www.thegrantsmaster.com",
+          "logo": "https://www.thegrantsmaster.com/og-image.png",
+          "founder": {
+            "@type": "Person",
+            "name": "Thomas Clottey",
+            "jobTitle": "Full Stack / AI Software Developer"
+          },
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "4210 Electric Road",
+            "addressLocality": "Roanoke",
+            "addressRegion": "VA",
+            "postalCode": "24018",
+            "addressCountry": "US"
+          },
+          "sameAs": [
+            "https://www.linkedin.com/in/thomas-clottey",
+            "https://www.facebook.com/TheGrantsMaster"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://www.thegrantsmaster.com/#website",
+          "url": "https://www.thegrantsmaster.com",
+          "name": "The Grants Master",
+          "publisher": { "@id": "https://www.thegrantsmaster.com/#organization" }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://www.thegrantsmaster.com/#software",
+          "name": "The Grants Master",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "description": "AI grant writing and pre-submission scoring for nonprofits, consultants, and agencies.",
+          "publisher": { "@id": "https://www.thegrantsmaster.com/#organization" },
+          "offers": [
+            { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD" },
+            { "@type": "Offer", "name": "Starter", "price": "29", "priceCurrency": "USD" },
+            { "@type": "Offer", "name": "Pro", "price": "79", "priceCurrency": "USD" },
+            { "@type": "Offer", "name": "Agency", "price": "149", "priceCurrency": "USD" },
+            { "@type": "Offer", "name": "Agency+", "price": "299", "priceCurrency": "USD" },
+            { "@type": "Offer", "name": "Lifetime", "price": "499", "priceCurrency": "USD" }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
