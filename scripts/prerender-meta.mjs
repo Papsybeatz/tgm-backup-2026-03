@@ -156,4 +156,19 @@ for (const [routePath, meta] of Object.entries(PAGE_META)) {
   );
 }
 
+// A prerendered file that nothing routes to is worse than no prerender: the
+// build stays green while every path still serves index.html. Measured on
+// production — both a catch-all rewrite and handle:filesystem swallowed these
+// files, so the rewrite that exposes them has to be verified, not assumed.
+const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
+const rewriteSources = new Set((vercel.rewrites || []).map((r) => r.source));
+const unrouted = Object.keys(PAGE_META).filter((p) => p !== '/' && !rewriteSources.has(p));
+if (unrouted.length) {
+  console.error(
+    `[prerender] vercel.json has no rewrite exposing these prerendered routes: ${unrouted.join(', ')}`
+  );
+  process.exit(1);
+}
+
 console.log(`[prerender] wrote ${written} route(s) with per-page metadata`);
+console.log(`[prerender] all ${written - 1} non-root route(s) are exposed by vercel.json rewrites`);

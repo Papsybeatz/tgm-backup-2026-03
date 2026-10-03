@@ -269,17 +269,30 @@ test('FAQ schema and the rendered FAQs come from one module', () => {
   assert.match(funder, /from '\.\.\/lib\/faqs'/, 'FunderApiLandingPage must import the shared FAQs');
 });
 
-test('routing checks the filesystem before the SPA fallback', () => {
-  // Without this the catch-all rewrite swallows the prerendered per-route HTML
-  // and every path serves index.html again, silently undoing the whole fix.
-  // Measured: with only "rewrites", /pricing served the homepage's description.
+test('every prerendered route is exposed by a rewrite ahead of the catch-all', () => {
+  // Measured on production: a catch-all rewrite and handle:filesystem both
+  // swallowed the prerendered files, so /pricing served the homepage's
+  // description even though dist/pricing/index.html was deployed and returned
+  // 200 when requested directly. Only an explicit rewrite wins, and it has to
+  // come before the catch-all or the catch-all takes the path first.
   const vercel = JSON.parse(fs.readFileSync(path.join(REPO, 'vercel.json'), 'utf8'));
-  const routes = vercel.routes || [];
-  const fsIndex = routes.findIndex((r) => r.handle === 'filesystem');
-  const fallbackIndex = routes.findIndex((r) => /index\.html/.test(r.dest || ''));
-  assert.ok(fsIndex !== -1, 'vercel.json must handle the filesystem first');
-  assert.ok(fallbackIndex !== -1, 'vercel.json must keep an SPA fallback');
-  assert.ok(fsIndex < fallbackIndex, 'the filesystem handle must precede the SPA fallback');
+  const rewrites = vercel.rewrites || [];
+  const sources = rewrites.map((r) => r.source);
+  const catchAll = rewrites.findIndex((r) => r.destination === '/index.html');
+  assert.ok(catchAll !== -1, 'vercel.json must keep an SPA catch-all fallback');
+
+  const missing = Object.keys(parsePageMeta(META_SRC))
+    .filter((p) => p !== '/')
+    .filter((p) => !sources.includes(p));
+  assert.deepEqual(missing, [], `prerendered routes with no rewrite: ${missing.join(', ')}`);
+
+  for (const p of Object.keys(parsePageMeta(META_SRC))) {
+    if (p === '/') continue;
+    assert.ok(
+      sources.indexOf(p) < catchAll,
+      `${p} must be rewritten before the catch-all, or it will never be served`
+    );
+  }
 });
 
 test('the funder API is reachable from the header nav and both footers', () => {

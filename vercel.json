@@ -1,12 +1,27 @@
 {
   "buildCommand": "npx vite build",
   "outputDirectory": "dist",
-  "routes": [
-    { "handle": "filesystem" },
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "https://tgm-backup-2026-03-production-ea59.up.railway.app/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://tgm-backup-2026-03-production-ea59.up.railway.app/api/:path*"
     },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "source": "/pricing", "destination": "/pricing/index.html" },
+    { "source": "/features", "destination": "/features/index.html" },
+    { "source": "/new-york-grants", "destination": "/new-york-grants/index.html" },
+    { "source": "/new-york-grants/checklist", "destination": "/new-york-grants/checklist/index.html" },
+    { "source": "/funder-api", "destination": "/funder-api/index.html" },
+    { "source": "/consultants", "destination": "/consultants/index.html" },
+    { "source": "/about", "destination": "/about/index.html" },
+    { "source": "/trust", "destination": "/trust/index.html" },
+    { "source": "/customers", "destination": "/customers/index.html" },
+    { "source": "/request-access", "destination": "/request-access/index.html" },
+    { "source": "/lead-magnet/grant-workflow-blueprint", "destination": "/lead-magnet/grant-workflow-blueprint/index.html" },
+    { "source": "/contact", "destination": "/contact/index.html" },
+    { "source": "/signup", "destination": "/signup/index.html" },
+    { "source": "/login", "destination": "/login/index.html" },
+    { "source": "/privacy", "destination": "/privacy/index.html" },
+    { "source": "/terms", "destination": "/terms/index.html" },
+    { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ]
 }
