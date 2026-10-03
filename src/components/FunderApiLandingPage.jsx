@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
 import { FUNDER_API_FAQS as faqs } from '../lib/faqs';
+import { FUNDER_APP_LIMITS } from '../config/funderAppLimits';
 
 /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Brand tokens (match TGM palette)
@@ -263,8 +264,8 @@ function RequestKeyForm() {
         <div>
           <label style={labelStyle}>Plan</label>
           <select style={inputStyle} name="planRequested" value={form.planRequested} onChange={handleChange}>
-            <option value="pilot">Pilot — 50 apps/cycle</option>
-            <option value="scale">Scale — 500 apps/cycle</option>
+            <option value="pilot">Pilot — {FUNDER_APP_LIMITS.pilot} apps/cycle</option>
+            <option value="scale">Scale — {FUNDER_APP_LIMITS.scale} apps/cycle</option>
             <option value="enterprise">Enterprise — custom</option>
           </select>
         </div>
@@ -402,7 +403,7 @@ export default function FunderApiLandingPage() {
       highlight: false,
       tag: null,
       features: [
-        'Up to 150 applications/cycle',
+        `Up to ${FUNDER_APP_LIMITS.pilot} applications/cycle`,
         'Scoring + funder-fit endpoints',
         '1 rubric definition',
         'Batch scoring',
@@ -421,7 +422,7 @@ export default function FunderApiLandingPage() {
       highlight: true,
       tag: 'Most popular',
       features: [
-        'Up to 1,000 applications/cycle',
+        `Up to ${FUNDER_APP_LIMITS.scale} applications/cycle`,
         'All Pilot features',
         'Multiple rubric definitions',
         'Priority support',

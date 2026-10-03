@@ -145,24 +145,36 @@ const SECURITY_POINTS = [
   'Secure document storage',
 ];
 
-// Founding Member is scoped to Starter, deliberately. An earlier lifetime offer
-// promised "everything in Pro" for $149 — Pro is $79/mo, so that sold a
-// Pro-equivalent customer for 0.16x annual income, forever. These are the
-// Starter-level features only; Pro and Agency items are excluded below.
+// Founding Member is a hybrid, not a superset of any single tier, so the card
+// lists what the tier actually grants rather than borrowing a tier's name.
+// Source of truth: TIERS.lifetime in src/config/tiers.js — keep the two in step.
+//
+// Two corrections are folded in here. The card used to say "Everything in
+// Starter, forever" while listing "Funder alignment insights" and "Grant Fit
+// Score", which the lifetime tier does not grant. And the audit asked for
+// "Everything in Pro", which would be worse: lifetime has Pro's analytics,
+// reviewer simulation and calendar, but not Pro's team seats, shared workspace,
+// NY funder intelligence or document uploads.
 const LIFETIME_FEATURES = [
-  'Unlimited grant letters',
+  'Unlimited saved drafts',
   'Full Checkmate scoring',
-  'Funder alignment insights',
-  'Grant Fit Score',
-  'Save, version history and send to email',
+  'Unlimited funder matching',
+  'Advanced analytics',
+  'Reviewer simulation',
+  'Grant calendar',
+  'Priority AI processing',
   'Template library',
   'Export to PDF and Word',
+  '1 team seat',
+  'Priority support',
+  'Founding Member badge and certificate',
 ];
 
 const LIFETIME_EXCLUDES = [
-  'Pro team seats and shared workspace',
-  'Agency client folders and client-aware Steve',
-  'White-label output',
+  'Shared workspace and team seats beyond 1',
+  'NY funder intelligence and NY compliance rules',
+  'Document uploads and custom export formatting',
+  'Agency client folders, white-label output and bulk scoring',
 ];
 
 function CheckIcon({ active = true }) {
@@ -364,7 +376,7 @@ export default function PricingPage() {
               Limited to 100 seats. One payment, no renewal, ever. Your price is locked for life.
             </p>
             <p style={{ margin: '0 0 22px', fontSize: 14, fontWeight: 900, color: 'var(--tgm-navy)' }}>
-              Everything in Starter, forever.
+              Starter-level drafting and scoring, plus Pro's advanced analytics and calendar.
             </p>
             <UpgradeButton
               tierKey="lifetime"
