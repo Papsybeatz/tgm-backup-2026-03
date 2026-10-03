@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import UpgradeButton from './UpgradeButton';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
+import { PRICING_FAQS } from '../lib/faqs';
 
 const PLAN_COPY = [
   {
@@ -30,6 +31,10 @@ const PLAN_COPY = [
     price: '$29',
     period: '/ month',
     bestFor: 'Nonprofits writing multiple grants per year.',
+    // Market benchmark, not a TGM performance claim. Range is the per-proposal
+    // flat fee commonly cited for freelance grant writers; keep it sourced to
+    // the market and never restate it as something TGM has measured.
+    priceAnchor: 'Most nonprofits pay $1,500–$10,000 for a single freelance proposal.',
     intro: 'Includes everything in Free, plus:',
     features: [
       'Full AI drafting (Steve)',
@@ -128,14 +133,6 @@ const COMPARISON_ROWS = [
   ['Bulk scoring', false, false, false, true, true],
   ['Client templates', false, false, false, true, true],
   ['Activity logs', false, false, true, true, true],
-];
-
-const FAQS = [
-  ['Do I need a credit card to start?', 'No — the Free plan is forever free.'],
-  ['Can I switch plans anytime?', 'Yes — upgrades and downgrades are instant.'],
-  ['Is my data private?', 'Yes. Client folders are isolated — you only reach a folder you own or have been granted access to. Your data is never used to train AI models.'],
-  ['Does TGM work outside New York?', 'Yes — NY is our first localized workspace, with more states coming soon.'],
-  ['Is TGM for consultants?', 'Yes — Agency and Agency+ are built specifically for multi-client workflows.'],
 ];
 
 const SECURITY_POINTS = [
@@ -300,6 +297,11 @@ export default function PricingPage() {
                   <span style={{ fontSize: 42, fontWeight: 900, color: 'var(--tgm-navy)' }}>{plan.price}</span>
                   <span style={{ fontSize: 14, color: 'var(--tgm-muted)', fontWeight: 700 }}>{plan.period}</span>
                 </div>
+                {plan.priceAnchor && (
+                  <p style={{ margin: '0 0 12px', fontSize: 13, lineHeight: 1.55, color: 'var(--tgm-muted)' }}>
+                    {plan.priceAnchor}
+                  </p>
+                )}
                 <p style={{ margin: '0 0 16px', minHeight: 44, fontSize: 14, lineHeight: 1.55, color: 'var(--tgm-muted)' }}>
                   <strong style={{ color: 'var(--tgm-text)' }}>Best for:</strong> {plan.bestFor}
                 </p>
@@ -454,7 +456,7 @@ export default function PricingPage() {
             Frequently asked questions
           </h2>
           <div style={{ display: 'grid', gap: 14 }}>
-            {FAQS.map(([question, answer]) => (
+            {PRICING_FAQS.map(({ q: question, a: answer }) => (
               <details key={question} style={{ border: '1px solid var(--tgm-border)', borderRadius: 10, padding: '16px 18px', background: '#fff' }}>
                 <summary style={{ cursor: 'pointer', fontWeight: 900, color: 'var(--tgm-navy)' }}>{question}</summary>
                 <p style={{ margin: '12px 0 0', color: 'var(--tgm-muted)', lineHeight: 1.65 }}>{answer}</p>

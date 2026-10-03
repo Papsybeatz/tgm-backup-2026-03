@@ -24,6 +24,8 @@ export function AppLayout({ children }) {
               <span aria-hidden="true">|</span>
               <Link to="/about" className="text-gray-500 no-underline transition hover:text-[#003A8C]">About</Link>
               <span aria-hidden="true">|</span>
+              <Link to="/funder-api" className="text-gray-500 no-underline transition hover:text-[#003A8C]">Funders</Link>
+              <span aria-hidden="true">|</span>
               <Link to="/privacy" className="text-gray-500 no-underline transition hover:text-[#003A8C]">Privacy</Link>
             </div>
           </div>

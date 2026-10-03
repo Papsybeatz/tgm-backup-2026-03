@@ -708,6 +708,7 @@ export default function LandingPage() {
             <Link to="/customers" className="hover:text-[#D4AF37] transition">Customers</Link>
             <Link to="/new-york-grants" className="hover:text-[#D4AF37] transition">NY Grants</Link>
             <Link to="/consultants" className="hover:text-[#D4AF37] transition">Consultants</Link>
+            <Link to="/funder-api" className="hover:text-[#D4AF37] transition">Funders</Link>
             <Link to="/trust" className="hover:text-[#D4AF37] transition">Trust</Link>
             <Link to="/about" className="hover:text-[#D4AF37] transition">About</Link>
             <Link to="/lead-magnet/grant-workflow-blueprint" className="hover:text-[#D4AF37] transition">Free Blueprint</Link>

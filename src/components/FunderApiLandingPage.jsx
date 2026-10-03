@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
+import { FUNDER_API_FAQS as faqs } from '../lib/faqs';
 
 /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Brand tokens (match TGM palette)
@@ -453,28 +454,6 @@ export default function FunderApiLandingPage() {
     },
   ];
 
-  const faqs = [
-    {
-      q: 'Does TGM replace our existing grant portal?',
-      a: 'No. TGM is the intelligence layer behind your portal â€” not a replacement. You keep Fluxx, Foundant, Submittable, or your custom system. TGM augments them with scoring and fit intelligence via API.',
-    },
-    {
-      q: 'What happens to our data?',
-      a: 'Application data is used only to return scores and fit analysis for that request. TGM does not train on your funder data or share it across clients. API-level data is isolated per funder.',
-    },
-    {
-      q: 'How does the API handle volume?',
-      a: 'Scoring is synchronous — one call per application, or one call for a whole batch. Cycle intelligence covers a full cohort in a single request.',
-    },
-    {
-      q: 'Can we customize the rubric?',
-      a: 'Yes â€” rubric definition is entirely yours. You set criteria names, weights, descriptions, and scoring scale. TGM applies your rubric; you own the intelligence layer.',
-    },
-    {
-      q: 'What does the pilot look like?',
-      a: 'One or two real grant cycles â€” you keep your existing portal. We run scoring, fit, and cycle intelligence as an overlay. You keep all the output. We document the results for your team.',
-    },
-  ];
 
   return (
     <div className="w-full min-h-screen bg-white text-gray-900">

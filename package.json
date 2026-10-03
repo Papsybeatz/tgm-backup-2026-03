@@ -10,7 +10,7 @@
     "start": "node server.js",
     "start:funder-api": "node backend/funder-intelligence-api/server.js",
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/prerender-meta.mjs",
     "preview": "vite preview",
     "test": "jest tests/api",
     "test:funder-api": "node --test tests/api/funder-intelligence-api.test.js",

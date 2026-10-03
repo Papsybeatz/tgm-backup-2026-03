@@ -324,7 +324,12 @@ test('the latency replacement describes what the API actually does', () => {
   const funder = fs.readFileSync(path.join(SRC, 'components', 'FunderApiLandingPage.jsx'), 'utf8');
   assert.match(funder, /Single or batch/);
   assert.match(funder, /Score one application or a full cycle/);
-  assert.match(funder, /How does the API handle volume\?/);
+
+  // The volume answer moved into the shared FAQ module, so that the rendered
+  // answer and the FAQPage structured data are the same string rather than two
+  // copies. Follow the content to its new home instead of dropping the check.
+  const faqs = fs.readFileSync(path.join(SRC, 'lib', 'faqs.js'), 'utf8');
+  assert.match(faqs, /How does the API handle volume\?/);
 });
 
 test('data handling is described concretely, not by analogy', () => {

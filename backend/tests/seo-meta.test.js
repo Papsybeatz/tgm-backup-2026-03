@@ -220,3 +220,64 @@ test('structured data offers match the real, corrected prices', () => {
     'structured-data prices must match the corrected tier list'
   );
 });
+
+/* ────────── served-HTML metadata (the second audit's finding) ────────── */
+
+const PKG = JSON.parse(fs.readFileSync(path.join(REPO, 'package.json'), 'utf8'));
+const PRERENDER_SRC = fs.readFileSync(path.join(REPO, 'scripts', 'prerender-meta.mjs'), 'utf8');
+const FAQS_SRC = fs.readFileSync(path.join(REPO, 'src', 'lib', 'faqs.js'), 'utf8');
+
+test('the build emits per-route HTML, not just a runtime <head> swap', () => {
+  // Rewriting <head> at runtime fixes the title for Google, which executes JS,
+  // but leaves every route serving the homepage's description in the bytes on
+  // the wire — the exact gap the second audit caught. Only a build step fixes it.
+  assert.match(
+    PKG.scripts.build,
+    /prerender-meta\.mjs/,
+    'the build script must run scripts/prerender-meta.mjs after vite build'
+  );
+});
+
+test('the prerender derives its routes from PAGE_META, not a second list', () => {
+  assert.match(PRERENDER_SRC, /PAGE_META/, 'prerender must read PAGE_META');
+  assert.match(PRERENDER_SRC, /pageMeta\.js/, 'prerender must bundle src/lib/pageMeta.js');
+  assert.doesNotMatch(
+    PRERENDER_SRC,
+    /'\/pricing':\s*\{\s*title/,
+    'prerender must not hard-code a second copy of the page metadata'
+  );
+});
+
+test('the prerender refuses to silently skip a tag it cannot find', () => {
+  // A no-op prerender is worse than none: it looks green and ships the bug.
+  assert.match(PRERENDER_SRC, /replaceOnce/, 'prerender must replace tags through a checked helper');
+  assert.match(PRERENDER_SRC, /expected exactly 1 match/, 'a missing tag must throw, not pass');
+});
+
+test('FAQ schema and the rendered FAQs come from one module', () => {
+  // Hand-copied markup drifts the first time an answer changes, and the page
+  // then publishes a question it does not actually answer.
+  assert.match(FAQS_SRC, /export const PRICING_FAQS/, 'PRICING_FAQS must be exported');
+  assert.match(FAQS_SRC, /export const FUNDER_API_FAQS/, 'FUNDER_API_FAQS must be exported');
+  assert.match(FAQS_SRC, /export function faqPageSchema/, 'faqPageSchema must be exported');
+  assert.match(PRERENDER_SRC, /PRICING_FAQS/, 'prerender must read the shared pricing FAQs');
+  assert.match(PRERENDER_SRC, /FUNDER_API_FAQS/, 'prerender must read the shared funder FAQs');
+
+  const pricing = fs.readFileSync(path.join(REPO, 'src', 'components', 'PricingPage.jsx'), 'utf8');
+  const funder = fs.readFileSync(path.join(REPO, 'src', 'components', 'FunderApiLandingPage.jsx'), 'utf8');
+  assert.match(pricing, /from '\.\.\/lib\/faqs'/, 'PricingPage must import the shared FAQs');
+  assert.match(funder, /from '\.\.\/lib\/faqs'/, 'FunderApiLandingPage must import the shared FAQs');
+});
+
+test('the funder API is reachable from the header nav and both footers', () => {
+  // The funder-api page was fully built and priced but unreachable by
+  // navigation — the third buyer type could only find it by guessing the URL.
+  const surfaces = {
+    AppHeader: fs.readFileSync(path.join(REPO, 'src', 'components', 'AppHeader.jsx'), 'utf8'),
+    AppLayout: fs.readFileSync(path.join(REPO, 'src', 'components', 'AppLayout.jsx'), 'utf8'),
+    LandingPage: fs.readFileSync(path.join(REPO, 'src', 'components', 'LandingPage.jsx'), 'utf8'),
+  };
+  for (const [name, src] of Object.entries(surfaces)) {
+    assert.match(src, /\/funder-api/, `${name} must link to /funder-api`);
+  }
+});
