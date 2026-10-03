@@ -236,6 +236,17 @@ test('the build emits per-route HTML, not just a runtime <head> swap', () => {
     /prerender-meta\.mjs/,
     'the build script must run scripts/prerender-meta.mjs after vite build'
   );
+
+  // vercel.json's buildCommand OVERRIDES the package script. It previously said
+  // "npx vite build", which skipped the prerender on every deploy while local
+  // builds looked perfectly correct — so the deployed HTML never had the
+  // per-route tags at all, and no amount of routing work could expose them.
+  const vercel = JSON.parse(fs.readFileSync(path.join(REPO, 'vercel.json'), 'utf8'));
+  assert.match(
+    vercel.buildCommand || '',
+    /npm run build|prerender-meta\.mjs/,
+    'vercel.json buildCommand must run the prerender, not a bare vite build'
+  );
 });
 
 test('the prerender derives its routes from PAGE_META, not a second list', () => {
