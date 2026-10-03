@@ -69,12 +69,11 @@ test('the limit comparison is not vacuous', async () => {
 
 /* ─────────────── the Founding Member card ─────────────── */
 
-test('the Founding Member card does not claim features the lifetime tier lacks', async () => {
-  // The card said "Everything in Starter, forever" while listing "Funder
-  // alignment insights" and "Grant Fit Score" — neither of which TIERS.lifetime
-  // grants. It is a hybrid tier, so it must not borrow a tier name either:
-  // calling it "Pro" would imply team seats, shared workspace, NY funder
-  // intelligence and document uploads, all of which it withholds.
+test('the Founding Member card claims only what the lifetime tier grants', async () => {
+  // The card used to say "Everything in Starter, forever" while the tier omitted
+  // funder_alignment, grant_fit_score, missing_components and compliance_checks.
+  // The tier now grants them, so the phrase is allowed again — but only while it
+  // stays true, which is what the superset check below enforces.
   const { TIERS } = await frontendTiersPromise;
   const granted = TIERS.lifetime.features;
   const card = fs.readFileSync(path.join(REPO, 'src', 'components', 'PricingPage.jsx'), 'utf8');
@@ -84,26 +83,104 @@ test('the Founding Member card does not claim features the lifetime tier lacks',
   assert.ok(start !== -1 && end > start, 'could not isolate the Founding Member card block');
   const block = card.slice(start, end);
 
+  // Every feature the card names must be one the tier actually grants.
   const CLAIMS = [
     ['funder_alignment', /Funder alignment/i],
     ['grant_fit_score', /Grant Fit Score/i],
     ['compliance_checks', /Compliance checks/i],
+    ['missing_components', /Missing components/i],
+    ['analytics_advanced', /Advanced analytics/i],
+    ['reviewer_simulation', /Reviewer simulation/i],
+    ['grant_calendar', /Grant calendar/i],
   ];
   for (const [key, label] of CLAIMS) {
-    if (!granted.includes(key)) {
-      assert.doesNotMatch(
-        block,
-        label,
+    if (label.test(block)) {
+      assert.ok(
+        granted.includes(key),
         `the card claims "${key}", which TIERS.lifetime does not grant`
       );
     }
   }
 
-  assert.doesNotMatch(
-    block,
-    /Everything in (Starter|Pro)/,
-    'the lifetime tier is a hybrid — it must not be described as a copy of another tier'
-  );
+  // "Everything in Starter" is honest only while the tier really is a superset.
+  if (/Everything in Starter/.test(block)) {
+    const missing = TIERS.starter.features.filter((f) => !granted.includes(f));
+    assert.deepEqual(
+      missing,
+      [],
+      `the card says "Everything in Starter" but lifetime lacks: ${missing.join(', ')}`
+    );
+  }
+
+  // It must never claim Pro: lifetime has no seats, shared workspace, NY funder
+  // intelligence or document uploads.
+  assert.doesNotMatch(block, /Everything in Pro/, 'lifetime is not a Pro superset');
+});
+
+test('the lifetime tier is a superset of starter in BOTH configs', async () => {
+  // A $499 lifetime deal must not withhold features from the $29/mo plan. Both
+  // configs are checked, because the frontend gates the UI and the backend
+  // enforces the API — fixing one alone leaves the two disagreeing.
+  const { TIERS: FRONTEND_TIERS } = await frontendTiersPromise;
+  for (const [name, TIERS] of [['frontend', FRONTEND_TIERS], ['backend', BACKEND_TIERS]]) {
+    const missing = TIERS.starter.features.filter((f) => !TIERS.lifetime.features.includes(f));
+    assert.deepEqual(
+      missing,
+      [],
+      `${name} lifetime tier is missing starter features: ${missing.join(', ')}`
+    );
+  }
+});
+
+test('no file uses a tiers.js helper without importing it', () => {
+  // There is no linter in this repo, so nothing caught this: UnifiedDashboard
+  // called tierAtLeast() on the /dashboard route without importing it. The
+  // minifier left the name unrenamed because it resolved as a free variable, so
+  // the build stayed green and the crash only appeared at runtime on a core
+  // route. Comments are stripped first — a mention inside a comment is not a use.
+  const HELPERS = [
+    'TIERS', 'hasFeature', 'getDashboardModules', 'getTierLimits',
+    'isWithinLimit', 'tierAtLeast', 'getTierGates',
+  ];
+  const SRC = path.join(REPO, 'src');
+  const offenders = [];
+
+  const stripComments = (t) =>
+    t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name !== 'node_modules') walk(full);
+        continue;
+      }
+      if (!/\.(jsx?|tsx?)$/.test(entry.name)) continue;
+      if (full.endsWith(path.join('config', 'tiers.js'))) continue;
+
+      const text = stripComments(fs.readFileSync(full, 'utf8'));
+      const importStatements = text.match(/import[\s\S]*?from\s*['"][^'"]+['"]/g) || [];
+
+      for (const name of HELPERS) {
+        if (!new RegExp(`(?<![\\w.$])${name}(?![\\w$])`).test(text)) continue;
+        const imported = importStatements.some((s) => new RegExp(`\\b${name}\\b`).test(s));
+        const declared = new RegExp(`(?:function|class|const|let|var)\\s+${name}\\b`).test(text);
+        if (!imported && !declared) offenders.push(`${path.relative(REPO, full)} uses ${name}`);
+      }
+    }
+  };
+
+  walk(SRC);
+  assert.deepEqual(offenders, [], `tier helpers used without an import:\n${offenders.join('\n')}`);
+});
+
+test('the lifetime tier grants no team seats in either config', async () => {
+  // The frontend advertised teamSeats: 1 while backend/routes/teamInvites.js
+  // seatCapFor() reads a missing value as none, so a lifetime user was shown a
+  // seat the API would refuse.
+  const { TIERS: FRONTEND_TIERS } = await frontendTiersPromise;
+  assert.equal(FRONTEND_TIERS.lifetime.limits.teamSeats, 0, 'frontend lifetime must grant no seats');
+  assert.equal(BACKEND_TIERS.lifetime.limits.teamSeats, 0, 'backend lifetime must grant no seats');
 });
 
 /* ─────────────── funder application limits ─────────────── */

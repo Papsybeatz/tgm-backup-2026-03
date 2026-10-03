@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from './UserContext';
 import SteveCounterHost from './SteveCounterHost';
-import { TIERS } from '../config/tiers';
+import { TIERS, hasFeature } from '../config/tiers';
 import BillingPortalButton from './BillingPortalButton';
 import DraftsList from './DraftsList';
 import FundingAccelerator from './FundingAccelerator';
@@ -412,6 +412,12 @@ function AdvancedDashboard({ tier, tierConfig }) {
     upgradeLabel: 'View Plans',
   };
 
+  // Keyed off the client_folders feature, not tier order. `lifetime` sits last in
+  // TIER_ORDER, so tierAtLeast(tier, 'agency_starter') was true for it and a
+  // Founding Member was shown an agency "Client operations" card for folders the
+  // tier does not grant.
+  const hasClientOps = hasFeature(tier, 'client_folders');
+
   const capabilityCards = [
     {
       title: 'Draft workspace',
@@ -426,12 +432,12 @@ function AdvancedDashboard({ tier, tierConfig }) {
       onClick: () => navigate('/workspace/new'),
     },
     {
-      title: tierAtLeast(tier, 'agency_starter') ? 'Client operations' : 'Plan controls',
-      detail: tierAtLeast(tier, 'agency_starter')
+      title: hasClientOps ? 'Client operations' : 'Plan controls',
+      detail: hasClientOps
         ? 'Coordinate multi-client delivery and team workflows from your agency workspace.'
         : 'Manage your current plan and compare higher-tier capabilities when needed.',
-      action: tierAtLeast(tier, 'agency_starter') ? 'Open Dashboard' : planTone.upgradeLabel,
-      to: tierAtLeast(tier, 'agency_starter') ? '/dashboard' : '/plans',
+      action: hasClientOps ? 'Open Dashboard' : planTone.upgradeLabel,
+      to: hasClientOps ? '/dashboard' : '/plans',
     },
   ];
 

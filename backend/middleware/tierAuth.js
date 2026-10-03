@@ -40,10 +40,17 @@ const TIERS = {
     limits: { drafts: Infinity, scoring: Infinity, matching: Infinity, teamSeats: Infinity, clientFolders: true }
   },
   lifetime: {
-    // Founding Member: scoped to Starter-level forever. No seats, no clients —
-    // that is what keeps Pro and Agency intact.
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'save_drafts', 'version_history', 'email_delivery', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'ai_rewrite', 'ai_priority', 'matching_basic', 'matching_engine', 'matching_unlimited', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'priority_support', 'lifetime_badge', 'founder_certificate'],
-    limits: { drafts: Infinity, scoring: Infinity, matching: Infinity }
+    // Founding Member: everything in Starter, plus Pro's analytics, reviewer
+    // simulation, calendar and priority AI, locked in forever. No seats and no
+    // client folders — that is what keeps Pro and Agency intact.
+    //
+    // This previously omitted funder_alignment, grant_fit_score,
+    // missing_components and compliance_checks, all of which Starter has, while
+    // the pricing card advertised "Everything in Starter, forever".
+    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'save_drafts', 'version_history', 'email_delivery', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'ai_rewrite', 'ai_priority', 'matching_basic', 'matching_engine', 'matching_unlimited', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'priority_support', 'lifetime_badge', 'founder_certificate'],
+    // teamSeats is explicit rather than omitted: seatCapFor() reads a missing
+    // value as none, and stating 0 keeps that behaviour from looking accidental.
+    limits: { drafts: Infinity, scoring: Infinity, matching: Infinity, teamSeats: 0 }
   }
 };
 

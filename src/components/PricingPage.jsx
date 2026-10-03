@@ -145,19 +145,23 @@ const SECURITY_POINTS = [
   'Secure document storage',
 ];
 
-// Founding Member is a hybrid, not a superset of any single tier, so the card
-// lists what the tier actually grants rather than borrowing a tier's name.
-// Source of truth: TIERS.lifetime in src/config/tiers.js — keep the two in step.
+// Founding Member is now a genuine Starter superset. The four features it was
+// missing — funder_alignment, grant_fit_score, missing_components and
+// compliance_checks, all of which Starter ($29/mo) has — were added to BOTH
+// configs, so this card's original "Everything in Starter" claim is finally
+// true rather than aspirational.
 //
-// Two corrections are folded in here. The card used to say "Everything in
-// Starter, forever" while listing "Funder alignment insights" and "Grant Fit
-// Score", which the lifetime tier does not grant. And the audit asked for
-// "Everything in Pro", which would be worse: lifetime has Pro's analytics,
-// reviewer simulation and calendar, but not Pro's team seats, shared workspace,
-// NY funder intelligence or document uploads.
+// It still stops short of Pro's team seats, shared workspace, NY funder
+// intelligence and document uploads, which is what keeps the $79/mo tier worth
+// buying. Source of truth: TIERS.lifetime in src/config/tiers.js.
 const LIFETIME_FEATURES = [
+  'Full AI drafting (Steve)',
   'Unlimited saved drafts',
   'Full Checkmate scoring',
+  'Funder alignment insights',
+  'Grant Fit Score',
+  'Missing components detection',
+  'Compliance checks',
   'Unlimited funder matching',
   'Advanced analytics',
   'Reviewer simulation',
@@ -165,13 +169,12 @@ const LIFETIME_FEATURES = [
   'Priority AI processing',
   'Template library',
   'Export to PDF and Word',
-  '1 team seat',
   'Priority support',
   'Founding Member badge and certificate',
 ];
 
 const LIFETIME_EXCLUDES = [
-  'Shared workspace and team seats beyond 1',
+  'Team seats and shared workspace',
   'NY funder intelligence and NY compliance rules',
   'Document uploads and custom export formatting',
   'Agency client folders, white-label output and bulk scoring',
@@ -376,7 +379,7 @@ export default function PricingPage() {
               Limited to 100 seats. One payment, no renewal, ever. Your price is locked for life.
             </p>
             <p style={{ margin: '0 0 22px', fontSize: 14, fontWeight: 900, color: 'var(--tgm-navy)' }}>
-              Starter-level drafting and scoring, plus Pro's advanced analytics and calendar.
+              Everything in Starter, plus Pro's advanced analytics and calendar.
             </p>
             <UpgradeButton
               tierKey="lifetime"

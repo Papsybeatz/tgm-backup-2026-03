@@ -69,13 +69,22 @@ export const TIERS = {
   lifetime: {
     key: 'lifetime',
     name: 'Lifetime',
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'matching_engine', 'matching_unlimited', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_1', 'priority_support', 'lifetime_badge', 'founder_certificate'],
+    // Everything in Starter, plus Pro's analytics, reviewer simulation,
+    // calendar and priority AI. It previously omitted funder_alignment,
+    // grant_fit_score, missing_components and compliance_checks — four features
+    // Starter ($29/mo) has — while the card advertised "Everything in Starter,
+    // forever", so the tier and its own description disagreed.
+    //
+    // Seats are deliberately 0, not 1: the backend (routes/teamInvites.js
+    // seatCapFor) has always treated a missing teamSeats as none, so the old
+    // `1` here only ever showed a seat the API would refuse.
+    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'matching_basic', 'matching_engine', 'matching_unlimited', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'priority_support', 'lifetime_badge', 'founder_certificate'],
     limits: {
       drafts: Infinity,
       scoring: Infinity,
       matching: Infinity,
       exports: true,
-      teamSeats: 1
+      teamSeats: 0
     },
     dashboardModules: ['draft', 'scoring', 'matching', 'analytics', 'calendar']
   }
