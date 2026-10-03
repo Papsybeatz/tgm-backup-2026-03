@@ -280,30 +280,33 @@ test('FAQ schema and the rendered FAQs come from one module', () => {
   assert.match(funder, /from '\.\.\/lib\/faqs'/, 'FunderApiLandingPage must import the shared FAQs');
 });
 
-test('every prerendered route is exposed by a rewrite ahead of the catch-all', () => {
-  // Measured on production: a catch-all rewrite and handle:filesystem both
-  // swallowed the prerendered files, so /pricing served the homepage's
-  // description even though dist/pricing/index.html was deployed and returned
-  // 200 when requested directly. Only an explicit rewrite wins, and it has to
-  // come before the catch-all or the catch-all takes the path first.
+test('every prerendered route is exposed by a rewrite, and unknown paths 404', () => {
+  // Two requirements pull in opposite directions:
+  //  - the SPA needs a fallback so a real client route survives a refresh;
+  //  - an unknown path must return 404, not 200 with the app shell.
+  // The fix is an explicit rewrite for every real app route and NO broad
+  // catch-all, so Vercel falls through to its 404 for anything else. A broad
+  // catch-all would silently undo the second requirement.
   const vercel = JSON.parse(fs.readFileSync(path.join(REPO, 'vercel.json'), 'utf8'));
   const rewrites = vercel.rewrites || [];
   const sources = rewrites.map((r) => r.source);
-  const catchAll = rewrites.findIndex((r) => r.destination === '/index.html');
-  assert.ok(catchAll !== -1, 'vercel.json must keep an SPA catch-all fallback');
+
+  assert.ok(
+    rewrites.some((r) => r.destination === '/index.html'),
+    'vercel.json must keep an SPA fallback rewrite for client routes'
+  );
 
   const missing = Object.keys(parsePageMeta(META_SRC))
     .filter((p) => p !== '/')
     .filter((p) => !sources.includes(p));
   assert.deepEqual(missing, [], `prerendered routes with no rewrite: ${missing.join(', ')}`);
 
-  for (const p of Object.keys(parsePageMeta(META_SRC))) {
-    if (p === '/') continue;
-    assert.ok(
-      sources.indexOf(p) < catchAll,
-      `${p} must be rewritten before the catch-all, or it will never be served`
-    );
-  }
+  const broad = sources.filter((s) => s === '/(.*)' || s.includes('(?!assets/).*'));
+  assert.deepEqual(
+    broad,
+    [],
+    `a broad catch-all turns every unknown path into a 200: ${broad.join(', ')}`
+  );
 });
 
 test('the funder API is reachable from the header nav and both footers', () => {
@@ -316,5 +319,100 @@ test('the funder API is reachable from the header nav and both footers', () => {
   };
   for (const [name, src] of Object.entries(surfaces)) {
     assert.match(src, /\/funder-api/, `${name} must link to /funder-api`);
+  }
+});
+
+/* ────────── crawlability, clarity and authorship (the fourth audit) ────────── */
+
+const ROBOTS_SRC = fs.readFileSync(path.join(REPO, 'public', 'robots.txt'), 'utf8');
+const VERCEL = JSON.parse(fs.readFileSync(path.join(REPO, 'vercel.json'), 'utf8'));
+
+const PAGE_CONTENT_BLOCK = (() => {
+  const block = META_SRC.match(/export const PAGE_CONTENT = \{([\s\S]*?)\n\};/);
+  assert.ok(block, 'PAGE_CONTENT block not found in src/lib/pageMeta.js');
+  return block[1];
+})();
+
+const countIn = (haystack, re) => (haystack.match(re) || []).length;
+
+test('robots.txt is a real robots file with a sitemap pointer', () => {
+  assert.match(ROBOTS_SRC, /^User-agent:\s*\*/m, 'robots.txt has no User-agent directive');
+  assert.match(
+    ROBOTS_SRC,
+    /^Sitemap:\s*https:\/\/www\.thegrantsmaster\.com\/sitemap\.xml$/m,
+    'robots.txt has no sitemap pointer'
+  );
+  assert.match(ROBOTS_SRC, /^Disallow:\s*\/dashboard$/m, 'robots.txt must disallow auth-gated routes');
+});
+
+test('vercel.json sends the security headers the audit checks', () => {
+  const headers = (VERCEL.headers || []).flatMap((h) => (h.headers || []).map((x) => x.key));
+  for (const key of [
+    'Content-Security-Policy',
+    'X-Content-Type-Options',
+    'X-Frame-Options',
+    'Referrer-Policy',
+  ]) {
+    assert.ok(headers.includes(key), `vercel.json is missing the ${key} header`);
+  }
+});
+
+test('unknown paths serve a 404 page, not the app shell', () => {
+  assert.ok(
+    fs.existsSync(path.join(REPO, 'public', '404.html')),
+    'public/404.html must exist so Vercel serves a 404, not the SPA shell'
+  );
+});
+
+test('every public page has crawlable body content', () => {
+  const paths = Object.keys(parsePageMeta(META_SRC));
+  for (const p of paths) {
+    assert.ok(
+      PAGE_CONTENT_BLOCK.includes(`'${p}': {`),
+      `${p} has no PAGE_CONTENT entry — the prerendered page would have no H1`
+    );
+  }
+  assert.equal(countIn(PAGE_CONTENT_BLOCK, /h1:/g), paths.length, 'every page needs exactly one h1');
+  assert.equal(
+    countIn(PAGE_CONTENT_BLOCK, /definition:/g),
+    paths.length,
+    'every page needs a definition sentence'
+  );
+  assert.equal(
+    countIn(PAGE_CONTENT_BLOCK, /related:/g),
+    paths.length,
+    'every page needs related links so it is not an orphan'
+  );
+});
+
+test('the prerendered body carries one H1, a definition and related links', () => {
+  // Source-level guarantee always runs; the dist assertion runs after a build.
+  assert.match(PRERENDER_SRC, /PAGE_CONTENT/, 'prerender must inject PAGE_CONTENT');
+  assert.match(PRERENDER_SRC, /data-prerender/, 'prerender must mark the injected block');
+
+  const distIndex = path.join(REPO, 'dist', 'index.html');
+  if (!fs.existsSync(distIndex)) return;
+  const html = fs.readFileSync(distIndex, 'utf8');
+  assert.equal((html.match(/<h1/g) || []).length, 1, 'prerendered homepage must have exactly one H1');
+  assert.match(html, /is an AI grant-writing platform/, 'prerendered definition missing');
+  assert.match(html, /<a href="\/pricing">Pricing and plans<\/a>/, 'prerendered related links missing');
+});
+
+test('the prerendered footer links About and Contact on every page', () => {
+  assert.match(META_SRC, /\['\/about', 'About'\]/, 'SITE_NAV must link to About');
+  assert.match(META_SRC, /\['\/contact', 'Contact'\]/, 'SITE_NAV must link to Contact');
+});
+
+test('Organization sameAs lists at least three real profiles', () => {
+  const json = INDEX_SRC.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  assert.ok(json, 'could not extract the JSON-LD block');
+  const org = JSON.parse(json[1])['@graph'].find((n) => n['@type'] === 'Organization');
+  assert.ok(Array.isArray(org.sameAs), 'Organization.sameAs must be an array');
+  assert.ok(
+    org.sameAs.length >= 3,
+    `Organization.sameAs has only ${org.sameAs.length} profile(s); the audit wants at least 3`
+  );
+  for (const url of org.sameAs) {
+    assert.match(url, /^https:\/\//, `sameAs entry is not an absolute https URL: ${url}`);
   }
 });

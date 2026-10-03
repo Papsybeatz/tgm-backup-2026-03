@@ -54,7 +54,9 @@ await build({
   logLevel: 'silent',
 });
 
-const { PAGE_META, SITE_URL } = await import(pathToFileURL(bundledMeta).href);
+const { PAGE_META, PAGE_CONTENT, SITE_NAV, SITE_URL } = await import(
+  pathToFileURL(bundledMeta).href
+);
 const { PRICING_FAQS, FUNDER_API_FAQS, faqPageSchema } = await import(
   pathToFileURL(bundledFaqs).href
 );
@@ -81,6 +83,38 @@ function replaceOnce(html, pattern, replacement, label) {
     );
   }
   return html.replace(pattern, replacement);
+}
+
+/**
+ * The crawlable body block injected into <div id="root">. React replaces this
+ * on mount, so it exists only for clients that do not execute JS. It carries
+ * exactly one H1, a definition sentence, a short intro, related links, and a
+ * footer nav, which is what the audit scores.
+ */
+function renderPrerenderBlock(content) {
+  const related = content.related
+    .map(([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`)
+    .join('');
+  const nav = SITE_NAV.map(
+    ([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`
+  ).join('');
+
+  return [
+    '<div data-prerender="true" style="font-family:system-ui,-apple-system,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;max-width:760px;margin:0 auto;padding:32px 20px;color:#0A0F1A;line-height:1.6">',
+    '<p style="margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#003A8C">The Grants Master</p>',
+    `<h1 style="font-size:34px;line-height:1.15;margin:0 0 16px">${esc(content.h1)}</h1>`,
+    `<p style="font-size:17px;margin:0 0 12px">${esc(content.definition)}</p>`,
+    `<p style="font-size:15px;color:#374151;margin:0 0 24px">${esc(content.intro)}</p>`,
+    '<nav aria-label="Related pages" style="margin:0 0 24px">',
+    '<h2 style="font-size:16px;margin:0 0 8px">Related pages</h2>',
+    `<ul style="margin:0;padding-left:20px">${related}</ul>`,
+    '</nav>',
+    '<nav aria-label="Site" style="border-top:1px solid #E5E7EB;padding-top:16px">',
+    '<h2 style="font-size:16px;margin:0 0 8px">Explore The Grants Master</h2>',
+    `<ul style="margin:0;padding-left:20px;columns:2">${nav}</ul>`,
+    '</nav>',
+    '</div>',
+  ].join('');
 }
 
 /** FAQ structured data, built from the same arrays the pages render. */
@@ -134,6 +168,17 @@ function buildPage(template, meta, routePath) {
     const json = JSON.stringify(faqPageSchema(faqs), null, 2).replace(/<\//g, '<\\/');
     html = html.replace('</head>', `  <script type="application/ld+json">\n${json}\n  </script>\n</head>`);
   }
+
+  const content = PAGE_CONTENT[routePath];
+  if (!content) {
+    throw new Error(`[prerender] no PAGE_CONTENT for ${routePath} — add it to src/lib/pageMeta.js`);
+  }
+  html = replaceOnce(
+    html,
+    /<div id="root"><\/div>/,
+    `<div id="root">${renderPrerenderBlock(content)}</div>`,
+    'root'
+  );
 
   return html;
 }

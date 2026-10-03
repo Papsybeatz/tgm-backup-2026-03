@@ -120,9 +120,9 @@ const LoginPage = () => {
           <p style={{ color: 'var(--tgm-gold-light)', fontWeight: 600, fontSize: 13, marginBottom: 16, letterSpacing: '.5px', textTransform: 'uppercase' }}>
             🇺🇸 U.S. Registered Company
           </p>
-          <h2 style={{ fontSize: 36, fontWeight: 800, lineHeight: 1.2, margin: '0 0 20px' }}>
+          <h1 style={{ fontSize: 36, fontWeight: 800, lineHeight: 1.2, margin: '0 0 20px' }}>
             Win more grants with AI-powered writing
-          </h2>
+          </h1>
           <p style={{ fontSize: 16, opacity: .75, lineHeight: 1.7, margin: '0 0 40px' }}>
             Trusted by nonprofits, agencies, and consultants to draft funder-ready proposals in minutes.
           </p>

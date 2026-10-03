@@ -1,0 +1,21 @@
+# robots.txt for https://www.thegrantsmaster.com
+# Public marketing pages are crawlable. Auth-gated and post-submit app
+# routes are disallowed so they never compete with the real pages.
+
+User-agent: *
+Allow: /
+
+Disallow: /dashboard
+Disallow: /workspace
+Disallow: /admin
+Disallow: /billing
+Disallow: /team
+Disallow: /clients
+Disallow: /onboarding
+Disallow: /upgrade
+Disallow: /invite
+Disallow: /reset-password
+Disallow: /scott
+Disallow: /funder/reviewer
+
+Sitemap: https://www.thegrantsmaster.com/sitemap.xml

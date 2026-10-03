@@ -149,6 +149,250 @@ export const PAGE_META = {
 };
 
 /**
+ * Static, crawlable body content for each public page.
+ *
+ * Why this exists: this is a client-rendered SPA, so every prerendered HTML
+ * file had an empty <div id="root"></div>. Crawlers that do not execute JS saw
+ * a page with no H1, no definition, no internal links and no footer, which is
+ * what the audit measured. scripts/prerender-meta.mjs injects this block into
+ * the prerendered body; React replaces it on mount, so users still get the app.
+ *
+ * Each entry opens with a definition ("X is …") and a short intro, both
+ * written in short sentences, and links to related pages so no public page is
+ * an orphan. Keep the copy factual — no ratings or claims we cannot support.
+ */
+export const PAGE_CONTENT = {
+  '/': {
+    h1: 'The Grants Master — AI grant writing and pre-submission scoring',
+    definition:
+      'The Grants Master is an AI grant-writing platform that drafts funder-ready proposals and scores them before you submit.',
+    intro:
+      'Steve writes each section from your organization details. Checkmate grades the draft against funder criteria and shows the gaps. You review, edit, and export to PDF or Word.',
+    related: [
+      ['/pricing', 'Pricing and plans'],
+      ['/features', 'Features'],
+      ['/new-york-grants', 'New York grants'],
+    ],
+  },
+  '/pricing': {
+    h1: 'Pricing and plans',
+    definition:
+      'The Grants Master pricing is a set of monthly plans, plus a one-time Founding Member lifetime option.',
+    intro:
+      'Free includes one saved draft and basic scoring, while Starter adds unlimited drafts and full Checkmate scoring. Pro adds team seats, and Agency adds client folders and white-label reports.',
+    related: [
+      ['/features', 'Features'],
+      ['/trust', 'Trust and security'],
+      ['/contact', 'Contact the team'],
+    ],
+  },
+  '/features': {
+    h1: 'Features: Steve AI drafting and Checkmate scoring',
+    definition:
+      'The Grants Master features are AI drafting, pre-submission scoring, funder alignment, and compliance checks in one workspace.',
+    intro:
+      'Steve drafts structured proposals section by section. Checkmate scores each draft and names the missing components. Funder matching suggests where the proposal fits best.',
+    related: [
+      ['/pricing', 'Pricing and plans'],
+      ['/funder-api', 'Funder Intelligence API'],
+      ['/consultants', 'For consultants and agencies'],
+    ],
+  },
+  '/new-york-grants': {
+    h1: 'New York grants, simplified',
+    definition:
+      'New York grants are state, city, and private funding opportunities open to organizations in or serving New York.',
+    intro:
+      'The Grants Master collects NYSCA, NYSED, ESD, and NYC Arts opportunities in one place. Each listing shows deadlines, eligibility, and a Grant Fit Score for your organization.',
+    related: [
+      ['/new-york-grants/checklist', 'NY grant application checklist'],
+      ['/features', 'Features'],
+      ['/pricing', 'Pricing and plans'],
+    ],
+  },
+  '/funder-api': {
+    h1: 'Funder Intelligence API',
+    definition:
+      'The Funder Intelligence API is a rubric-based scoring service that lets grantmakers evaluate applications against their own criteria.',
+    intro:
+      'Send an application and a rubric, and the API returns criterion-level scores, funder-fit signals, and cohort analytics. It integrates with Fluxx, Foundant, and Submittable.',
+    related: [
+      ['/features', 'Features'],
+      ['/pricing', 'Pricing and plans'],
+      ['/contact', 'Contact the team'],
+    ],
+  },
+  '/consultants': {
+    h1: 'For grant consultants and agencies',
+    definition:
+      'The Grants Master for consultants is a multi-client mode that keeps each nonprofit work in its own folder.',
+    intro:
+      'Client folders isolate every organization. White-label Checkmate reports carry your brand. Bulk scoring and role-based permissions let a team work across clients without mixing them up.',
+    related: [
+      ['/pricing', 'Pricing and plans'],
+      ['/features', 'Features'],
+      ['/contact', 'Contact the team'],
+    ],
+  },
+  '/about': {
+    h1: 'About The Grants Master',
+    definition:
+      'The Grants Master is built by Gee Oh Dee (Tech) LLC, a software company in Roanoke, Virginia.',
+    intro:
+      'Thomas Clottey, a full stack and AI software developer, founded the company and leads the build. The team is small and the product is early, so this page stays specific about what works today.',
+    related: [
+      ['/contact', 'Contact the team'],
+      ['/trust', 'Trust and security'],
+      ['/customers', 'Customers and proof'],
+    ],
+  },
+  '/trust': {
+    h1: 'Trust and security',
+    definition:
+      'The Grants Master trust model is built on independently audited infrastructure rather than custom security claims.',
+    intro:
+      'Railway hosts the backend, Vercel serves the frontend, Supabase stores the database, and GitHub holds the source. Stripe processes payments, and all data is encrypted in transit and at rest.',
+    related: [
+      ['/privacy', 'Privacy policy'],
+      ['/about', 'About The Grants Master'],
+      ['/contact', 'Contact the team'],
+    ],
+  },
+  '/new-york-grants/checklist': {
+    h1: 'New York grant application checklist',
+    definition:
+      'A grant application checklist is a pre-submission list that catches the errors funders reject proposals for.',
+    intro:
+      'This checklist covers eligibility, budget, attachments, and the wording mistakes that cost points. Work through it after the draft is complete and before anyone else reads it.',
+    related: [
+      ['/new-york-grants', 'New York grants'],
+      ['/features', 'Features'],
+      ['/pricing', 'Pricing and plans'],
+    ],
+  },
+  '/customers': {
+    h1: 'Customers and proof',
+    definition:
+      'The Grants Master is early, and this page shows what the team can prove today.',
+    intro:
+      'There are no invented testimonials and no fabricated logos here. When real customer results exist, they will be published with permission.',
+    related: [
+      ['/about', 'About The Grants Master'],
+      ['/trust', 'Trust and security'],
+      ['/pricing', 'Pricing and plans'],
+    ],
+  },
+  '/request-access': {
+    h1: 'Request access',
+    definition:
+      'Requesting access is the step that starts a The Grants Master workspace for your organization.',
+    intro:
+      'Tell us about your organization and what you need to write. The team reviews each request and replies with next steps.',
+    related: [
+      ['/pricing', 'Pricing and plans'],
+      ['/contact', 'Contact the team'],
+      ['/features', 'Features'],
+    ],
+  },
+  '/lead-magnet/grant-workflow-blueprint': {
+    h1: 'Free grant workflow blueprint',
+    definition:
+      'The grant workflow blueprint is a six-step system for running a proposal from funder research through submission.',
+    intro:
+      'Each step names the work, the time it takes, and the output it produces. Follow the steps in order and the reusable content library grows with every proposal.',
+    related: [
+      ['/features', 'Features'],
+      ['/new-york-grants/checklist', 'NY grant application checklist'],
+      ['/signup', 'Create your free account'],
+    ],
+  },
+  '/contact': {
+    h1: 'Contact The Grants Master',
+    definition:
+      'Contacting The Grants Master is the fastest way to reach the team about plans, the Funder Intelligence API, or a New York grant.',
+    intro:
+      'Send a message and the team replies directly. There is no phone tree and no ticket queue.',
+    related: [
+      ['/about', 'About The Grants Master'],
+      ['/pricing', 'Pricing and plans'],
+      ['/funder-api', 'Funder Intelligence API'],
+    ],
+  },
+  '/signup': {
+    h1: 'Create your free account',
+    definition:
+      'Signing up creates a free The Grants Master account with one saved draft and basic scoring.',
+    intro:
+      'No credit card is required. Score a draft with Checkmate and see where it would lose points before you submit.',
+    related: [
+      ['/pricing', 'Pricing and plans'],
+      ['/features', 'Features'],
+      ['/login', 'Log in'],
+    ],
+  },
+  '/login': {
+    h1: 'Log in to The Grants Master',
+    definition:
+      'Logging in opens your The Grants Master workspace and the drafts saved to it.',
+    intro:
+      'Enter the email and password you signed up with. If you forgot the password, use the reset link.',
+    related: [
+      ['/signup', 'Create your free account'],
+      ['/pricing', 'Pricing and plans'],
+      ['/contact', 'Contact the team'],
+    ],
+  },
+  '/privacy': {
+    h1: 'Privacy policy',
+    definition:
+      'This privacy policy explains what data The Grants Master collects, how it is used, and how you can have it deleted.',
+    intro:
+      'It covers account details, drafts, and usage data. Drafts are never used to train AI models. You can request deletion at any time.',
+    related: [
+      ['/terms', 'Terms of service'],
+      ['/trust', 'Trust and security'],
+      ['/contact', 'Contact the team'],
+    ],
+  },
+  '/terms': {
+    h1: 'Terms of service',
+    definition:
+      'These terms of service set out the rules for using The Grants Master, including accounts, billing, and liability.',
+    intro:
+      'They cover accounts, acceptable use, billing, and liability. Read them alongside the privacy policy.',
+    related: [
+      ['/privacy', 'Privacy policy'],
+      ['/trust', 'Trust and security'],
+      ['/contact', 'Contact the team'],
+    ],
+  },
+};
+
+/**
+ * Site-wide links rendered into the prerendered footer of every public page.
+ * This is what keeps About and Contact reachable in the footer and stops any
+ * public page from becoming an orphan.
+ */
+export const SITE_NAV = [
+  ['/', 'Home'],
+  ['/pricing', 'Pricing and plans'],
+  ['/features', 'Features'],
+  ['/new-york-grants', 'New York grants'],
+  ['/new-york-grants/checklist', 'NY grant checklist'],
+  ['/funder-api', 'Funder Intelligence API'],
+  ['/consultants', 'For consultants and agencies'],
+  ['/about', 'About'],
+  ['/trust', 'Trust and security'],
+  ['/customers', 'Customers'],
+  ['/request-access', 'Request access'],
+  ['/contact', 'Contact'],
+  ['/signup', 'Sign up'],
+  ['/login', 'Log in'],
+  ['/privacy', 'Privacy'],
+  ['/terms', 'Terms'],
+];
+
+/**
  * Duplicate-content aliases. These routes render the same component as their
  * target, so they must not be indexed as separate pages — the canonical points
  * at the real one and they stay out of the sitemap.
