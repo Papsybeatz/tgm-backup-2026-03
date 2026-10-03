@@ -269,6 +269,19 @@ test('FAQ schema and the rendered FAQs come from one module', () => {
   assert.match(funder, /from '\.\.\/lib\/faqs'/, 'FunderApiLandingPage must import the shared FAQs');
 });
 
+test('routing checks the filesystem before the SPA fallback', () => {
+  // Without this the catch-all rewrite swallows the prerendered per-route HTML
+  // and every path serves index.html again, silently undoing the whole fix.
+  // Measured: with only "rewrites", /pricing served the homepage's description.
+  const vercel = JSON.parse(fs.readFileSync(path.join(REPO, 'vercel.json'), 'utf8'));
+  const routes = vercel.routes || [];
+  const fsIndex = routes.findIndex((r) => r.handle === 'filesystem');
+  const fallbackIndex = routes.findIndex((r) => /index\.html/.test(r.dest || ''));
+  assert.ok(fsIndex !== -1, 'vercel.json must handle the filesystem first');
+  assert.ok(fallbackIndex !== -1, 'vercel.json must keep an SPA fallback');
+  assert.ok(fsIndex < fallbackIndex, 'the filesystem handle must precede the SPA fallback');
+});
+
 test('the funder API is reachable from the header nav and both footers', () => {
   // The funder-api page was fully built and priced but unreachable by
   // navigation — the third buyer type could only find it by guessing the URL.
