@@ -60,8 +60,8 @@ export default function CustomersPage() {
 
       <section className="bg-[#F7F9FB] px-6 py-16">
         <div className="mx-auto max-w-5xl">
-          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">How teams use TGM</p>
-          <h2 className="mb-8 text-3xl font-black text-[#0A0F1A]">Workflow examples &mdash; no outcome figures attached</h2>
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">Representative workflows</p>
+          <h2 className="mb-8 text-3xl font-black text-[#0A0F1A]">How TGM fits three common grant workflows</h2>
           <div className="grid gap-5 md:grid-cols-3">
             {WORKFLOWS.map((w) => (
               <div key={w.title} className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
@@ -71,8 +71,9 @@ export default function CustomersPage() {
             ))}
           </div>
           <p className="mt-6 text-sm leading-6 text-gray-600">
-            These are descriptions of how the product is used, not named customer case studies. Named case studies publish only with
-            written permission, and will appear here when users approve them.
+            These are representative workflows we designed for, not named customers. We have no named case study yet, and we will not
+            dress a persona up as one &mdash; that is the exact thing this page promises not to do. Named case studies publish only
+            with written permission, and will appear here when users approve them.
           </p>
         </div>
       </section>
