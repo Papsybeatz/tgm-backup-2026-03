@@ -321,7 +321,7 @@ export const PAGE_CONTENT = {
   '/signup': {
     h1: 'Create your free account',
     definition:
-      'Signing up creates a free The Grants Master account with one saved draft and basic scoring.',
+      'Signing up is free and gives you one saved draft with basic scoring in The Grants Master.',
     intro:
       'No credit card is required. Score a draft with Checkmate and see where it would lose points before you submit.',
     related: [
@@ -333,7 +333,7 @@ export const PAGE_CONTENT = {
   '/login': {
     h1: 'Log in to The Grants Master',
     definition:
-      'Logging in opens your The Grants Master workspace and the drafts saved to it.',
+      'Logging in is how you open your The Grants Master workspace and the drafts saved to it.',
     intro:
       'Enter the email and password you signed up with. If you forgot the password, use the reset link.',
     related: [
@@ -357,9 +357,9 @@ export const PAGE_CONTENT = {
   '/terms': {
     h1: 'Terms of service',
     definition:
-      'These terms of service set out the rules for using The Grants Master, including accounts, billing, and liability.',
+      'These terms of service are the rules for using The Grants Master, including accounts, billing, and liability.',
     intro:
-      'They cover accounts, acceptable use, billing, and liability. Read them alongside the privacy policy.',
+      'They apply to everyone who uses the service. Read them alongside the privacy policy.',
     related: [
       ['/privacy', 'Privacy policy'],
       ['/trust', 'Trust and security'],
