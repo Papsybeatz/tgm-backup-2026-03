@@ -529,63 +529,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* DEMO SECTION */}
-      <section className="py-20 bg-[#0A0F1A] px-6 text-center">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest mb-3">See It In Action</p>
-          <h2 className="text-3xl font-bold text-white mb-4">From idea to funder-ready proposal in 2 minutes</h2>
-          <p className="text-gray-400 mb-10 text-lg">Watch how GrantsMaster adds drafting, evaluation, and alignment capacity to your team.</p>
-
-          <div
-            onClick={() => setShowDemo(true)}
-            className="relative cursor-pointer group mx-auto"
-            style={{ maxWidth: 680 }}
-          >
-            <div style={{
-              background: 'linear-gradient(160deg, #003A8C, #0A0F1A)',
-              borderRadius: 16, padding: '60px 32px',
-              border: '1px solid rgba(212,175,55,.3)',
-              boxShadow: '0 24px 64px rgba(0,0,0,.5)',
-            }}>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
-                {['#EF4444','#F59E0B','#22C55E'].map(c => (
-                  <div key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />
-                ))}
-              </div>
-              {['## Checkmate Review','','Funder alignment: strong','Missing component: evaluation plan','Budget narrative: needs clarification','','Steve suggested 5 fixes'].map((line, i) => (
-                <div key={i} style={{
-                  height: line === '' ? 8 : 12, marginBottom: 8,
-                  background: line.startsWith('##') ? 'rgba(212,175,55,.6)'
-                    : line.includes(':') ? 'rgba(255,255,255,.5)'
-                    : 'rgba(255,255,255,.2)',
-                  borderRadius: 4,
-                  width: line === '' ? 0 : line.length > 36 ? '86%' : line.length > 20 ? '64%' : '42%',
-                }} />
-              ))}
-            </div>
-
-            <div style={{
-              position: 'absolute', inset: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              borderRadius: 16,
-              background: 'rgba(10,15,26,.4)',
-              transition: 'background .2s',
-            }} className="group-hover:bg-[rgba(10,15,26,0.2)]">
-              <div style={{
-                width: 72, height: 72, borderRadius: '50%',
-                background: '#D4AF37',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 28, color: '#0A0F1A',
-                boxShadow: '0 8px 32px rgba(212,175,55,.5)',
-                transform: 'scale(1)', transition: 'transform .2s',
-              }} className="group-hover:scale-110">▶</div>
-            </div>
-          </div>
-
-          <p className="text-gray-500 text-sm mt-6">2-minute walkthrough · No signup required to watch</p>
-        </div>
-      </section>
-
       {/* HONEST PROOF */}
       <section id="testimonials" className="py-20 bg-[#F8F9FC] px-6">
         <div className="max-w-6xl mx-auto">
