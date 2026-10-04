@@ -14,6 +14,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import OrderTicket from './OrderTicket';
 import SteveIntakeForm from './SteveIntakeForm';
+import SteveCorner from '../dashboard/SteveCorner';
 import { useSteveConcierge } from './useSteveConcierge';
 import SteveErrorBoundary from './SteveErrorBoundary';
 
@@ -95,17 +96,22 @@ export default function SteveCounter() {
 
         <div className="grid gap-4 lg:grid-cols-2">
           {/* ── The counter: itemized intake ── */}
-          <SteveErrorBoundary>
-            <SteveIntakeForm
-              form={c.form}
-              onField={c.setField}
-              onSubmit={() => void c.submitOrder()}
-              onNextClient={() => void c.clearForm()}
-              loading={c.loading}
-              error={c.orderError}
-              hasDraft={Boolean(c.docHtml)}
-            />
-          </SteveErrorBoundary>
+          <div className="flex flex-col gap-4">
+            <SteveErrorBoundary>
+              <SteveIntakeForm
+                form={c.form}
+                onField={c.setField}
+                onSubmit={() => void c.submitOrder()}
+                onNextClient={() => void c.clearForm()}
+                loading={c.loading}
+                error={c.orderError}
+                hasDraft={Boolean(c.docHtml)}
+              />
+            </SteveErrorBoundary>
+            <SteveErrorBoundary>
+              <SteveCorner />
+            </SteveErrorBoundary>
+          </div>
 
           {/* ── The waffle maker: order ticket ── */}
           <SteveErrorBoundary onError={() => setShowTicketOnMobile(false)}>
@@ -117,17 +123,22 @@ export default function SteveCounter() {
 
         {/* Mobile progress bar mirrors the ticket. */}
         {shownProgress && (
-          <div className="mt-3 flex items-center gap-3 lg:hidden">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-[#E8D28C]">Your order</span>
-            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/20">
-              <span
-                className="block h-full rounded-full bg-[#D4AF37] transition-all duration-500"
-                style={{ width: `${shownProgress.percent}%` }}
-              />
-            </span>
-            <span className="text-[11px] font-bold tabular-nums text-white/70">
-              {`${shownProgress.requiredFilled}/${shownProgress.requiredTotal}`}
-            </span>
+          // lg:hidden sits on a wrapper with no `flex` class: src/index.css ships
+          // an unlayered .flex that would otherwise beat Tailwind's layered
+          // lg:hidden and leak this mobile bar onto desktop.
+          <div className="mt-3 lg:hidden">
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[#E8D28C]">Your order</span>
+              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/20">
+                <span
+                  className="block h-full rounded-full bg-[#D4AF37] transition-all duration-500"
+                  style={{ width: `${shownProgress.percent}%` }}
+                />
+              </span>
+              <span className="text-[11px] font-bold tabular-nums text-white/70">
+                {`${shownProgress.requiredFilled}/${shownProgress.requiredTotal}`}
+              </span>
+            </div>
           </div>
         )}
       </div>

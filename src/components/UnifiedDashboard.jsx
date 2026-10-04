@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from './UserContext';
 import SteveCounterHost from './SteveCounterHost';
+import DashboardHero from './dashboard/DashboardHero';
 import { TIERS, hasFeature } from '../config/tiers';
 import BillingPortalButton from './BillingPortalButton';
 import DraftsList from './DraftsList';
@@ -213,35 +214,12 @@ function StarterDashboard({ tierConfig }) {
 
   return (
     <div className="min-h-screen bg-[#F7F9FB] text-gray-900">
-      <section className="border-b border-[#E2E8F0] bg-white px-6 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">TGM Starter</p>
-            <h1 className="text-4xl font-extrabold tracking-tight text-[#0A0F1A]">TGM Dashboard - Starter Plan</h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-gray-600">
-              Full drafting, scoring, and funder fit unlocked.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2.5">
-              {[
-                'Starter - Unlimited Drafts',
-                'Starter - Full Drafting Assistant',
-                'Starter - Grant Fit Score Enabled',
-              ].map((badge) => (
-                <span
-                  key={badge}
-                  className="rounded-full border border-[#003A8C]/20 bg-[#EFF6FF] px-3 py-1.5 text-xs font-semibold text-[#003A8C]"
-                >
-                  {badge}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="rounded-xl border border-[#E2E8F0] bg-gradient-to-b from-[#FFFFFF] to-[#F8FAFC] px-5 py-4 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Plan</p>
-            <p className="text-xl font-extrabold text-[#003A8C]">{tierConfig.name}</p>
-          </div>
-        </div>
-      </section>
+      <DashboardHero
+        eyebrow="TGM Starter"
+        planName={tierConfig.name}
+        title="Your grant workspace"
+        subtitle="Full drafting, scoring, and funder fit unlocked."
+      />
 
       <main className="mx-auto max-w-6xl px-6 py-12">
         <section className="mb-10 grid gap-5 md:grid-cols-2">
@@ -443,29 +421,12 @@ function AdvancedDashboard({ tier, tierConfig }) {
 
   return (
     <div className="min-h-screen bg-[#F7F9FB] text-gray-900">
-      <section className="border-b border-[#E2E8F0] bg-white px-6 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#B8960C]">{planTone.eyebrow}</p>
-            <h1 className="text-4xl font-extrabold tracking-tight text-[#0A0F1A]">{planTone.title}</h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-gray-600">{planTone.subtitle}</p>
-            <div className="mt-5 flex flex-wrap gap-2.5">
-              {planTone.badges.map((badge) => (
-                <span
-                  key={badge}
-                  className="rounded-full border border-[#003A8C]/20 bg-[#EFF6FF] px-3 py-1.5 text-xs font-semibold text-[#003A8C]"
-                >
-                  {badge}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="rounded-xl border border-[#E2E8F0] bg-gradient-to-b from-[#FFFFFF] to-[#F8FAFC] px-5 py-4 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Plan</p>
-            <p className="text-xl font-extrabold text-[#003A8C]">{tierConfig.name}</p>
-          </div>
-        </div>
-      </section>
+      <DashboardHero
+        eyebrow={planTone.eyebrow}
+        planName={tierConfig.name}
+        title="Your grant workspace"
+        subtitle={planTone.subtitle}
+      />
 
       <main className="mx-auto max-w-6xl px-6 py-12">
         <section className="mb-10 grid gap-5 md:grid-cols-3">
