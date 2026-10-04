@@ -383,6 +383,18 @@ test('every public page has crawlable body content', () => {
     paths.length,
     'every page needs related links so it is not an orphan'
   );
+
+  // The audit wants each page to OPEN with a definition ("X is …"). Three
+  // pages shipped verbs like "creates"/"opens"/"set out" and were scored as
+  // having no definition, so pin the shape here.
+  const defs = [...PAGE_CONTENT_BLOCK.matchAll(/definition:\s*\n\s*'((?:[^'\\]|\\.)*)'/g)].map(
+    (m) => m[1]
+  );
+  assert.equal(defs.length, paths.length, 'could not read every definition sentence');
+  for (const d of defs) {
+    const firstSentence = d.split(/(?<=[.!?])\s/)[0];
+    assert.match(firstSentence, /\b(is|are)\b/, `definition must open with "X is …": ${d}`);
+  }
 });
 
 test('the prerendered body carries one H1, a definition and related links', () => {
