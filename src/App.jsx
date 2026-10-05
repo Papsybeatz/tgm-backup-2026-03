@@ -21,6 +21,7 @@ import CustomersPage from './components/CustomersPage';
 import NewYorkGrantsPage from './components/NewYorkGrantsPage';
 import NewYorkChecklistPage from './components/NewYorkChecklistPage';
 import ConsultantLandingPage from './components/ConsultantLandingPage';
+import PublicScorePage from './components/PublicScorePage';
 import FunderApiLandingPage from './components/FunderApiLandingPage';
 import FunderReviewerPage from './components/FunderReviewerPage';
 import InviteAcceptPage from './components/InviteAcceptPage';
@@ -86,6 +87,7 @@ function App() {
                 <Route path="/billing/processing" element={<BillingProcessingPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/consultants" element={<ConsultantLandingPage />} />
+                <Route path="/checkup" element={<PublicScorePage />} />
                 <Route path="/consultant-mode" element={<ConsultantLandingPage />} />
                 <Route path="/funder-api" element={<FunderApiLandingPage />} />
                 <Route path="/funder/reviewer" element={<RequireOnboarding><FunderReviewerPage /></RequireOnboarding>} />
