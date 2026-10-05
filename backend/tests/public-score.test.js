@@ -18,9 +18,14 @@ const path = require('node:path');
 
 const {
   CRITERIA,
+  ORDERLESS_CRITERIA,
+  EVIDENCE_FLOOR,
+  EVIDENCE_FLOOR_CAP,
   scoreDraft,
   heuristicScore,
   heuristicScoreOrderless,
+  finalizeOrderless,
+  isSubstantial,
   detectStyle,
 } = require('../agents/steve/scoring');
 const { applyScoreGate, FREE_SCORE_LIMIT } = require('../utils/scoreGate');
@@ -154,6 +159,73 @@ CONCLUSION
 We hope you will support this work.
 `;
 
+/*
+ * THE NEGATIVE CONTROL FIXTURE.
+ *
+ * A proposal with every section heading, in the right order, with a complete
+ * letterhead — and nothing verifiable under any of it. No numbers, no data, no
+ * budget figure, no named partner. Before the letterhead/body split and the
+ * substance-gated completeness, this scored 80/100: "Ready".
+ *
+ * If this fixture ever lands in the Ready band again, the rubric has regressed.
+ * Kept deliberately split from its letterhead so the two can be compared.
+ */
+const HOLLOW_BODY = `
+EXECUTIVE SUMMARY
+
+Our organization is requesting funds from the foundation to support our important
+program work in the community.
+
+STATEMENT OF NEED
+
+There is a significant need in our community for the services we provide. Many people
+face challenges, and our program addresses these challenges in meaningful ways.
+
+ORGANIZATION BACKGROUND
+
+Our organization has a strong history of serving the community and a dedicated team.
+
+PROJECT DESCRIPTION
+
+The project will deliver services to community members through our established model.
+
+GOALS AND OBJECTIVES
+
+Our goal is to improve outcomes for the people we serve through this project.
+
+OUTCOMES AND EVALUATION
+
+We will evaluate the project to ensure it is achieving its intended outcomes.
+
+BUDGET NARRATIVE
+
+The budget covers the costs associated with delivering this program.
+
+SUSTAINABILITY
+
+The program will be sustained through ongoing support.
+
+TIMELINE
+
+The project will run over the coming year.
+
+CONCLUSION
+
+We appreciate your consideration of this request.
+`;
+
+const HOLLOW_LETTERHEAD = `
+Sincerely,
+Jordan Ellis
+Community Partners Inc
+1250 Harbor Boulevard, Suite 200
+jordan@communitypartners.org
+(555) 448-1120
+Deadline: April 1, 2026
+`;
+
+const HOLLOW_PROPOSAL = HOLLOW_BODY + HOLLOW_LETTERHEAD;
+
 /* ── the rubric must be real, not punitive ────────────────────────────────── */
 
 test('a strong uploaded proposal lands in the funder-ready band', () => {
@@ -186,10 +258,137 @@ test('the order-less rubric never reads the order ticket', () => {
   );
 });
 
-test('every criterion in the public report matches the shared rubric', () => {
+/* ── negative controls: formatting must not buy a pass ──────────────────── */
+
+test('NEGATIVE CONTROL: a hollow but well-formatted proposal is not funder-ready', () => {
+  // The regression this suite exists for. Every heading present, letterhead
+  // complete, nothing verifiable anywhere. This used to score 80 ("Ready").
+  const report = heuristicScoreOrderless(HOLLOW_PROPOSAL, 'proposal');
+  assert.ok(
+    report.score < 70,
+    `a hollow proposal must not reach the Ready band — got ${report.score}`,
+  );
+});
+
+test('NEGATIVE CONTROL: a letterhead must not move the content criteria', () => {
+  // Adding name/address/phone/email/deadline to an unchanged body used to move
+  // this draft 63 -> 80: the phone satisfied hasNumbers and the street address
+  // counted as evidence.
+  const withLetter = heuristicScoreOrderless(HOLLOW_BODY + HOLLOW_LETTERHEAD, 'proposal');
+  const withoutLetter = heuristicScoreOrderless(HOLLOW_BODY, 'proposal');
+  assert.equal(withLetter.criteria.need, withoutLetter.criteria.need, 'need must not move');
+  assert.equal(
+    withLetter.criteria.evidence,
+    withoutLetter.criteria.evidence,
+    'evidence must not move',
+  );
+  assert.ok(
+    withLetter.criteria.compliance > withoutLetter.criteria.compliance,
+    'compliance is the one criterion the letterhead is supposed to move',
+  );
+});
+
+test('NEGATIVE CONTROL: a heading with nothing under it is not a section', () => {
+  const report = heuristicScoreOrderless(HOLLOW_PROPOSAL, 'proposal');
+  assert.ok(
+    report.missingComponents.some((m) => /heading with nothing under it/i.test(m)),
+    'empty sections must be reported',
+  );
+  assert.ok(
+    report.criteria.completeness < 50,
+    `completeness must not be bought by headings alone — got ${report.criteria.completeness}`,
+  );
+});
+
+test('NEGATIVE CONTROL: a concise but concrete section is not called empty', () => {
+  // Length is not the test — specificity is. An earlier word gate flagged both
+  // of these as "a heading with nothing under it", which is its own kind of
+  // credibility failure: telling a writer their most concrete line is empty.
+  assert.equal(
+    isSubstantial({
+      heading: 'BUDGET NARRATIVE',
+      body: ' The $75,000 request covers personnel ($52,000), materials ($13,000) and administration ($10,000).',
+    }),
+    true,
+    'a section carrying four dollar figures is substantive however brief',
+  );
+  assert.equal(
+    isSubstantial({
+      heading: 'TIMELINE',
+      body: ' Implementation begins in September and runs through June.',
+    }),
+    true,
+    'a timeline naming two months is substantive',
+  );
+  assert.equal(
+    isSubstantial({
+      heading: 'SUSTAINABILITY',
+      body: ' The program will be sustained through ongoing support.',
+    }),
+    false,
+    'generic filler is not substantive',
+  );
+  assert.equal(
+    isSubstantial({ heading: 'TIMELINE', body: ' 2024' }),
+    false,
+    'a bare fragment is not a section',
+  );
+});
+
+/* ── the hard evidence floor ─────────────────────────────────────────────── */
+
+test('the evidence floor caps a well-formed but evidence-free document', () => {
+  // Synthetic: everything else is excellent, evidence is not. Without the floor
+  // this averages to ~86; with it, the document cannot claim to be ready.
+  const criteria = {
+    need: 95,
+    completeness: 95,
+    evidence: EVIDENCE_FLOOR - 10,
+    outcomes: 95,
+    budget: 95,
+    compliance: 100,
+  };
+  const body = 'A body with nothing verifiable in it.';
+  const result = finalizeOrderless(criteria, body, body, 'proposal');
+  assert.equal(result.floorApplied, true, 'the floor must engage below the threshold');
+  assert.ok(
+    result.overall <= EVIDENCE_FLOOR_CAP,
+    `overall must be capped at ${EVIDENCE_FLOOR_CAP}, got ${result.overall}`,
+  );
+});
+
+test('the evidence floor does not touch a document that has evidence', () => {
+  const criteria = {
+    need: 90,
+    completeness: 90,
+    evidence: EVIDENCE_FLOOR + 20,
+    outcomes: 90,
+    budget: 90,
+    compliance: 90,
+  };
+  const body = 'We served 240 students in 2024 and cut the gap by 12 percentage points.';
+  const result = finalizeOrderless(criteria, body, body, 'proposal');
+  assert.equal(result.floorApplied, false);
+  assert.ok(
+    result.overall > EVIDENCE_FLOOR_CAP,
+    'a genuinely evidenced draft must clear the cap',
+  );
+});
+
+test('the public report says whether the floor was applied', () => {
   const report = heuristicScoreOrderless(STRONG_PROPOSAL, 'proposal');
-  const keys = CRITERIA.map((c) => c.key).sort();
+  assert.equal(typeof report.evidenceFloorApplied, 'boolean');
+  assert.equal(report.evidenceFloorApplied, false, 'the strong fixture has evidence');
+});
+
+test('the public report carries exactly the order-less criteria', () => {
+  const report = heuristicScoreOrderless(STRONG_PROPOSAL, 'proposal');
+  const keys = ORDERLESS_CRITERIA.map((c) => c.key).sort();
   assert.deepEqual(Object.keys(report.criteria).sort(), keys);
+  assert.ok(
+    !('alignment' in report.criteria),
+    'alignment must be absent — an anonymous upload has no funder to align to',
+  );
   for (const key of keys) {
     const value = report.criteria[key];
     assert.ok(Number.isFinite(value) && value >= 1 && value <= 100, `${key} out of range: ${value}`);
@@ -307,7 +506,7 @@ test('scoreDraft in orderless mode returns a usable, labelled report', async () 
   assert.ok(report.score >= 70, `expected a strong score, got ${report.score}`);
   assert.equal(typeof report.label, 'string');
   assert.equal(report.style, 'proposal');
-  assert.equal(report.criteriaDefs.length, CRITERIA.length);
+  assert.equal(report.criteriaDefs.length, ORDERLESS_CRITERIA.length);
   assert.ok(Array.isArray(report.fixes));
 });
 
