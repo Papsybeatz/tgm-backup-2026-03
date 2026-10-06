@@ -38,6 +38,42 @@ const steveHourlyLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Public Checkmate score — the anonymous funnel wedge.
+//
+// This route accepts no credentials at all, and every call is a paid LLM call,
+// so it needs the same treatment as the signed-out Steve routes above. Two
+// limiters, doing two different jobs:
+//
+//   publicScoreLimiter      stops a hot loop.
+//   publicScoreDailyLimiter enforces the product's own rule — Free gets
+//                           FREE_SCORE_LIMIT scores, then it is a signup. An
+//                           anonymous visitor should not get more than a
+//                           signed-in free user.
+//
+// `skipFailedRequests` matters: a rejected upload (wrong type, unreadable scan)
+// must not burn one of the visitor's scores.
+const publicScoreLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  skipFailedRequests: true,
+  message: 'Too many scoring requests. Please wait a moment and try again.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Mirrors FREE_SCORE_LIMIT in utils/scoreGate.js. Kept as a literal because
+// express-rate-limit needs it at module load, and a require cycle would be the
+// only way to share it.
+const publicScoreDailyLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 3,
+  skipFailedRequests: true,
+  message:
+    'You have used your free Checkmate scores. Create an account to keep scoring.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const uploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 5, // limit each user to 5 uploads per hour
@@ -69,6 +105,8 @@ module.exports = {
   steveLimiter,
   steveHourlyLimiter,
   funderIntakeLimiter,
+  publicScoreLimiter,
+  publicScoreDailyLimiter,
   uploadLimiter,
   passwordResetLimiter,
 };

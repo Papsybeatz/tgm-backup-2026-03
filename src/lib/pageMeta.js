@@ -29,6 +29,13 @@ export const DEFAULT_META = {
  * most-important-first.
  */
 export const PAGE_META = {
+  '/checkup': {
+    title: 'Free Grant Proposal Checkup — Checkmate Score',
+    description:
+      'Upload a grant proposal and get a free Checkmate score out of 100, the six criteria behind it, and the gaps costing you points. No account needed.',
+    changefreq: 'monthly',
+    priority: '0.9',
+  },
   '/': {
     title: 'The Grants Master — AI Grant Writing & Scoring',
     description:
@@ -162,6 +169,17 @@ export const PAGE_META = {
  * an orphan. Keep the copy factual — no ratings or claims we cannot support.
  */
 export const PAGE_CONTENT = {
+  '/checkup': {
+    h1: 'Score your grant proposal before a funder does',
+    definition:
+      'The Checkmate checkup is a free grant proposal review that scores a draft out of 100 and names the gaps costing you points.',
+    intro:
+      'Upload a PDF or Word draft and get the six criteria behind the score in about a minute. No account, no credit card, and the document is never stored.',
+    related: [
+      ['/pricing', 'Pricing and plans'],
+      ['/', 'The Grants Master home'],
+    ],
+  },
   '/': {
     h1: 'The Grants Master — AI grant writing and pre-submission scoring',
     definition:

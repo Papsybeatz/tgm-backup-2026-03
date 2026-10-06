@@ -5,9 +5,18 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
         {
           "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https: wss:; frame-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
@@ -20,50 +29,181 @@
       "source": "/api/:path*",
       "destination": "https://tgm-backup-2026-03-production-ea59.up.railway.app/api/:path*"
     },
-
-    { "source": "/pricing", "destination": "/pricing/index.html" },
-    { "source": "/features", "destination": "/features/index.html" },
-    { "source": "/new-york-grants", "destination": "/new-york-grants/index.html" },
-    { "source": "/new-york-grants/checklist", "destination": "/new-york-grants/checklist/index.html" },
-    { "source": "/funder-api", "destination": "/funder-api/index.html" },
-    { "source": "/consultants", "destination": "/consultants/index.html" },
-    { "source": "/about", "destination": "/about/index.html" },
-    { "source": "/trust", "destination": "/trust/index.html" },
-    { "source": "/customers", "destination": "/customers/index.html" },
-    { "source": "/request-access", "destination": "/request-access/index.html" },
-    { "source": "/lead-magnet/grant-workflow-blueprint", "destination": "/lead-magnet/grant-workflow-blueprint/index.html" },
-    { "source": "/contact", "destination": "/contact/index.html" },
-    { "source": "/signup", "destination": "/signup/index.html" },
-    { "source": "/login", "destination": "/login/index.html" },
-    { "source": "/privacy", "destination": "/privacy/index.html" },
-    { "source": "/terms", "destination": "/terms/index.html" },
-
-    { "source": "/en", "destination": "/index.html" },
-    { "source": "/es", "destination": "/index.html" },
-    { "source": "/fr", "destination": "/index.html" },
-    { "source": "/plans", "destination": "/index.html" },
-    { "source": "/consultant-mode", "destination": "/index.html" },
-    { "source": "/reset-password", "destination": "/index.html" },
-    { "source": "/invite/accept", "destination": "/index.html" },
-    { "source": "/invite/:path*", "destination": "/index.html" },
-    { "source": "/upgrade", "destination": "/index.html" },
-    { "source": "/billing", "destination": "/index.html" },
-    { "source": "/billing/processing", "destination": "/index.html" },
-    { "source": "/team", "destination": "/index.html" },
-    { "source": "/onboarding", "destination": "/index.html" },
-    { "source": "/dashboard", "destination": "/index.html" },
-    { "source": "/clients", "destination": "/index.html" },
-    { "source": "/clients/:id", "destination": "/index.html" },
-    { "source": "/scott", "destination": "/index.html" },
-    { "source": "/admin/monitoring", "destination": "/index.html" },
-    { "source": "/admin/billing", "destination": "/index.html" },
-    { "source": "/workspace", "destination": "/index.html" },
-    { "source": "/workspace/new", "destination": "/index.html" },
-    { "source": "/workspace/new-draft", "destination": "/index.html" },
-    { "source": "/workspace/premium-draft", "destination": "/index.html" },
-    { "source": "/workspace/:id", "destination": "/index.html" },
-    { "source": "/funder/reviewer", "destination": "/index.html" },
-    { "source": "/lead-magnet/grant-workflow-blueprint/success", "destination": "/index.html" },
-    { "source": "/lead-magnet/grant-workflow-blueprint/pdf", "destination": "/index.html" }
+    {
+      "source": "/pricing",
+      "destination": "/pricing/index.html"
+    },
+    {
+      "source": "/features",
+      "destination": "/features/index.html"
+    },
+    {
+      "source": "/new-york-grants",
+      "destination": "/new-york-grants/index.html"
+    },
+    {
+      "source": "/new-york-grants/checklist",
+      "destination": "/new-york-grants/checklist/index.html"
+    },
+    {
+      "source": "/funder-api",
+      "destination": "/funder-api/index.html"
+    },
+    {
+      "source": "/consultants",
+      "destination": "/consultants/index.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about/index.html"
+    },
+    {
+      "source": "/trust",
+      "destination": "/trust/index.html"
+    },
+    {
+      "source": "/customers",
+      "destination": "/customers/index.html"
+    },
+    {
+      "source": "/request-access",
+      "destination": "/request-access/index.html"
+    },
+    {
+      "source": "/lead-magnet/grant-workflow-blueprint",
+      "destination": "/lead-magnet/grant-workflow-blueprint/index.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact/index.html"
+    },
+    {
+      "source": "/signup",
+      "destination": "/signup/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/login/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms/index.html"
+    },
+    {
+      "source": "/en",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/es",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/fr",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/plans",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/consultant-mode",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/reset-password",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/invite/accept",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/invite/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/upgrade",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/billing",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/billing/processing",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/team",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/onboarding",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/clients",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/clients/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/scott",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/monitoring",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/billing",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/workspace",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/workspace/new",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/workspace/new-draft",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/workspace/premium-draft",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/workspace/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/funder/reviewer",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/lead-magnet/grant-workflow-blueprint/success",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/lead-magnet/grant-workflow-blueprint/pdf",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/checkup",
+      "destination": "/checkup/index.html"
+    }
   ]
 }

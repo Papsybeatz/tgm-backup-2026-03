@@ -59,7 +59,7 @@ const teamInvitesRoutes = require('./routes/teamInvites');
 const authRoutes = require('./routes/auth');
 const draftsRoutes = require('./routes/drafts');
 const assistantRoutes = require('./routes/assistant');
-const { agentLimiter, uploadLimiter, funderIntakeLimiter, steveLimiter, steveHourlyLimiter } = require('./middleware/rateLimit');
+const { agentLimiter, uploadLimiter, funderIntakeLimiter, steveLimiter, steveHourlyLimiter, publicScoreLimiter, publicScoreDailyLimiter } = require('./middleware/rateLimit');
 const requireAuth = require('./middleware/auth');
 const { requireFeature, TIERS } = require('./middleware/tierAuth');
 
@@ -171,6 +171,11 @@ const contactRoutes = require('./routes/contact');
 app.use('/api/contact', contactRoutes);
 const leadMagnetRoutes = require('./routes/leadMagnet');
 app.use('/api/lead-magnet', leadMagnetRoutes);
+
+// Anonymous Checkmate scoring — the funnel wedge. No auth by design; abuse is
+// bounded by the two IP limiters instead. See routes/publicScore.js.
+const publicScoreRoutes = require('./routes/publicScore');
+app.use('/api/public', publicScoreLimiter, publicScoreDailyLimiter, publicScoreRoutes);
 const funderApiRequestRoutes = require('./routes/funderApiRequest');
 app.use('/api/funder-api', funderIntakeLimiter, funderApiRequestRoutes);
 // routes/team.js (the in-memory stub) is deleted. It was mounted here FIRST,
