@@ -24,6 +24,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiUrl } from '../lib/apiUrl';
+import { savePublicScoreHandoff } from '../lib/publicScoreHandoff';
 
 const ACCEPTED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.txt', '.md'];
 const ACCEPT_ATTR = ACCEPTED_EXTENSIONS.join(',');
@@ -604,6 +605,10 @@ export default function PublicScorePage() {
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   <Link
                     to="/signup?from=public-score"
+                    // The unlock click is the conversion event. Hand the result
+                    // over before we leave, or signup opens as a blank form and
+                    // the score that brought them here is gone.
+                    onClick={() => savePublicScoreHandoff(report)}
                     style={{
                       display: 'inline-block',
                       padding: '13px 24px',
