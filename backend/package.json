@@ -20,6 +20,7 @@
     "test:score-gate": "node --test tests/scoring-gate.test.js",
     "test:public-score": "node --test tests/public-score.test.js",
     "test:funnel": "node --test tests/public-funnel-wiring.test.js",
+    "test:share": "node --test tests/score-card.test.js",
     "test:ai-gates": "node --test tests/ai-endpoint-gates.test.js"
   },
   "dependencies": {
