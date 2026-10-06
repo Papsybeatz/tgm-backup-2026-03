@@ -233,6 +233,9 @@ export default function PublicScorePage() {
     : Object.keys(report?.criteria || {}).map((key) => ({ key, label: key }));
   const gaps = report?.missingComponents || [];
   const strengths = report?.strengths || [];
+  // Server-set: the evidence floor capped this score. Shown so a well-formatted
+  // document that scores low explains itself instead of reading as a broken tool.
+  const floorApplied = report?.evidenceFloorApplied === true;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--tgm-bg)' }}>
@@ -487,6 +490,49 @@ export default function PublicScorePage() {
                   )}
                 </div>
               </div>
+
+              {/* evidence floor — a tidy document with nothing verifiable is capped */}
+              {floorApplied && (
+                <div
+                  role="note"
+                  style={{
+                    display: 'flex',
+                    gap: 12,
+                    alignItems: 'flex-start',
+                    marginTop: 26,
+                    padding: '15px 17px',
+                    background: 'rgba(245, 158, 11, 0.10)',
+                    border: '1px solid rgba(245, 158, 11, 0.38)',
+                    borderRadius: 'var(--tgm-radius-sm)',
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      flex: '0 0 auto',
+                      width: 20,
+                      height: 20,
+                      marginTop: 1,
+                      borderRadius: '50%',
+                      background: 'var(--tgm-warning)',
+                      color: '#fff',
+                      fontSize: 13,
+                      fontWeight: 800,
+                      lineHeight: '20px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    !
+                  </span>
+                  <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.62, color: 'var(--tgm-text)' }}>
+                    <strong>Your score is capped.</strong> This draft reads as well formatted, but
+                    Checkmate could not find anything a reviewer can verify — a result, partner,
+                    pilot, audit or report. Evidence carries the most weight in the rubric, so a tidy
+                    document with no track record cannot reach the top bands until that changes. The
+                    evidence line below is the one to fix first.
+                  </p>
+                </div>
+              )}
 
               {/* criteria */}
               <h2 style={{ fontSize: 19, fontWeight: 800, color: 'var(--tgm-text)', margin: '28px 0 18px' }}>
