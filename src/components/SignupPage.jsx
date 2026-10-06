@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from './UserContext';
 import CaseStudiesSection from './CaseStudiesSection';
+import { readPublicScoreHandoff } from '../lib/publicScoreHandoff';
 
 async function safeJson(res) {
   const text = await res.text();
@@ -17,6 +18,12 @@ export default function SignupPage() {
   // signed up as an ordinary user and the team seat was never claimed.
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get('invite') || searchParams.get('token') || '';
+
+  // A visitor arriving from the anonymous /checkup funnel already has a score.
+  // Showing it back is the difference between "continue where you were" and a
+  // cold signup form. Read once on mount; the handoff is session-scoped.
+  const fromPublicScore = searchParams.get('from') === 'public-score';
+  const [carriedScore] = useState(() => (fromPublicScore ? readPublicScoreHandoff() : null));
 
   const [form, setForm] = useState({ email: '', password: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -156,6 +163,62 @@ export default function SignupPage() {
           boxShadow: 'var(--tgm-shadow-lg)',
           padding: '40px 36px',
         }}>
+          {carriedScore && (
+            <div
+              style={{
+                background: 'linear-gradient(135deg, var(--tgm-navy) 0%, var(--tgm-blue) 100%)',
+                borderRadius: 'var(--tgm-radius-md)',
+                padding: '18px 20px',
+                marginBottom: 26,
+                color: '#fff',
+              }}
+            >
+              <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 700, letterSpacing: '.09em', color: 'var(--tgm-gold-light)' }}>
+                YOUR CHECKMATE RESULT
+              </p>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
+                <span style={{ fontSize: 40, fontWeight: 800, lineHeight: 1 }}>{carriedScore.score}</span>
+                <span style={{ fontSize: 14, opacity: 0.75 }}>/100</span>
+                {carriedScore.label && (
+                  <span
+                    style={{
+                      marginLeft: 'auto',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      padding: '4px 11px',
+                      borderRadius: 999,
+                      background: 'rgba(212, 175, 55, 0.18)',
+                      border: '1px solid rgba(212, 175, 55, 0.45)',
+                      color: 'var(--tgm-gold-light)',
+                    }}
+                  >
+                    {carriedScore.label}
+                  </span>
+                )}
+              </div>
+              {carriedScore.fileName && (
+                <p style={{ margin: '0 0 10px', fontSize: 13, opacity: 0.72, lineHeight: 1.5 }}>
+                  {carriedScore.fileName}
+                  {carriedScore.words ? ` \u00b7 ${carriedScore.words.toLocaleString()} words` : ''}
+                </p>
+              )}
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, opacity: 0.92 }}>
+                {carriedScore.evidenceFloorApplied ? (
+                  <>
+                    Your score is capped because we could not find anything a reviewer can verify.
+                    Create an account to unlock the fixes — starting with the evidence gap.
+                  </>
+                ) : (
+                  <>
+                    Create an account to unlock the recommended fixes for the{' '}
+                    {(carriedScore.missingComponents || []).length || 'remaining'} gap
+                    {(carriedScore.missingComponents || []).length === 1 ? '' : 's'} we found.
+                  </>
+                )}
+              </p>
+            </div>
+          )}
+
           {status === 'error' && (
             <div style={{
               background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.3)',
