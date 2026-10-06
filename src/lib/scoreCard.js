@@ -186,11 +186,12 @@ export function drawScoreCard(ctx, report = {}) {
     ctx.textBaseline = 'alphabetic';
   }
 
-  // evidence-floor note
+  // evidence-floor note. States the finding, never a cap: the floor triggers on
+  // any draft with weak evidence, including ones already scoring below the cap.
   if (c.floor) {
     ctx.fillStyle = WARNING;
     ctx.font = 'bold 15px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText('Capped: no verifiable evidence found', PAD, 432);
+    ctx.fillText('No verifiable evidence found', PAD, 432);
   }
 
   // criteria bars (right column)

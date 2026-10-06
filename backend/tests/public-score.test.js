@@ -407,6 +407,20 @@ test('the public response forwards the evidence-floor flag to the client', () =>
   );
 });
 
+test('the floor flag reports the trigger, not a cap that changed the score', () => {
+  // The distinction is load-bearing because the client copy explains the score
+  // with this flag. `Math.min` is a no-op on a draft already scoring below the
+  // cap, so a thin draft's low score is its own verdict, not a ceiling. Copy
+  // that says "your score is capped" is therefore false for exactly the drafts
+  // that trip the flag most often — the weak ones.
+  const hollow = heuristicScoreOrderless(HOLLOW_PROPOSAL, 'proposal');
+  assert.equal(hollow.evidenceFloorApplied, true, 'the hollow fixture trips the trigger');
+  assert.ok(
+    hollow.score < EVIDENCE_FLOOR_CAP,
+    `the hollow fixture must score below the cap (${EVIDENCE_FLOOR_CAP}) — that is what makes it the false-positive case`,
+  );
+});
+
 test('the public report carries exactly the order-less criteria', () => {
   const report = heuristicScoreOrderless(STRONG_PROPOSAL, 'proposal');
   const keys = ORDERLESS_CRITERIA.map((c) => c.key).sort();

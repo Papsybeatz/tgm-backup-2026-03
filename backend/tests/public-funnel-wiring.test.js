@@ -94,12 +94,24 @@ test('the handoff is only read for the public-score entry point', () => {
   assert.match(SIGNUP, /from'\) === 'public-score'/);
 });
 
-test('the carried result explains a capped score', () => {
+test('the carried result explains the evidence gap', () => {
   assert.match(
     SIGNUP,
     /carriedScore\.evidenceFloorApplied/,
-    'a capped score must explain itself at signup too, not just on the funnel page',
+    'a weak-evidence score must explain itself at signup too, not just on the funnel page',
   );
+});
+
+test('no funnel copy claims the score was capped', () => {
+  // The flag reports that evidence is below the floor — it is a no-op on a draft
+  // already scoring below the cap, so "your score is capped" is false for most
+  // drafts that trip it. A 46 on a 186-word draft is low on its own merits.
+  for (const [name, src] of [
+    ['SignupPage', SIGNUP],
+    ['PublicScorePage', FUNNEL],
+  ]) {
+    assert.doesNotMatch(src, /score is capped/i, `${name} must not claim the score was capped`);
+  }
 });
 
 /* ── privacy: the document never rides along ──────────────────────────────── */

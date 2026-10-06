@@ -205,8 +205,9 @@ export default function SignupPage() {
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, opacity: 0.92 }}>
                 {carriedScore.evidenceFloorApplied ? (
                   <>
-                    Your score is capped because we could not find anything a reviewer can verify.
-                    Create an account to unlock the fixes — starting with the evidence gap.
+                    We could not find anything a reviewer can verify, and evidence carries the most
+                    weight in the rubric. Create an account to unlock the fixes — starting with the
+                    evidence gap.
                   </>
                 ) : (
                   <>

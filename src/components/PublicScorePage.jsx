@@ -258,8 +258,9 @@ export default function PublicScorePage() {
     : Object.keys(report?.criteria || {}).map((key) => ({ key, label: key }));
   const gaps = report?.missingComponents || [];
   const strengths = report?.strengths || [];
-  // Server-set: the evidence floor capped this score. Shown so a well-formatted
-  // document that scores low explains itself instead of reading as a broken tool.
+  // Server-set: evidence scored below the floor, so proof is the weak point.
+  // This is the trigger, not proof the cap bit — a draft already under the cap is
+  // low on its own merits, so the copy below states the gap and never a cap.
   const floorApplied = report?.evidenceFloorApplied === true;
 
   return (
@@ -560,7 +561,7 @@ export default function PublicScorePage() {
                 </div>
               </div>
 
-              {/* evidence floor — a tidy document with nothing verifiable is capped */}
+              {/* evidence floor — the weak point is proof, which is worth saying out loud */}
               {floorApplied && (
                 <div
                   role="note"
@@ -594,11 +595,11 @@ export default function PublicScorePage() {
                     !
                   </span>
                   <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.62, color: 'var(--tgm-text)' }}>
-                    <strong>Your score is capped.</strong> This draft reads as well formatted, but
-                    Checkmate could not find anything a reviewer can verify — a result, partner,
-                    pilot, audit or report. Evidence carries the most weight in the rubric, so a tidy
-                    document with no track record cannot reach the top bands until that changes. The
-                    evidence line below is the one to fix first.
+                    <strong>Evidence is what is holding this score back.</strong> This draft reads
+                    as well formatted, but Checkmate could not find anything a reviewer can verify —
+                    a result, partner, pilot, audit or report. Evidence carries the most weight in
+                    the rubric, so a tidy document with no track record cannot reach the top bands
+                    until that changes. The evidence line below is the one to fix first.
                   </p>
                 </div>
               )}

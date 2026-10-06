@@ -112,10 +112,17 @@ test('the card clamps a score that is out of range', async () => {
   assert.equal(scoreCardContent({}).score, 0);
 });
 
-test('the card flags a capped score', async () => {
+test('the card flags a weak-evidence score', async () => {
   const { scoreCardContent } = await load();
   assert.equal(scoreCardContent({ ...REPORT, evidenceFloorApplied: true }).floor, true);
   assert.equal(scoreCardContent(REPORT).floor, false);
+});
+
+test('the card states the finding without claiming a cap', () => {
+  // The card is the most public surface — it gets posted to LinkedIn — so any
+  // claim about the user's own document has to be literally true. The floor
+  // triggers on drafts that were never capped, so the card cannot say "capped".
+  assert.doesNotMatch(CARD_SRC, /capped/i, 'the card must not claim the score was capped');
 });
 
 test('the card survives a report with no criteria at all', async () => {
