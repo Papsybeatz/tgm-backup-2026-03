@@ -381,6 +381,32 @@ test('the public report says whether the floor was applied', () => {
   assert.equal(report.evidenceFloorApplied, false, 'the strong fixture has evidence');
 });
 
+test('the free gate does not strip the evidence-floor flag', () => {
+  // The flag is only useful if it survives the last step. applyScoreGate locks
+  // the fixes; it must not quietly drop the reason the score was capped.
+  const report = heuristicScoreOrderless(HOLLOW_PROPOSAL, 'proposal');
+  assert.equal(report.evidenceFloorApplied, true, 'the hollow fixture must trip the floor');
+
+  const gated = applyScoreGate('free', report);
+  assert.equal(
+    gated.evidenceFloorApplied,
+    true,
+    'the gate must preserve the flag — a dropped field is a silent cap',
+  );
+  assert.equal(gated.fixesLocked, true, 'the free tier still withholds the fixes');
+});
+
+test('the public response forwards the evidence-floor flag to the client', () => {
+  // The floor fired correctly in scoring for weeks while the route never sent
+  // the flag, so a capped 44 reached the page with no explanation. Asserting on
+  // the report alone missed it: the response payload is the actual contract.
+  assert.match(
+    ROUTE_SRC,
+    /evidenceFloorApplied:\s*Boolean\(gated\.evidenceFloorApplied\)/,
+    'the route must forward the floor flag, not swallow it',
+  );
+});
+
 test('the public report carries exactly the order-less criteria', () => {
   const report = heuristicScoreOrderless(STRONG_PROPOSAL, 'proposal');
   const keys = ORDERLESS_CRITERIA.map((c) => c.key).sort();

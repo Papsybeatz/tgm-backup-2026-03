@@ -155,6 +155,10 @@ router.post('/score', handleUpload, async (req, res) => {
       weaknesses: gated.weaknesses || [],
       missingComponents: gated.missingComponents || [],
       fixesLocked: gated.fixesLocked,
+      // The evidence floor caps a tidy-but-unverifiable draft. Sent to the client
+      // so the page can explain WHY a well-formatted document scored low —
+      // otherwise a capped score reads as a broken tool.
+      evidenceFloorApplied: Boolean(gated.evidenceFloorApplied),
       style: gated.style,
       // Echoed so the page can label the result; never used as a stored key.
       fileName: req.file.originalname,
