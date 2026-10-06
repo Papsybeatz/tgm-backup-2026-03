@@ -25,6 +25,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiUrl } from '../lib/apiUrl';
 import { savePublicScoreHandoff } from '../lib/publicScoreHandoff';
+import { shareScoreCard } from '../lib/scoreCard';
 
 const ACCEPTED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.txt', '.md'];
 const ACCEPT_ATTR = ACCEPTED_EXTENSIONS.join(',');
@@ -154,6 +155,9 @@ export default function PublicScorePage() {
   const [report, setReport] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [lockedOut, setLockedOut] = useState(false);
+  // Share loop: the card is drawn in-browser and never uploaded.
+  const [shareState, setShareState] = useState('idle'); // idle | working | done | error
+  const [shareNote, setShareNote] = useState('');
   const inputRef = useRef(null);
 
   const pickFile = useCallback((candidate) => {
@@ -220,12 +224,32 @@ export default function PublicScorePage() {
     }
   }, [file]);
 
+  const share = useCallback(async () => {
+    if (!report) return;
+    setShareState('working');
+    setShareNote('');
+    try {
+      const { mode } = await shareScoreCard(report);
+      setShareState('done');
+      setShareNote(
+        mode === 'native'
+          ? 'Shared. Thanks for spreading the word.'
+          : 'Score card downloaded — attach it to your LinkedIn post. Your file name is hidden.',
+      );
+    } catch (error) {
+      setShareState('error');
+      setShareNote('We could not build the card in this browser. You can still copy your score.');
+    }
+  }, [report]);
+
   const reset = useCallback(() => {
     setStatus('idle');
     setReport(null);
     setFile(null);
     setErrorMessage('');
     setLockedOut(false);
+    setShareState('idle');
+    setShareNote('');
     if (inputRef.current) inputRef.current.value = '';
   }, []);
 
@@ -489,6 +513,50 @@ export default function PublicScorePage() {
                       ))}
                     </ul>
                   )}
+
+                  {/* share loop — the card is drawn in this browser and never uploaded */}
+                  <div style={{ marginTop: 18, paddingTop: 16, borderTop: '1px solid var(--tgm-border)' }}>
+                    <button
+                      type="button"
+                      onClick={share}
+                      disabled={shareState === 'working'}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '10px 18px',
+                        borderRadius: 'var(--tgm-radius-sm)',
+                        border: '1px solid var(--tgm-border)',
+                        background: 'var(--tgm-surface)',
+                        color: 'var(--tgm-text)',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: shareState === 'working' ? 'wait' : 'pointer',
+                      }}
+                    >
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: 4,
+                          background: '#0A66C2',
+                          color: '#fff',
+                          fontSize: 12,
+                          fontWeight: 800,
+                          lineHeight: '20px',
+                          textAlign: 'center',
+                        }}
+                      >
+                        in
+                      </span>
+                      {shareState === 'working' ? 'Building your card\u2026' : 'Share your score'}
+                    </button>
+                    <p style={{ margin: '9px 0 0', fontSize: 12.5, color: 'var(--tgm-muted)', lineHeight: 1.5 }}>
+                      {shareNote ||
+                        'Builds a score card image with your file name hidden. Nothing is uploaded.'}
+                    </p>
+                  </div>
                 </div>
               </div>
 
