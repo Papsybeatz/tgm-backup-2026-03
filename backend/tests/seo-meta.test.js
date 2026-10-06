@@ -309,6 +309,34 @@ test('every prerendered route is exposed by a rewrite, and unknown paths 404', (
   );
 });
 
+test('every public route rewrites to its own prerendered HTML', () => {
+  // The check above only asserts a rewrite EXISTS for each route — it matches on
+  // `source` and never inspects `destination`. That is how /checkup shipped
+  // pointing at the Railway API instead of its own page: the rule was present,
+  // so the suite passed, but the route was unreachable in production.
+  //
+  // Every prerendered route is written to <route>/index.html by
+  // scripts/prerender-meta.mjs, so that is what its rewrite must serve.
+  const vercel = JSON.parse(fs.readFileSync(path.join(REPO, 'vercel.json'), 'utf8'));
+  const rewrites = vercel.rewrites || [];
+
+  const wrong = [];
+  for (const p of Object.keys(parsePageMeta(META_SRC))) {
+    if (p === '/') continue; // served by the root index.html, no rewrite needed
+    const rule = rewrites.find((r) => r.source === p);
+    const expected = `${p}/index.html`;
+    if (!rule || rule.destination !== expected) {
+      wrong.push(`${p} -> ${rule ? rule.destination : 'NO RULE'} (expected ${expected})`);
+    }
+  }
+
+  assert.deepEqual(
+    wrong,
+    [],
+    `public routes not serving their prerendered HTML: ${wrong.join('; ')}`
+  );
+});
+
 test('the funder API is reachable from the header nav and both footers', () => {
   // The funder-api page was fully built and priced but unreachable by
   // navigation — the third buyer type could only find it by guessing the URL.
