@@ -110,5 +110,10 @@
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
-
+  <url>
+    <loc>https://www.thegrantsmaster.com/checkup</loc>
+    <lastmod>2026-10-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
 </urlset>
