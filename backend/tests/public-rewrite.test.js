@@ -144,3 +144,38 @@ test('the rewrite response states that nothing was stored', () => {
   assert.match(rewriteBlock, /rewrittenText/);
   assert.match(rewriteBlock, /bandChange/);
 });
+
+/* ── the page is actually wired to the endpoint ───────────────────────────── */
+
+const PAGE = read('src', 'components', 'PublicScorePage.jsx');
+
+test('the funnel page calls the rewrite endpoint', () => {
+  assert.match(PAGE, /\/api\/public\/rewrite/, 'the page must call the endpoint it is built for');
+  assert.match(PAGE, /runRewrite/);
+});
+
+test('the page renders the delta, the criteria breakdown and the band change', () => {
+  assert.match(PAGE, /rewrite\.delta\.total/);
+  assert.match(PAGE, /rewrite\.delta\.byCriterion/);
+  assert.match(PAGE, /rewrite\.bandChange/);
+  assert.match(PAGE, /DeltaRow/);
+});
+
+test('the page shows the rewritten draft side by side with the original', () => {
+  assert.match(PAGE, /rewrite\.originalText/);
+  assert.match(PAGE, /rewrite\.rewrittenText/);
+  assert.match(PAGE, /downloadText\(/, 'the rewritten draft must be downloadable');
+});
+
+test('the page no longer sells the rewrite as the paid unlock', () => {
+  // The inversion: the rewrite IS the free demonstration. Starter sells
+  // unlimited rewrites, not the first one.
+  assert.doesNotMatch(PAGE, /line-by-line rewrite/i, 'the rewrite is no longer the paywall');
+  assert.doesNotMatch(PAGE, /rewrite is unlocked on Starter/i, 'the rewrite is free now');
+  assert.match(PAGE, /unlimited/i, 'the reframe must sell unlimited, not access');
+});
+
+test('the free allowance copy says six, not three', () => {
+  assert.match(PAGE, /Six free scores/);
+  assert.doesNotMatch(PAGE, /Three free scores/);
+});
