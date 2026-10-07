@@ -155,6 +155,14 @@ router.post('/score', handleUpload, async (req, res) => {
       weaknesses: gated.weaknesses || [],
       missingComponents: gated.missingComponents || [],
       fixesLocked: gated.fixesLocked,
+      // The evidence floor triggers when evidence is below the floor. Sent so the
+      // page can explain WHY a well-formatted document scored low.
+      //
+      // It reports the trigger, NOT that the cap changed the score: `Math.min` is
+      // a no-op on a draft already below the cap, so a 46 on a thin draft is low
+      // on its own merits. Client copy built on this flag must state the evidence
+      // gap and never claim the score was capped.
+      evidenceFloorApplied: Boolean(gated.evidenceFloorApplied),
       style: gated.style,
       // Echoed so the page can label the result; never used as a stored key.
       fileName: req.file.originalname,

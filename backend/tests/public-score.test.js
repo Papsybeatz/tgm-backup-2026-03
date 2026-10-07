@@ -381,6 +381,46 @@ test('the public report says whether the floor was applied', () => {
   assert.equal(report.evidenceFloorApplied, false, 'the strong fixture has evidence');
 });
 
+test('the free gate does not strip the evidence-floor flag', () => {
+  // The flag is only useful if it survives the last step. applyScoreGate locks
+  // the fixes; it must not quietly drop the reason the score was capped.
+  const report = heuristicScoreOrderless(HOLLOW_PROPOSAL, 'proposal');
+  assert.equal(report.evidenceFloorApplied, true, 'the hollow fixture must trip the floor');
+
+  const gated = applyScoreGate('free', report);
+  assert.equal(
+    gated.evidenceFloorApplied,
+    true,
+    'the gate must preserve the flag — a dropped field is a silent cap',
+  );
+  assert.equal(gated.fixesLocked, true, 'the free tier still withholds the fixes');
+});
+
+test('the public response forwards the evidence-floor flag to the client', () => {
+  // The floor fired correctly in scoring for weeks while the route never sent
+  // the flag, so a capped 44 reached the page with no explanation. Asserting on
+  // the report alone missed it: the response payload is the actual contract.
+  assert.match(
+    ROUTE_SRC,
+    /evidenceFloorApplied:\s*Boolean\(gated\.evidenceFloorApplied\)/,
+    'the route must forward the floor flag, not swallow it',
+  );
+});
+
+test('the floor flag reports the trigger, not a cap that changed the score', () => {
+  // The distinction is load-bearing because the client copy explains the score
+  // with this flag. `Math.min` is a no-op on a draft already scoring below the
+  // cap, so a thin draft's low score is its own verdict, not a ceiling. Copy
+  // that says "your score is capped" is therefore false for exactly the drafts
+  // that trip the flag most often — the weak ones.
+  const hollow = heuristicScoreOrderless(HOLLOW_PROPOSAL, 'proposal');
+  assert.equal(hollow.evidenceFloorApplied, true, 'the hollow fixture trips the trigger');
+  assert.ok(
+    hollow.score < EVIDENCE_FLOOR_CAP,
+    `the hollow fixture must score below the cap (${EVIDENCE_FLOOR_CAP}) — that is what makes it the false-positive case`,
+  );
+});
+
 test('the public report carries exactly the order-less criteria', () => {
   const report = heuristicScoreOrderless(STRONG_PROPOSAL, 'proposal');
   const keys = ORDERLESS_CRITERIA.map((c) => c.key).sort();

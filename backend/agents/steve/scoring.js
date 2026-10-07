@@ -57,6 +57,11 @@ const ORDERLESS_WEIGHTS = {
  * Below this evidence score the overall is capped, however good the formatting.
  * A document with nothing a reviewer can verify is not "funder-ready", and the
  * rubric must not say it is just because it has all the right headings.
+ *
+ * `evidenceFloorApplied` reports that this rule *triggered*, not that it changed
+ * the number: `Math.min` is a no-op on a draft that already scores below the cap.
+ * A 46 on a thin draft is low on its own merits, so every piece of copy built on
+ * this flag states the evidence gap — none of it may claim the score was capped.
  */
 const EVIDENCE_FLOOR = 50;
 const EVIDENCE_FLOOR_CAP = 65;
@@ -531,7 +536,7 @@ function finalizeOrderless(criteria, body, full, style = 'proposal') {
 
   if (floorApplied) {
     fixes.push(
-      'The score is capped until the document carries evidence — reviewers fund proof, not structure.',
+      'Evidence carries the heaviest weight in the rubric — closing that gap lifts the score more than any other single change.',
     );
   }
   if (isLetter && body.split(/\s+/).length < 180) {

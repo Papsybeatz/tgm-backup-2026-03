@@ -404,10 +404,13 @@ export default function LandingPage() {
               <p className="text-xs font-bold uppercase tracking-widest text-[#92400E] mb-3">Checkmate result</p>
               <h3 className="text-2xl font-bold text-[#0A0F1A] mb-3">Reviewer-ready in fewer passes</h3>
               <p className="text-sm leading-6 text-gray-700 mb-5">
-                Score alignment, compliance, narrative strength, and budget consistency before a funder ever sees the application.
+                Score the statement of need, evidence, measurable outcomes, budget credibility and compliance — free, before a funder ever sees the application.
               </p>
               <button
-                onClick={() => navigate('/signup')}
+                // Goes to the free anonymous checkup, not /signup. This card
+                // promises a no-signup score; sending it to a signup form was
+                // the broken promise the whole wedge was built to fix.
+                onClick={() => navigate('/checkup')}
                 className="rounded-lg bg-[#003A8C] px-5 py-3 text-sm font-bold text-white"
               >
                 Try Checkmate →
@@ -550,7 +553,9 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <button onClick={() => navigate('/signup')} className="rounded-lg bg-[#D4AF37] px-6 py-3 text-sm font-bold text-[#0A0F1A]">Run your own draft free →</button>
+            {/* This card promises a free, no-credit-card Checkmate run — it must
+                open the checkup itself, not a signup form. */}
+            <button onClick={() => navigate('/checkup')} className="rounded-lg bg-[#D4AF37] px-6 py-3 text-sm font-bold text-[#0A0F1A]">Run your own draft free →</button>
             <a href="mailto:support@thegrantsmaster.com?subject=My%20TGM%20story" className="rounded-lg border border-[#003A8C] px-6 py-3 text-sm font-bold text-[#003A8C] no-underline">Using TGM? Tell us your story →</a>
           </div>
         </div>

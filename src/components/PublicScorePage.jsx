@@ -24,6 +24,8 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiUrl } from '../lib/apiUrl';
+import { savePublicScoreHandoff } from '../lib/publicScoreHandoff';
+import { shareScoreCard } from '../lib/scoreCard';
 
 const ACCEPTED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.txt', '.md'];
 const ACCEPT_ATTR = ACCEPTED_EXTENSIONS.join(',');
@@ -153,6 +155,9 @@ export default function PublicScorePage() {
   const [report, setReport] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [lockedOut, setLockedOut] = useState(false);
+  // Share loop: the card is drawn in-browser and never uploaded.
+  const [shareState, setShareState] = useState('idle'); // idle | working | done | error
+  const [shareNote, setShareNote] = useState('');
   const inputRef = useRef(null);
 
   const pickFile = useCallback((candidate) => {
@@ -219,12 +224,32 @@ export default function PublicScorePage() {
     }
   }, [file]);
 
+  const share = useCallback(async () => {
+    if (!report) return;
+    setShareState('working');
+    setShareNote('');
+    try {
+      const { mode } = await shareScoreCard(report);
+      setShareState('done');
+      setShareNote(
+        mode === 'native'
+          ? 'Shared. Thanks for spreading the word.'
+          : 'Score card downloaded — attach it to your LinkedIn post. Your file name is hidden.',
+      );
+    } catch (error) {
+      setShareState('error');
+      setShareNote('We could not build the card in this browser. You can still copy your score.');
+    }
+  }, [report]);
+
   const reset = useCallback(() => {
     setStatus('idle');
     setReport(null);
     setFile(null);
     setErrorMessage('');
     setLockedOut(false);
+    setShareState('idle');
+    setShareNote('');
     if (inputRef.current) inputRef.current.value = '';
   }, []);
 
@@ -233,6 +258,10 @@ export default function PublicScorePage() {
     : Object.keys(report?.criteria || {}).map((key) => ({ key, label: key }));
   const gaps = report?.missingComponents || [];
   const strengths = report?.strengths || [];
+  // Server-set: evidence scored below the floor, so proof is the weak point.
+  // This is the trigger, not proof the cap bit — a draft already under the cap is
+  // low on its own merits, so the copy below states the gap and never a cap.
+  const floorApplied = report?.evidenceFloorApplied === true;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--tgm-bg)' }}>
@@ -485,8 +514,95 @@ export default function PublicScorePage() {
                       ))}
                     </ul>
                   )}
+
+                  {/* share loop — the card is drawn in this browser and never uploaded */}
+                  <div style={{ marginTop: 18, paddingTop: 16, borderTop: '1px solid var(--tgm-border)' }}>
+                    <button
+                      type="button"
+                      onClick={share}
+                      disabled={shareState === 'working'}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '10px 18px',
+                        borderRadius: 'var(--tgm-radius-sm)',
+                        border: '1px solid var(--tgm-border)',
+                        background: 'var(--tgm-surface)',
+                        color: 'var(--tgm-text)',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: shareState === 'working' ? 'wait' : 'pointer',
+                      }}
+                    >
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: 4,
+                          background: '#0A66C2',
+                          color: '#fff',
+                          fontSize: 12,
+                          fontWeight: 800,
+                          lineHeight: '20px',
+                          textAlign: 'center',
+                        }}
+                      >
+                        in
+                      </span>
+                      {shareState === 'working' ? 'Building your card\u2026' : 'Share your score'}
+                    </button>
+                    <p style={{ margin: '9px 0 0', fontSize: 12.5, color: 'var(--tgm-muted)', lineHeight: 1.5 }}>
+                      {shareNote ||
+                        'Builds a score card image with your file name hidden. Nothing is uploaded.'}
+                    </p>
+                  </div>
                 </div>
               </div>
+
+              {/* evidence floor — the weak point is proof, which is worth saying out loud */}
+              {floorApplied && (
+                <div
+                  role="note"
+                  style={{
+                    display: 'flex',
+                    gap: 12,
+                    alignItems: 'flex-start',
+                    marginTop: 26,
+                    padding: '15px 17px',
+                    background: 'rgba(245, 158, 11, 0.10)',
+                    border: '1px solid rgba(245, 158, 11, 0.38)',
+                    borderRadius: 'var(--tgm-radius-sm)',
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      flex: '0 0 auto',
+                      width: 20,
+                      height: 20,
+                      marginTop: 1,
+                      borderRadius: '50%',
+                      background: 'var(--tgm-warning)',
+                      color: '#fff',
+                      fontSize: 13,
+                      fontWeight: 800,
+                      lineHeight: '20px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    !
+                  </span>
+                  <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.62, color: 'var(--tgm-text)' }}>
+                    <strong>Evidence is what is holding this score back.</strong> This draft reads
+                    as well formatted, but Checkmate could not find anything a reviewer can verify —
+                    a result, partner, pilot, audit or report. Evidence carries the most weight in
+                    the rubric, so a tidy document with no track record cannot reach the top bands
+                    until that changes. The evidence line below is the one to fix first.
+                  </p>
+                </div>
+              )}
 
               {/* criteria */}
               <h2 style={{ fontSize: 19, fontWeight: 800, color: 'var(--tgm-text)', margin: '28px 0 18px' }}>
@@ -558,6 +674,10 @@ export default function PublicScorePage() {
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   <Link
                     to="/signup?from=public-score"
+                    // The unlock click is the conversion event. Hand the result
+                    // over before we leave, or signup opens as a blank form and
+                    // the score that brought them here is gone.
+                    onClick={() => savePublicScoreHandoff(report)}
                     style={{
                       display: 'inline-block',
                       padding: '13px 24px',
