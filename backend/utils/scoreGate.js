@@ -12,10 +12,15 @@
  * Free is also capped at FREE_SCORE_LIMIT scores. The count comes from the
  * AiLog table (action: 'score'), which is the product's existing usage ledger,
  * so no new table or column is needed.
+ *
+ * The cap is 6, not 3: Free now gets six daily uses so a visitor can stay
+ * attached long enough to convert. The anonymous daily limiter in
+ * middleware/rateLimit.js mirrors this number (public-score test pins them
+ * equal).
  */
 const { hasFeature, TIERS } = require('../middleware/tierAuth');
 
-const FREE_SCORE_LIMIT = 3;
+const FREE_SCORE_LIMIT = 6;
 const SCORE_ACTION = 'score';
 
 /**

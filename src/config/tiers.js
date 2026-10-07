@@ -3,9 +3,13 @@ export const TIERS = {
     key: 'free',
     name: 'Free',
     features: ['draft_basic', 'view_drafts', 'brainstorming_unlimited', 'scoring_basic', 'export_pdf', 'export_doc', 'ny_grants', 'email_support'],
+    // Free = six daily uses, not a one-draft cliff: a visitor has to stay
+    // attached long enough to convert. `scoring` mirrors FREE_SCORE_LIMIT in
+    // backend/utils/scoreGate.js (pinned by tests/scoring-gate.test.js).
     limits: {
       drafts: 1,
-      scoring: 3,
+      scoring: 6,
+      actionsPerDay: 6,
       matching: 0,
       exports: true,
       teamSeats: 0
@@ -14,7 +18,9 @@ export const TIERS = {
   },
   starter: {
     key: 'starter',
-    name: 'Starter',
+    // Display name only — the internal key stays `starter` because it is
+    // referenced across src/, backend/ and the User.tier column.
+    name: 'Grant Writer',
     features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'matching_basic', 'matching_engine', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'project_templates', 'priority_support'],
     limits: {
       drafts: Infinity,
@@ -27,7 +33,7 @@ export const TIERS = {
   },
   pro: {
     key: 'pro',
-    name: 'Pro',
+    name: 'Grant Consultant',
     features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'matching_engine', 'matching_unlimited', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_3', 'shared_workspace', 'team_templates', 'team_activity_log', 'ny_funder_intelligence', 'ny_compliance_rules', 'document_uploads', 'custom_export_formatting'],
     limits: {
       drafts: Infinity,
@@ -40,7 +46,7 @@ export const TIERS = {
   },
   agency_starter: {
     key: 'agency_starter',
-    name: 'Agency',
+    name: 'Grant Agency',
     features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'scoring_bulk', 'matching_engine', 'matching_unlimited', 'matching_bulk', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_10', 'client_folders', 'client_templates', 'shared_workspace', 'white_label_header', 'white_label_full', 'priority_support', 'role_based_permissions', 'client_activity_logs', 'multi_client_dashboards'],
     limits: {
       drafts: Infinity,
@@ -52,9 +58,10 @@ export const TIERS = {
     },
     dashboardModules: ['draft', 'scoring', 'matching', 'analytics', 'calendar', 'clients']
   },
+  // Grandfathered, no longer sold — existing Agency+ accounts keep their access.
   agency_unlimited: {
     key: 'agency_unlimited',
-    name: 'Agency+',
+    name: 'Grant Agency (legacy)',
     features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'scoring_bulk', 'matching_engine', 'matching_unlimited', 'matching_bulk', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_portfolio', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_unlimited', 'client_folders', 'client_templates', 'shared_workspace', 'white_label_full', 'priority_support', 'sla_support', 'admin_controls', 'multi_client_dashboards', 'dedicated_success_manager', 'quarterly_strategy_reviews', 'early_access'],
     limits: {
       drafts: Infinity,
@@ -66,9 +73,10 @@ export const TIERS = {
     },
     dashboardModules: ['draft', 'scoring', 'matching', 'analytics', 'calendar', 'clients', 'portfolio', 'admin']
   },
+  // Grandfathered, no longer sold — Founder Lifetime accounts keep their access.
   lifetime: {
     key: 'lifetime',
-    name: 'Lifetime',
+    name: 'Founding Member (legacy)',
     // Everything in Starter, plus Pro's analytics, reviewer simulation,
     // calendar and priority AI. It previously omitted funder_alignment,
     // grant_fit_score, missing_components and compliance_checks — four features

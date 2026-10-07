@@ -1,52 +1,15 @@
 const express = require('express');
 const { requireFeature } = require('../middleware/tierAuth');
 const { errorDetail } = require('../utils/errorDetail');
-const https = require('https');
+const { groqChat, REWRITE_PROMPTS } = require('../services/rewrite');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const router = express.Router();
 const requireAuth = require('../middleware/auth');
 const { logError, logAiAction } = require('../utils/logging');
 
-/* ── Groq API call (returns plain text) ── */
-async function groqChat(messages, maxTokens = 1800) {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error('NO_KEY');
-
-  const body = JSON.stringify({
-    model: 'llama-3.1-8b-instant',
-    messages,
-    max_tokens: maxTokens,
-    temperature: 0.7,
-  });
-
-  return new Promise((resolve, reject) => {
-    const req = https.request({
-      hostname: 'api.groq.com',
-      path: '/openai/v1/chat/completions',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Length': Buffer.byteLength(body),
-      },
-    }, (res) => {
-      let data = '';
-      res.on('data', c => data += c);
-      res.on('end', () => {
-        try {
-          const parsed = JSON.parse(data);
-          const text = parsed.choices?.[0]?.message?.content;
-          if (!text) reject(new Error('Empty AI response'));
-          else resolve(text);
-        } catch (e) { reject(e); }
-      });
-    });
-    req.on('error', reject);
-    req.write(body);
-    req.end();
-  });
-}
+/* Groq transport + rewrite prompts now live in services/rewrite.js, shared
+ * with the anonymous funnel. See the import above. */
 
 /* ── Template fallback (no API key needed) ── */
 function templateDraft(prompt) {
@@ -239,26 +202,8 @@ router.post('/rewrite-basic', requireAuth, requireFeature('draft_basic'), async 
       }
     }
 
-    let systemPrompt = '';
-    switch (action) {
-      case 'rewrite':
-        systemPrompt = 'You are a basic rewrite assistant for free-tier users. Rewrite ONLY the user\'s provided text. Keep the same topic, entities, location, and intent. Do NOT introduce new project types, templates, sections, or unrelated ideas. Return one concise rewritten block (plain text only).';
-        break;
-      case 'rewrite_clarity':
-        systemPrompt = 'You are a clarity rewrite assistant. Rewrite ONLY the user\'s provided text for clarity and readability while keeping the exact same topic and meaning. No templates, no headings, no bullet sections, no topic changes. Return one concise block of plain text.';
-        break;
-      case 'rewrite_impact':
-        systemPrompt = 'You are an impact rewrite assistant. Rewrite ONLY the user\'s text to sound stronger while preserving the same topic, facts, and context. Do not invent new themes or sectors. Do not output sections. Return one concise block of plain text.';
-        break;
-      case 'brainstorm_basic':
-        systemPrompt = 'You are a free-tier brainstorming assistant. Expand ONLY the user\'s exact idea into 3-5 short, practical bullet points. Keep the same topic and context. No headings, no proposal sections, no templates, no unrelated sectors. Output plain text bullets only.';
-        break;
-      case 'draft_letter':
-        systemPrompt = 'You are an expert grant writer. Draft a professional grant proposal letter based on the provided content. Use formal letter format with proper greeting, introduction, need statement, project description, and closing. Use HTML with <h2>, <p>, <br/> tags. Output only the HTML.';
-        break;
-      default:
-        return res.status(400).json({ message: 'Invalid action' });
-    }
+    const systemPrompt = REWRITE_PROMPTS[action];
+    if (!systemPrompt) return res.status(400).json({ message: 'Invalid action' });
 
     let output;
     try {

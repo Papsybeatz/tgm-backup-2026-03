@@ -64,12 +64,31 @@ const publicScoreLimiter = rateLimit({
 // Mirrors FREE_SCORE_LIMIT in utils/scoreGate.js. Kept as a literal because
 // express-rate-limit needs it at module load, and a require cycle would be the
 // only way to share it.
+//
+// 6, not 3: Free now gets six daily uses (drafts/scoring/rewrite) so a visitor
+// can stay attached to the product long enough to convert, rather than hitting
+// a wall after three. Kept equal to FREE_SCORE_LIMIT by the public-score test.
 const publicScoreDailyLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
-  max: 3,
+  max: 6,
   skipFailedRequests: true,
   message:
     'You have used your free Checkmate scores. Create an account to keep scoring.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// The funnel's rewrite is the demonstration, so it is deliberately scarcer than
+// scoring: one rewrite per IP per day, then the wall (Starter makes it
+// unlimited). Enforced server-side — a client flag is not a limit. The shared
+// publicScoreDailyLimiter still applies on top, so the rewrite also spends one
+// of the visitor's six daily uses.
+const publicRewriteDailyLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 1,
+  skipFailedRequests: true,
+  message:
+    'You have used your free rewrite. Create an account for unlimited rewrites.',
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -107,6 +126,7 @@ module.exports = {
   funderIntakeLimiter,
   publicScoreLimiter,
   publicScoreDailyLimiter,
+  publicRewriteDailyLimiter,
   uploadLimiter,
   passwordResetLimiter,
 };
