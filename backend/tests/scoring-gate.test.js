@@ -17,7 +17,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const { FREE_SCORE_LIMIT, SCORE_ACTION, checkScoreQuota, applyScoreGate } = require('../utils/scoreGate');
-const { hasFeature } = require('../middleware/tierAuth');
+const { hasFeature, TIERS } = require('../middleware/tierAuth');
 
 const ROOT = path.join(__dirname, '..', '..');
 const SERVER_SRC = fs.readFileSync(path.join(ROOT, 'backend', 'server.js'), 'utf8');
@@ -36,7 +36,18 @@ test('Free can still run the engine — the diagnosis is not the paywall', () =>
   // The teaser only works if Free actually gets a real score. If this ever
   // flips, the landing page has nothing to show and the funnel breaks.
   assert.equal(hasFeature('free', 'scoring_basic'), true);
-  assert.equal(hasFeature('free', 'scoring_engine'), true);
+
+  // The engine is not itself a gate: /api/score is gated on scoring_basic, which
+  // Free has, so Free runs the same rubric paying tiers run. No tier gates on an
+  // engine feature — that was the old model, and it locked Free out of scoring.
+  const engineFeatures = Object.entries(TIERS).flatMap(([tier, cfg]) =>
+    (cfg.features || []).filter((f) => /engine/.test(f)).map((f) => `${tier}:${f}`)
+  );
+  assert.deepEqual(
+    engineFeatures,
+    [],
+    `no tier may gate on an engine feature: ${engineFeatures.join(', ')}`
+  );
 });
 
 /* ── the free-score cap ───────────────────────────────────────────────────── */

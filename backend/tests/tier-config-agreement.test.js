@@ -69,11 +69,15 @@ test('the limit comparison is not vacuous', async () => {
 
 /* ─────────────── the Founding Member card ─────────────── */
 
-test('the Founding Member card claims only what the lifetime tier grants', async () => {
-  // The card used to say "Everything in Starter, forever" while the tier omitted
-  // funder_alignment, grant_fit_score, missing_components and compliance_checks.
-  // The tier now grants them, so the phrase is allowed again — but only while it
-  // stays true, which is what the superset check below enforces.
+test('the Founding Member card claims only what the product actually does', async () => {
+  // The card is a $499 promise, and it used to sell things that do not exist:
+  // unlimited funder matching (POST /api/match → 501), advanced analytics
+  // (GET /api/analytics → 501), reviewer simulation, a grant calendar, priority
+  // AI processing, a template library and a Founding Member badge.
+  //
+  // A card describes what the product does; TIERS.*.features describes what an
+  // upgrade unlocks. Those are different lists, so each claim is checked against
+  // the capability itself rather than against the tier's feature array.
   const { TIERS } = await frontendTiersPromise;
   const granted = TIERS.lifetime.features;
   const card = fs.readFileSync(path.join(REPO, 'src', 'components', 'PricingPage.jsx'), 'utf8');
@@ -83,21 +87,39 @@ test('the Founding Member card claims only what the lifetime tier grants', async
   assert.ok(start !== -1 && end > start, 'could not isolate the Founding Member card block');
   const block = card.slice(start, end);
 
-  // Every feature the card names must be one the tier actually grants.
-  const CLAIMS = [
-    ['funder_alignment', /Funder alignment/i],
-    ['grant_fit_score', /Grant Fit Score/i],
-    ['compliance_checks', /Compliance checks/i],
-    ['missing_components', /Missing components/i],
-    ['analytics_advanced', /Advanced analytics/i],
-    ['reviewer_simulation', /Reviewer simulation/i],
-    ['grant_calendar', /Grant calendar/i],
+  // It must not sell anything that is not built.
+  const NOT_BUILT_CLAIMS = [
+    [/Unlimited funder matching/i, 'funder matching is not built (POST /api/match → 501)'],
+    [/Advanced analytics/i, 'advanced analytics is not built (GET /api/analytics → 501)'],
+    [/Reviewer simulation/i, 'reviewer simulation is not built'],
+    [/Grant calendar/i, 'the grant calendar is not built'],
+    [/Priority AI processing/i, 'AI is not prioritised by tier'],
+    [/Template library/i, 'the template library is not built'],
+    [/badge and certificate/i, 'no badge or certificate is rendered anywhere'],
   ];
-  for (const [key, label] of CLAIMS) {
+  for (const [label, why] of NOT_BUILT_CLAIMS) {
+    assert.doesNotMatch(block, label, `the card claims something unbuilt: ${why}`);
+  }
+
+  // The scoring insights it names are produced by the Checkmate engine, which
+  // computes them for every tier — so they are evidence-checked against the
+  // engine, not against TIERS.lifetime.features (they are not tier features).
+  const SCORING_INSIGHTS = [
+    [/Funder alignment/i, /criteria\.alignment/, 'funder alignment'],
+    [/Grant Fit Score/i, /overall/, 'a grant fit score'],
+    [/Missing components/i, /missingComponents/, 'missing components'],
+    [/Compliance checks/i, /criteria\.compliance/, 'compliance checks'],
+  ];
+  const scoring = fs.readFileSync(
+    path.join(REPO, 'backend', 'agents', 'steve', 'scoring.js'),
+    'utf8'
+  );
+  for (const [label, evidence, name] of SCORING_INSIGHTS) {
     if (label.test(block)) {
-      assert.ok(
-        granted.includes(key),
-        `the card claims "${key}", which TIERS.lifetime does not grant`
+      assert.match(
+        scoring,
+        evidence,
+        `the card claims ${name}, but the scoring engine does not produce it`
       );
     }
   }
