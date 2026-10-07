@@ -2,7 +2,7 @@ export const TIERS = {
   free: {
     key: 'free',
     name: 'Free',
-    features: ['draft_basic', 'view_drafts', 'brainstorming_unlimited', 'scoring_basic', 'export_pdf', 'export_doc', 'ny_grants', 'email_support'],
+    features: ['draft_basic', 'scoring_basic', 'export_pdf', 'export_doc'],
     limits: {
       drafts: 1,
       scoring: 3,
@@ -15,7 +15,7 @@ export const TIERS = {
   starter: {
     key: 'starter',
     name: 'Starter',
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'matching_basic', 'matching_engine', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'project_templates', 'priority_support'],
+    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc'],
     limits: {
       drafts: Infinity,
       scoring: Infinity,
@@ -28,7 +28,7 @@ export const TIERS = {
   pro: {
     key: 'pro',
     name: 'Pro',
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'matching_engine', 'matching_unlimited', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_3', 'shared_workspace', 'team_templates', 'team_activity_log', 'ny_funder_intelligence', 'ny_compliance_rules', 'document_uploads', 'custom_export_formatting'],
+    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc'],
     limits: {
       drafts: Infinity,
       scoring: Infinity,
@@ -41,7 +41,7 @@ export const TIERS = {
   agency_starter: {
     key: 'agency_starter',
     name: 'Agency',
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'scoring_bulk', 'matching_engine', 'matching_unlimited', 'matching_bulk', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_10', 'client_folders', 'client_templates', 'shared_workspace', 'white_label_header', 'white_label_full', 'priority_support', 'role_based_permissions', 'client_activity_logs', 'multi_client_dashboards'],
+    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc', 'client_folders', 'client_aware_steve'],
     limits: {
       drafts: Infinity,
       scoring: Infinity,
@@ -55,7 +55,7 @@ export const TIERS = {
   agency_unlimited: {
     key: 'agency_unlimited',
     name: 'Agency+',
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'scoring_bulk', 'matching_engine', 'matching_unlimited', 'matching_bulk', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_portfolio', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_unlimited', 'client_folders', 'client_templates', 'shared_workspace', 'white_label_full', 'priority_support', 'sla_support', 'admin_controls', 'multi_client_dashboards', 'dedicated_success_manager', 'quarterly_strategy_reviews', 'early_access'],
+    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc', 'client_folders', 'client_aware_steve'],
     limits: {
       drafts: Infinity,
       scoring: Infinity,
@@ -69,16 +69,13 @@ export const TIERS = {
   lifetime: {
     key: 'lifetime',
     name: 'Lifetime',
-    // Everything in Starter, plus Pro's analytics, reviewer simulation,
-    // calendar and priority AI. It previously omitted funder_alignment,
-    // grant_fit_score, missing_components and compliance_checks — four features
-    // Starter ($29/mo) has — while the card advertised "Everything in Starter,
-    // forever", so the tier and its own description disagreed.
+    // It carries exactly the Starter feature set, so "Everything in Starter,
+    // forever" is a statement the config can back.
     //
     // Seats are deliberately 0, not 1: the backend (routes/teamInvites.js
     // seatCapFor) has always treated a missing teamSeats as none, so the old
     // `1` here only ever showed a seat the API would refuse.
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'matching_basic', 'matching_engine', 'matching_unlimited', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'priority_support', 'lifetime_badge', 'founder_certificate'],
+    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc'],
     limits: {
       drafts: Infinity,
       scoring: Infinity,
