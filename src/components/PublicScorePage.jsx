@@ -376,6 +376,34 @@ export default function PublicScorePage() {
   // low on its own merits, so the copy below states the gap and never a cap.
   const floorApplied = report?.evidenceFloorApplied === true;
 
+  // The delta's baseline MUST be the score the visitor is looking at.
+  //
+  // The server re-scores the original itself, and Checkmate's model-graded score
+  // is not perfectly reproducible (observed 51 vs 58 on the same file seconds
+  // apart). Trusting the server's `original` produced a delta that contradicted
+  // the number on screen — the page said 51 and the delta said "58 -> 63". So
+  // anchor the "before" to `report` (what this page rendered) and take only the
+  // "after" from the rewrite. Same engine, same rubric, one baseline.
+  const rewriteDelta =
+    rewrite?.rewritten && report
+      ? {
+          total: Number(rewrite.rewritten.score ?? 0) - Number(report.score ?? 0),
+          byCriterion: criteriaDefs.map((def) => {
+            const from = Number(report.criteria?.[def.key] ?? 0);
+            const to = Number(rewrite.rewritten.criteria?.[def.key] ?? 0);
+            return { key: def.key, label: def.label, from, to, delta: to - from };
+          }),
+        }
+      : null;
+  const rewriteBand =
+    rewrite?.rewritten && report
+      ? {
+          from: report.label || '',
+          to: rewrite.rewritten.label,
+          changed: (report.label || '') !== rewrite.rewritten.label,
+        }
+      : null;
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--tgm-bg)' }}>
       {/* ── hero ─────────────────────────────────────────────────────────── */}
@@ -867,7 +895,7 @@ export default function PublicScorePage() {
                       </p>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 42, fontWeight: 800, lineHeight: 1, color: 'rgba(255,255,255,.72)' }}>
-                          {rewrite.original.score}
+                          {report.score}
                         </span>
                         <span style={{ fontSize: 24, color: 'rgba(255,255,255,.6)' }} aria-hidden="true">
                           →
@@ -884,13 +912,13 @@ export default function PublicScorePage() {
                             background: 'rgba(255,255,255,.14)',
                           }}
                         >
-                          {rewrite.delta.total > 0 ? `+${rewrite.delta.total}` : rewrite.delta.total} points
+                          {rewriteDelta.total > 0 ? `+${rewriteDelta.total}` : rewriteDelta.total} points
                         </span>
                       </div>
                       <p style={{ margin: '16px 0 0', fontSize: 15, lineHeight: 1.6, color: 'rgba(255,255,255,.9)' }}>
-                        {rewrite.bandChange.changed
-                          ? `Band change: ${rewrite.bandChange.from} → ${rewrite.bandChange.to}.`
-                          : `Still ${rewrite.bandChange.to} — the rewrite moved individual criteria, but not enough to change the band.`}
+                        {rewriteBand.changed
+                          ? `Band change: ${rewriteBand.from} → ${rewriteBand.to}.`
+                          : `Still ${rewriteBand.to} — the rewrite moved individual criteria, but not enough to change the band.`}
                       </p>
                     </div>
 
@@ -899,7 +927,7 @@ export default function PublicScorePage() {
                       What moved, criterion by criterion
                     </h2>
                     <div style={{ marginBottom: 8 }}>
-                      {rewrite.delta.byCriterion.map((row) => (
+                      {rewriteDelta.byCriterion.map((row) => (
                         <DeltaRow
                           key={row.key}
                           label={row.label}

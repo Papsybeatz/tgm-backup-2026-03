@@ -181,10 +181,27 @@ test('the funnel page calls the rewrite endpoint', () => {
 });
 
 test('the page renders the delta, the criteria breakdown and the band change', () => {
-  assert.match(PAGE, /rewrite\.delta\.total/);
-  assert.match(PAGE, /rewrite\.delta\.byCriterion/);
-  assert.match(PAGE, /rewrite\.bandChange/);
+  assert.match(PAGE, /rewriteDelta\.total/);
+  assert.match(PAGE, /rewriteDelta\.byCriterion/);
+  assert.match(PAGE, /rewriteBand/);
   assert.match(PAGE, /DeltaRow/);
+});
+
+test('the delta baseline is the score the page displayed, not the server re-score', () => {
+  // The server re-scores the original itself, and the model-graded score is not
+  // perfectly reproducible (51 vs 58 on the same file seconds apart). Showing
+  // the server's `original` produced a delta that contradicted the number on
+  // screen. The "before" must be `report` — what this page rendered.
+  assert.match(PAGE, /Number\(report\.score/, 'the baseline total must come from report');
+  assert.match(
+    PAGE,
+    /report\.criteria\?\.\[def\.key\]/,
+    'each criterion baseline must come from report',
+  );
+  // The server's independently re-scored original must not be rendered.
+  assert.doesNotMatch(PAGE, /rewrite\.original\.score/);
+  assert.doesNotMatch(PAGE, /rewrite\.delta\.total/);
+  assert.doesNotMatch(PAGE, /rewrite\.bandChange/);
 });
 
 test('the page shows the rewritten draft side by side with the original', () => {
