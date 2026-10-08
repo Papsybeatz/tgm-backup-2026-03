@@ -84,11 +84,14 @@ test('Free can download but keeps nothing, sends nothing, and has no client work
   assert.equal(hasFeature('free', 'scoring_basic'), true, 'scoring must not be the barrier');
 });
 
-test('each upgrade unlocks exactly one new gate', () => {
+test('each upgrade adds only the gates its price is meant to buy', () => {
   const expected = {
     free: [],
     starter: ['keep_and_send'],
-    pro: ['keep_and_send', 'seats'],
+    // Client work starts here, not at Agency. A $79 tier that added nothing but
+    // three seats over the $29 tier was a step buyers skip; Agency keeps the
+    // part that makes it a firm's tier — 10 seats and client-aware Steve.
+    pro: ['client_work', 'keep_and_send', 'seats'],
     agency_starter: ['client_work', 'keep_and_send', 'seats'],
     agency_unlimited: ['client_work', 'keep_and_send', 'seats'],
   };
@@ -97,18 +100,31 @@ test('each upgrade unlocks exactly one new gate', () => {
     assert.deepEqual(groupsHeld(tier), expected[tier].slice().sort(), `${tier} holds the wrong gates`);
   }
 
-  // Every step either adds one new gate or scales an existing one, and no step
-  // ever takes a gate away. Agency+ adds no gate — it raises the seat cap from
-  // 10 to unlimited, which is what the step has to be worth.
+  // Each step is pinned explicitly rather than by a generic "at most one new
+  // gate" rule, because the Writer -> Consultant step is deliberately bigger:
+  // it buys client work AND seats at once. The two steps above it add no new
+  // gate at all — they only raise the seat cap, which is what they have to be
+  // worth. No step may ever take a gate away.
+  const ADDED_PER_STEP = {
+    starter: ['keep_and_send'],
+    pro: ['client_work', 'seats'],
+    agency_starter: [],
+    agency_unlimited: [],
+  };
+
   for (let i = 1; i < APPLICANT_LADDER.length; i += 1) {
     const prev = APPLICANT_LADDER[i - 1];
     const next = APPLICANT_LADDER[i];
     const before = groupsHeld(prev);
     const after = groupsHeld(next);
-    const added = after.filter((g) => !before.includes(g));
+    const added = after.filter((g) => !before.includes(g)).sort();
     const removed = before.filter((g) => !after.includes(g));
 
-    assert.ok(added.length <= 1, `${next} should add at most one gate, added ${added}`);
+    assert.deepEqual(
+      added,
+      ADDED_PER_STEP[next].slice().sort(),
+      `${next} added the wrong gates`
+    );
     assert.equal(removed.length, 0, `${next} must not remove a gate: ${removed}`);
     if (added.length === 0) {
       assert.ok(

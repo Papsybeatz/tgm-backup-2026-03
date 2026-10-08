@@ -37,13 +37,18 @@ export const TIERS = {
   pro: {
     key: 'pro',
     name: 'Grant Consultant',
-    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc'],
+    // Client folders sit here, not only on Agency. The ladder sells capacity and
+    // depth, not deprivation: a $79 tier that added nothing but three seats over
+    // the $29 tier was a step most buyers would skip. Agency keeps what actually
+    // separates a firm from a freelancer — 10 seats and client-aware Steve.
+    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc', 'client_folders'],
     limits: {
       drafts: Infinity,
       scoring: Infinity,
       matching: Infinity,
       exports: true,
-      teamSeats: 3
+      teamSeats: 3,
+      clientFolders: true
     },
     dashboardModules: ['draft', 'scoring', 'matching', 'analytics', 'calendar']
   },
@@ -161,8 +166,12 @@ export function getTierGates(tier) {
     // for paying Pro customers.
     teamFeaturesUnlocked: tierAtLeast(tier, 'pro'),
 
+    // Pro+ — client folders start at Grant Consultant, matching the feature
+    // list above. A gate stricter than the feature list is the "you bought it
+    // and still can't use it" bug this test exists to catch.
+    clientFoldersUnlocked:tierAtLeast(tier, 'pro'),
+
     // Agency+
-    clientFoldersUnlocked:tierAtLeast(tier, 'agency_starter'),
     whiteLabelUnlocked:   tierAtLeast(tier, 'agency_starter'),
 
     // Lifetime

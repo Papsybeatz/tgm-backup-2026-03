@@ -32,9 +32,13 @@ const TIERS = {
     limits: { drafts: Infinity, scoring: Infinity, matching: Infinity }
   },
   pro: {
-    // The upgrade reason is collaboration.
-    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc'],
-    limits: { drafts: Infinity, scoring: Infinity, matching: Infinity, teamSeats: 3 }
+    // The upgrade reason is collaboration, and enough client structure to run a
+    // handful of engagements. Client folders start here rather than at Agency:
+    // the ladder sells capacity and depth, and a $79 tier that added only seats
+    // over the $29 tier is a step buyers skip. Agency still owns 10 seats and
+    // client-aware Steve, which is what a firm actually needs.
+    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc', 'client_folders'],
+    limits: { drafts: Infinity, scoring: Infinity, matching: Infinity, teamSeats: 3, clientFolders: true }
   },
   agency_starter: {
     // The upgrade reason is throughput across clients.
