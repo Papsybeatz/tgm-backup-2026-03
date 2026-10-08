@@ -41,23 +41,25 @@ test('Free can still run the engine — the diagnosis is not the paywall', () =>
 
 /* ── the free-score cap ───────────────────────────────────────────────────── */
 
-test('Free gets exactly three scores, and the fourth is refused', () => {
-  assert.equal(FREE_SCORE_LIMIT, 3);
+test('Free gets exactly six scores, and the seventh is refused', () => {
+  // Six, not three: Free gets six daily uses so a visitor stays attached long
+  // enough to convert. This number is the product decision, not an accident.
+  assert.equal(FREE_SCORE_LIMIT, 6);
 
-  for (const used of [0, 1, 2]) {
+  for (const used of [0, 1, 2, 3, 4, 5]) {
     assert.equal(checkScoreQuota('free', used).allowed, true, `score ${used + 1} must be allowed`);
   }
 
-  const fourth = checkScoreQuota('free', 3);
-  assert.equal(fourth.allowed, false);
-  assert.equal(fourth.reason, 'free_score_limit');
-  assert.equal(fourth.remaining, 0);
+  const seventh = checkScoreQuota('free', 6);
+  assert.equal(seventh.allowed, false);
+  assert.equal(seventh.reason, 'free_score_limit');
+  assert.equal(seventh.remaining, 0);
 });
 
 test('the cap reports how many scores are left, counting down to zero', () => {
-  assert.equal(checkScoreQuota('free', 0).remaining, 3);
-  assert.equal(checkScoreQuota('free', 1).remaining, 2);
-  assert.equal(checkScoreQuota('free', 2).remaining, 1);
+  assert.equal(checkScoreQuota('free', 0).remaining, 6);
+  assert.equal(checkScoreQuota('free', 1).remaining, 5);
+  assert.equal(checkScoreQuota('free', 2).remaining, 4);
 });
 
 test('paid tiers are unmetered', () => {

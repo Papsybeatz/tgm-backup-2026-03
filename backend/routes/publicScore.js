@@ -32,8 +32,11 @@ const os = require('os');
 const crypto = require('crypto');
 const { PrismaClient } = require('@prisma/client');
 
-const { scoreDraft } = require('../agents/steve/scoring');
+const { scoreDraft, ORDERLESS_CRITERIA } = require('../agents/steve/scoring');
+const { rewriteText } = require('../services/rewrite');
+const { publicRewriteDailyLimiter } = require('../middleware/rateLimit');
 const { applyScoreGate, FREE_SCORE_LIMIT } = require('../utils/scoreGate');
+const { buildCriteriaDelta } = require('../utils/criteriaDelta');
 const { extractDocumentText } = require('../utils/extractDocumentText');
 const { errorDetail } = require('../utils/errorDetail');
 
@@ -41,6 +44,9 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10MB, matching /api/documents/upload
+// The rewrite is one LLM call, so it cannot take a whole 10MB document. Cap the
+// text sent to the model; the score still reads the full document.
+const MAX_REWRITE_CHARS = 12000;
 const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.txt', '.md'];
 const MIN_READABLE_CHARS = 200;
 
@@ -177,6 +183,126 @@ router.post('/score', handleUpload, async (req, res) => {
       detail: errorDetail(error),
       success: false,
       message: 'Scoring failed. Please try again.',
+    });
+  }
+});
+
+/**
+ * POST /api/public/rewrite — the free funnel's "watch your score move".
+ * ----------------------------------------------------------------------------
+ * The anonymous Checkup scores a draft and names the gap. This route is the
+ * one click after that: it rewrites the draft, re-scores the rewrite with the
+ * SAME engine, and returns both criteria sets plus the delta. The delta leads;
+ * the rewritten text is the receipt.
+ *
+ * Same three rules as /score: the diagnosis is real, the document is never
+ * stored, and the limit is enforced server-side. The rewrite is scarcer than
+ * scoring — one per IP per day (publicRewriteDailyLimiter) on top of the shared
+ * six-per-day funnel cap — so the demo is free but the loop is not.
+ */
+router.post('/rewrite', publicRewriteDailyLimiter, handleUpload, async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      error: 'no_file',
+      message: 'Attach a proposal file to rewrite.',
+    });
+  }
+
+  let content = '';
+  try {
+    content = await readUploadedText(req.file);
+  } catch (error) {
+    console.warn('[PUBLIC REWRITE] extraction failed:', error?.message || error);
+    content = '';
+  }
+
+  const text = String(content || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (text.length < MIN_READABLE_CHARS) {
+    return res.status(400).json({
+      success: false,
+      error: 'unreadable',
+      message:
+        "We couldn't read enough text from that file. Scanned PDFs have no text layer — upload a Word version, or a PDF exported from the original document.",
+    });
+  }
+
+  try {
+    const before = await scoreDraft({}, content, { orderless: true });
+
+    const truncatedForRewrite = text.length > MAX_REWRITE_CHARS;
+    const inputForRewrite = truncatedForRewrite ? text.slice(0, MAX_REWRITE_CHARS) : text;
+
+    let rewrittenText;
+    try {
+      rewrittenText = await rewriteText({
+        action: 'proposal_improve',
+        content: inputForRewrite,
+        maxTokens: 3000,
+      });
+    } catch (error) {
+      if (error?.message === 'NO_KEY') {
+        // Never return the unchanged document as a "rewrite" — that would be a
+        // silent lie. Fail loudly so the page can hide the button.
+        return res.status(503).json({
+          success: false,
+          error: 'rewrite_unavailable',
+          message: 'The rewrite engine is unavailable right now. Please try again shortly.',
+        });
+      }
+      throw error;
+    }
+
+    const rewrittenPlain = String(rewrittenText || '').trim();
+    if (!rewrittenPlain) {
+      return res.status(502).json({
+        success: false,
+        error: 'empty_rewrite',
+        message: 'The rewrite came back empty. Please try again.',
+      });
+    }
+
+    const after = await scoreDraft({}, rewrittenPlain, { orderless: true });
+
+    // Anonymous funnel telemetry; a ledger failure must never cost the visitor
+    // their rewrite.
+    try {
+      await prisma.aiLog.create({ data: { userId: null, action: 'public_rewrite' } });
+    } catch (error) {
+      console.warn('[PUBLIC REWRITE] could not record usage:', error?.message || error);
+    }
+
+    return res.json({
+      success: true,
+      original: { score: before.score, label: before.label, criteria: before.criteria },
+      rewritten: { score: after.score, label: after.label, criteria: after.criteria },
+      delta: buildCriteriaDelta(before, after),
+      bandChange: {
+        from: before.label,
+        to: after.label,
+        changed: before.label !== after.label,
+      },
+      originalText: text,
+      rewrittenText: rewrittenPlain,
+      criteriaDefs: before.criteriaDefs || after.criteriaDefs || ORDERLESS_CRITERIA,
+      style: before.style,
+      fileName: req.file.originalname,
+      words: text.split(/\s+/).length,
+      truncatedForRewrite,
+      anonymousLimit: FREE_SCORE_LIMIT,
+      signupUrl: '/signup?from=public-score',
+      stored: false,
+    });
+  } catch (error) {
+    console.error('[PUBLIC REWRITE] failed:', error?.message || error);
+    return res.status(500).json({
+      detail: errorDetail(error),
+      success: false,
+      message: 'Rewrite failed. Please try again.',
     });
   }
 });

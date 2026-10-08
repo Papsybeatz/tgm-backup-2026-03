@@ -55,6 +55,59 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/** Copy to the clipboard, reporting success so the button can say so. */
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Download plain text as a file, entirely in the browser. */
+function downloadText(filename, text) {
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ── one criterion's movement ─────────────────────────────────────────────── */
+
+function DeltaRow({ label, from, to, delta }) {
+  const color =
+    delta > 0 ? 'var(--tgm-success)' : delta < 0 ? 'var(--tgm-error)' : 'var(--tgm-muted)';
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '10px 0',
+        borderBottom: '1px solid var(--tgm-border)',
+      }}
+    >
+      <span style={{ flex: '1 1 auto', fontSize: 14, fontWeight: 600, color: 'var(--tgm-text)' }}>
+        {label}
+      </span>
+      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--tgm-muted)' }}>{from}</span>
+      <span style={{ color: 'var(--tgm-muted)' }} aria-hidden="true">
+        →
+      </span>
+      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--tgm-text)' }}>{to}</span>
+      <span style={{ minWidth: 54, textAlign: 'right', fontSize: 14, fontWeight: 800, color }}>
+        {delta > 0 ? `+${delta}` : delta}
+      </span>
+    </div>
+  );
+}
+
 /* ── the score dial ───────────────────────────────────────────────────────── */
 
 function ScoreDial({ score, label }) {
@@ -158,6 +211,12 @@ export default function PublicScorePage() {
   // Share loop: the card is drawn in-browser and never uploaded.
   const [shareState, setShareState] = useState('idle'); // idle | working | done | error
   const [shareNote, setShareNote] = useState('');
+  // The hook: rewrite + re-score, then show the criteria-level delta.
+  const [rewriteState, setRewriteState] = useState('idle'); // idle | working | done | error
+  const [rewrite, setRewrite] = useState(null);
+  const [rewriteError, setRewriteError] = useState('');
+  const [rewriteLockedOut, setRewriteLockedOut] = useState(false);
+  const [copied, setCopied] = useState('');
   const inputRef = useRef(null);
 
   const pickFile = useCallback((candidate) => {
@@ -242,6 +301,55 @@ export default function PublicScorePage() {
     }
   }, [report]);
 
+  /**
+   * The one click after the honest score: rewrite the same file and re-score it.
+   * The server returns the criteria-level delta, which is the part that is not
+   * commodity — the rewritten prose is the receipt, not the pitch.
+   */
+  const runRewrite = useCallback(async () => {
+    if (!file) return;
+    setRewriteState('working');
+    setRewriteError('');
+    setRewriteLockedOut(false);
+
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const res = await fetch(apiUrl('/api/public/rewrite'), { method: 'POST', body });
+      const data = await safeJson(res);
+
+      if (res.status === 429) {
+        setRewriteLockedOut(true);
+        setRewriteError(
+          data.message || 'You have used your free rewrite. Create an account for unlimited rewrites.',
+        );
+        setRewriteState('error');
+        return;
+      }
+      if (!res.ok || !data.success) {
+        setRewriteError(data.message || 'The rewrite failed. Please try again.');
+        setRewriteState('error');
+        return;
+      }
+
+      setRewrite(data);
+      setRewriteState('done');
+    } catch (error) {
+      setRewriteError(
+        error?.message === 'Failed to fetch'
+          ? 'We could not reach the rewrite engine. Check your connection and try again.'
+          : error?.message || 'The rewrite failed. Please try again.',
+      );
+      setRewriteState('error');
+    }
+  }, [file]);
+
+  const copySide = useCallback(async (which, text) => {
+    const ok = await copyText(text || '');
+    setCopied(ok ? which : 'error');
+    if (ok) setTimeout(() => setCopied(''), 2200);
+  }, []);
+
   const reset = useCallback(() => {
     setStatus('idle');
     setReport(null);
@@ -250,6 +358,11 @@ export default function PublicScorePage() {
     setLockedOut(false);
     setShareState('idle');
     setShareNote('');
+    setRewriteState('idle');
+    setRewrite(null);
+    setRewriteError('');
+    setRewriteLockedOut(false);
+    setCopied('');
     if (inputRef.current) inputRef.current.value = '';
   }, []);
 
@@ -471,7 +584,7 @@ export default function PublicScorePage() {
 
               <p style={{ marginTop: 16, fontSize: 13, lineHeight: 1.6, color: 'var(--tgm-muted)', textAlign: 'center' }}>
                 Your document is read in memory to produce the score and then discarded. It is never
-                stored, and we never share it. Three free scores, no account required.
+                stored, and we never share it. Six free scores, no account required.
               </p>
             </>
           )}
@@ -646,6 +759,266 @@ export default function PublicScorePage() {
                 </>
               )}
 
+              {/* ── the hook: one click, then watch the score move ─────────── */}
+              <div style={{ marginTop: 34 }}>
+                {rewriteState !== 'done' && (
+                  <div
+                    style={{
+                      padding: '26px 24px',
+                      borderRadius: 'var(--tgm-radius-md)',
+                      border: '1px solid var(--tgm-border)',
+                      background: 'var(--tgm-bg)',
+                    }}
+                  >
+                    <h2 style={{ fontSize: 19, fontWeight: 800, color: 'var(--tgm-text)', margin: '0 0 8px' }}>
+                      See what the fix looks like
+                    </h2>
+                    <p style={{ fontSize: 15, lineHeight: 1.62, color: 'var(--tgm-text)', margin: '0 0 18px' }}>
+                      A score tells you where you stand. Steve can rewrite this draft and re-score it
+                      against the same rubric, so you can watch your own score move — criterion by
+                      criterion. Not a different opinion, the same measurement.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={runRewrite}
+                      disabled={rewriteState === 'working' || !file}
+                      style={{
+                        width: '100%',
+                        padding: '15px 24px',
+                        border: 'none',
+                        borderRadius: 'var(--tgm-radius-md)',
+                        background: rewriteState === 'working' ? 'var(--tgm-muted)' : 'var(--tgm-blue)',
+                        color: '#fff',
+                        fontSize: 16,
+                        fontWeight: 700,
+                        fontFamily: 'inherit',
+                        cursor: rewriteState === 'working' ? 'wait' : 'pointer',
+                      }}
+                    >
+                      {rewriteState === 'working'
+                        ? 'Rewriting and re-scoring\u2026'
+                        : 'Rewrite my draft and re-score it \u2014 free'}
+                    </button>
+                    {rewriteError && (
+                      <div
+                        role="alert"
+                        style={{
+                          marginTop: 14,
+                          padding: '13px 16px',
+                          borderRadius: 'var(--tgm-radius-sm)',
+                          background: 'rgba(239,68,68,.07)',
+                          border: '1px solid rgba(239,68,68,.28)',
+                          color: 'var(--tgm-error)',
+                          fontSize: 14,
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {rewriteError}
+                        {rewriteLockedOut && (
+                          <div style={{ marginTop: 12 }}>
+                            <Link
+                              to="/signup?from=public-score"
+                              onClick={() => savePublicScoreHandoff(report)}
+                              style={{
+                                display: 'inline-block',
+                                padding: '10px 18px',
+                                borderRadius: 'var(--tgm-radius-sm)',
+                                background: 'var(--tgm-blue)',
+                                color: '#fff',
+                                fontWeight: 700,
+                                fontSize: 14,
+                                textDecoration: 'none',
+                              }}
+                            >
+                              Create a free account for unlimited rewrites
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <p style={{ margin: '12px 0 0', fontSize: 12.5, color: 'var(--tgm-muted)', lineHeight: 1.55 }}>
+                      One free rewrite. Your document is read in memory for the rewrite and discarded,
+                      exactly like the score.
+                    </p>
+                  </div>
+                )}
+
+                {rewriteState === 'done' && rewrite && (
+                  <div aria-live="polite">
+                    {/* the delta leads — the document is the receipt */}
+                    <div
+                      style={{
+                        padding: '28px 26px',
+                        borderRadius: 'var(--tgm-radius-md)',
+                        background: 'linear-gradient(135deg, var(--tgm-navy) 0%, var(--tgm-blue) 100%)',
+                        color: '#fff',
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          letterSpacing: '.09em',
+                          color: 'var(--tgm-gold-light)',
+                          margin: '0 0 14px',
+                        }}
+                      >
+                        YOUR REWRITE, RE-SCORED ON THE SAME RUBRIC
+                      </p>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 42, fontWeight: 800, lineHeight: 1, color: 'rgba(255,255,255,.72)' }}>
+                          {rewrite.original.score}
+                        </span>
+                        <span style={{ fontSize: 24, color: 'rgba(255,255,255,.6)' }} aria-hidden="true">
+                          →
+                        </span>
+                        <span style={{ fontSize: 52, fontWeight: 800, lineHeight: 1, color: 'var(--tgm-gold-light)' }}>
+                          {rewrite.rewritten.score}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 15,
+                            fontWeight: 800,
+                            padding: '5px 13px',
+                            borderRadius: 999,
+                            background: 'rgba(255,255,255,.14)',
+                          }}
+                        >
+                          {rewrite.delta.total > 0 ? `+${rewrite.delta.total}` : rewrite.delta.total} points
+                        </span>
+                      </div>
+                      <p style={{ margin: '16px 0 0', fontSize: 15, lineHeight: 1.6, color: 'rgba(255,255,255,.9)' }}>
+                        {rewrite.bandChange.changed
+                          ? `Band change: ${rewrite.bandChange.from} → ${rewrite.bandChange.to}.`
+                          : `Still ${rewrite.bandChange.to} — the rewrite moved individual criteria, but not enough to change the band.`}
+                      </p>
+                    </div>
+
+                    {/* criteria-level movement — a single number rising would read as grading your own homework */}
+                    <h2 style={{ fontSize: 19, fontWeight: 800, color: 'var(--tgm-text)', margin: '30px 0 6px' }}>
+                      What moved, criterion by criterion
+                    </h2>
+                    <div style={{ marginBottom: 8 }}>
+                      {rewrite.delta.byCriterion.map((row) => (
+                        <DeltaRow
+                          key={row.key}
+                          label={row.label}
+                          from={row.from}
+                          to={row.to}
+                          delta={row.delta}
+                        />
+                      ))}
+                    </div>
+
+                    {/* side by side — the rewritten draft is the receipt */}
+                    <h2 style={{ fontSize: 19, fontWeight: 800, color: 'var(--tgm-text)', margin: '30px 0 14px' }}>
+                      Your draft, side by side
+                    </h2>
+                    {rewrite.truncatedForRewrite && (
+                      <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--tgm-muted)', lineHeight: 1.55 }}>
+                        The rewrite worked on the first part of a long document. The score above still read
+                        the whole thing.
+                      </p>
+                    )}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gap: 16,
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                      }}
+                    >
+                      {[
+                        { key: 'original', title: 'Your original', text: rewrite.originalText },
+                        { key: 'rewritten', title: "Steve's rewrite", text: rewrite.rewrittenText },
+                      ].map((side) => (
+                        <div
+                          key={side.key}
+                          style={{
+                            border: '1px solid var(--tgm-border)',
+                            borderRadius: 'var(--tgm-radius-md)',
+                            overflow: 'hidden',
+                            background: 'var(--tgm-surface)',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: 10,
+                              padding: '12px 14px',
+                              borderBottom: '1px solid var(--tgm-border)',
+                              background: 'var(--tgm-bg)',
+                            }}
+                          >
+                            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--tgm-text)' }}>
+                              {side.title}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => copySide(side.key, side.text)}
+                              style={{
+                                padding: '6px 12px',
+                                borderRadius: 'var(--tgm-radius-sm)',
+                                border: '1px solid var(--tgm-border)',
+                                background: 'var(--tgm-surface)',
+                                color: 'var(--tgm-text)',
+                                fontSize: 13,
+                                fontWeight: 700,
+                                fontFamily: 'inherit',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {copied === side.key ? 'Copied' : copied === 'error' ? 'Copy failed' : 'Copy'}
+                            </button>
+                          </div>
+                          <pre
+                            style={{
+                              margin: 0,
+                              padding: 16,
+                              maxHeight: 380,
+                              overflow: 'auto',
+                              whiteSpace: 'pre-wrap',
+                              wordBreak: 'break-word',
+                              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                              fontSize: 13,
+                              lineHeight: 1.6,
+                              color: 'var(--tgm-text)',
+                            }}
+                          >
+                            {side.text}
+                          </pre>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ marginTop: 14 }}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          downloadText(
+                            `${(rewrite.fileName || 'proposal').replace(/\.[^.]+$/, '')}-steve-rewrite.txt`,
+                            rewrite.rewrittenText,
+                          )
+                        }
+                        style={{
+                          padding: '11px 20px',
+                          borderRadius: 'var(--tgm-radius-sm)',
+                          border: '1px solid var(--tgm-border)',
+                          background: 'var(--tgm-surface)',
+                          color: 'var(--tgm-text)',
+                          fontSize: 14,
+                          fontWeight: 700,
+                          fontFamily: 'inherit',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Download the rewritten draft
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* locked fixes */}
               <div
                 style={{
@@ -661,15 +1034,19 @@ export default function PublicScorePage() {
                     🔒
                   </span>
                   <span style={{ fontSize: 18, fontWeight: 800 }}>
-                    {gaps.length > 0
-                      ? `Steve can fix ${gaps.length === 1 ? 'this' : `all ${gaps.length}`} — unlocked on Starter`
-                      : 'The rewrite is unlocked on Starter'}
+                    {rewriteState === 'done'
+                      ? 'You just got one rewrite free — Starter makes it unlimited'
+                      : gaps.length > 0
+                        ? `Steve can fix ${gaps.length === 1 ? 'this' : `all ${gaps.length}`} — free`
+                        : 'Steve can rewrite this draft — free'}
                   </span>
                 </div>
                 <p style={{ fontSize: 15, lineHeight: 1.6, color: 'rgba(255,255,255,.86)', margin: '0 0 20px' }}>
-                  {report.fixesLocked
-                    ? 'You have the diagnosis. The recommended fixes are held back on the free checkup — Starter unlocks the line-by-line rewrite, not just the list of problems.'
-                    : 'The recommended fixes are shown above.'}
+                  {rewriteState === 'done'
+                    ? 'The rewrite is the demonstration, not the product. Starter makes rewrites unlimited, keeps your drafts and version history, and sends them by email — so the loop can repeat every time you write.'
+                    : report.fixesLocked
+                      ? 'You have the diagnosis. Rewrite the draft and watch your own score move — one free rewrite, no account needed.'
+                      : 'The recommended fixes are shown above.'}
                 </p>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   <Link

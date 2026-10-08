@@ -18,7 +18,9 @@ const TIERS = {
     // fixes until Starter. Free is also capped at 3 scores; that cap is
     // enforced in utils/scoreGate.js, counted from the AiLog ledger.
     features: ['draft_basic', 'view_drafts', 'scoring_basic', 'scoring_engine', 'ai_rewrite', 'export_pdf', 'export_doc', 'ny_grants', 'email_support'],
-    limits: { drafts: 1, scoring: 3, matching: 0 }
+    // Six daily uses, not one draft then a wall. `scoring` mirrors
+    // FREE_SCORE_LIMIT in utils/scoreGate.js (pinned by tests/scoring-gate.test.js).
+    limits: { drafts: 1, scoring: 6, actionsPerDay: 6, matching: 0 }
   },
   starter: {
     // The upgrade reason is "don't lose your work".
