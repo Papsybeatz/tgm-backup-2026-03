@@ -101,6 +101,32 @@ test('an unknown rewrite action is refused, not sent to the provider', async () 
   );
 });
 
+test('the rewrite transport rides the resilient chat(), not a private https call', () => {
+  // The original inline transport hardcoded `llama-3.1-8b-instant`. Groq
+  // retired it (404 model_not_found), so every rewrite 500'd with "Empty AI
+  // response" — including the signed-in /rewrite-basic route. Using chat()
+  // means a retired model is a fallback, not an outage.
+  assert.match(REWRITE_SRC, /require\('\.\.\/agents\/steve\/llm'\)/);
+  assert.match(REWRITE_SRC, /chat\(/);
+  // The comment may name the retired model; the code must not send it.
+  assert.doesNotMatch(
+    REWRITE_SRC,
+    /model:\s*['"]llama-3\.1-8b-instant['"]/,
+    'the retired Groq model must not come back as a request model',
+  );
+  assert.doesNotMatch(
+    REWRITE_SRC,
+    /https\.request/,
+    'the rewrite must not hand-roll its own provider call',
+  );
+});
+
+test('the NO_KEY contract survives the move to chat()', () => {
+  // routes/ai.js matches on 'NO_KEY' to fall back to a template.
+  assert.match(REWRITE_SRC, /NO_LLM_KEY/);
+  assert.match(REWRITE_SRC, /'NO_KEY'/);
+});
+
 /* ── the route: re-scores, diffs, and caps ────────────────────────────────── */
 
 test('the rewrite route re-scores both drafts with the same engine', () => {

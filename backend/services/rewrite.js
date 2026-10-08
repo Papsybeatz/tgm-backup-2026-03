@@ -6,14 +6,18 @@
  * /rewrite-basic route, so both now import from here rather than keeping two
  * copies of the prompts that can drift apart.
  *
- * The transport speaks the OpenAI-compatible chat-completions shape to Groq and
- * throws `NO_KEY` when no key is configured, so callers can decide whether to
- * fall back to a template (signed-in) or fail loudly (the public demo — an
+ * The transport delegates to agents/steve/llm.chat(), NOT a private https call.
+ * That is deliberate: the original inline transport hardcoded
+ * `llama-3.1-8b-instant`, which Groq retired (404 model_not_found), so every
+ * rewrite 500'd with "Empty AI response". `chat()` carries the provider config,
+ * the model fallback chain and per-model error reporting, so a retired model is
+ * a fallback, not an outage.
+ *
+ * Throws `NO_KEY` when no provider is configured, so callers can decide whether
+ * to fall back to a template (signed-in) or fail loudly (the public demo — an
  * unchanged document returned as a "rewrite" would be a lie).
  */
-const https = require('https');
-
-const DEFAULT_MODEL = 'llama-3.1-8b-instant';
+const { chat } = require('../agents/steve/llm');
 
 /** system prompt per action, shared by every caller. */
 const REWRITE_PROMPTS = {
@@ -46,49 +50,20 @@ const REWRITE_PROMPTS = {
     'no commentary about what you changed.',
 };
 
-/** One OpenAI-compatible chat call. Throws Error('NO_KEY') when unconfigured. */
+/**
+ * One chat call, on the shared resilient transport.
+ *
+ * Keeps the historical `NO_KEY` error contract that routes/ai.js matches on,
+ * even though llm.chat() signals the same condition as `NO_LLM_KEY`.
+ */
 async function groqChat(messages, maxTokens = 1800) {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error('NO_KEY');
-
-  const body = JSON.stringify({
-    model: DEFAULT_MODEL,
-    messages,
-    max_tokens: maxTokens,
-    temperature: 0.7,
-  });
-
-  return new Promise((resolve, reject) => {
-    const req = https.request(
-      {
-        hostname: 'api.groq.com',
-        path: '/openai/v1/chat/completions',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Length': Buffer.byteLength(body),
-        },
-      },
-      (res) => {
-        let data = '';
-        res.on('data', (c) => (data += c));
-        res.on('end', () => {
-          try {
-            const parsed = JSON.parse(data);
-            const text = parsed.choices?.[0]?.message?.content;
-            if (!text) reject(new Error('Empty AI response'));
-            else resolve(text);
-          } catch (e) {
-            reject(e);
-          }
-        });
-      },
-    );
-    req.on('error', reject);
-    req.write(body);
-    req.end();
-  });
+  try {
+    const { content } = await chat(messages, { maxTokens, temperature: 0.7 });
+    return content;
+  } catch (error) {
+    if (error?.message === 'NO_LLM_KEY') throw new Error('NO_KEY');
+    throw error;
+  }
 }
 
 /**
@@ -113,4 +88,4 @@ async function rewriteText({ action, content, maxTokens = 1800 }) {
   );
 }
 
-module.exports = { groqChat, rewriteText, REWRITE_PROMPTS, DEFAULT_MODEL };
+module.exports = { groqChat, rewriteText, REWRITE_PROMPTS };
