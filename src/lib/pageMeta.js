@@ -46,7 +46,7 @@ export const PAGE_META = {
   '/pricing': {
     title: 'Pricing & Plans — The Grants Master',
     description:
-      'Free forever, Starter $29/mo, Pro $79/mo, Agency $149/mo, Agency+ $299/mo, or Lifetime for $499. Compare every tier and see exactly what is included.',
+      'Free forever, Grant Writer $29/mo, Grant Consultant $79/mo, Grant Agency $149/mo, or 17% off billed yearly. Compare every tier and see exactly what is included.',
     changefreq: 'monthly',
     priority: '0.9',
   },
@@ -195,9 +195,13 @@ export const PAGE_CONTENT = {
   '/pricing': {
     h1: 'Pricing and plans',
     definition:
-      'The Grants Master pricing is a set of monthly plans, plus a one-time Founding Member lifetime option.',
+      'The Grants Master pricing is a free plan plus three paid tiers — Grant Writer, Grant Consultant and Grant Agency — billed monthly or yearly.',
+    // Names and inclusions are taken from src/config/tiers.js. Export is named
+    // here because it is free on every tier, and white-label reports is not,
+    // because it is not a tier feature — this block is read by crawlers that
+    // never run the app, so it cannot be checked against the rendered page.
     intro:
-      'Free includes one saved draft and basic scoring, while Starter adds unlimited drafts and full Checkmate scoring. Pro adds team seats, and Agency adds client folders and white-label reports.',
+      'Free includes one saved draft, basic scoring and export to PDF and Word. Grant Writer adds unlimited drafts and criterion-by-criterion Checkmate scoring. Grant Consultant adds client folders and three team seats, and Grant Agency adds client-aware Steve and ten seats.',
     related: [
       ['/features', 'Features'],
       ['/trust', 'Trust and security'],

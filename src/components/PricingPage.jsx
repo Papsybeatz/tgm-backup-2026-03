@@ -1,139 +1,151 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import UpgradeButton from './UpgradeButton';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
 import { PRICING_FAQS } from '../lib/faqs';
+import { TIERS } from '../config/tiers';
+import {
+  ANNUAL_DISCOUNT,
+  NEED_BASED_DISCOUNT,
+  annualTotal,
+  annualMonthlyPrice,
+  needBasedMonthlyPrice,
+} from '../config/discounts';
 
-const PLAN_COPY = [
-  {
-    key: 'free',
-    stripeKey: null,
-    name: 'Free',
-    eyebrow: 'For small teams getting started',
-    price: '$0',
-    period: '/ forever',
+/**
+ * The ladder, in order. `free` is the funnel and is not sold, but it is rendered
+ * from the same list so the cards and the comparison table cannot disagree about
+ * what Free includes.
+ *
+ * Internal keys stay `starter` / `pro` / `agency_starter`; the display names live
+ * in src/config/tiers.js so this page, the dashboard and the billing portal
+ * cannot drift apart.
+ */
+const LADDER = ['free', 'starter', 'pro', 'agency_starter'];
+const SELLABLE = ['starter', 'pro', 'agency_starter'];
+
+const MONTHLY_PRICE = { free: 0, starter: 29, pro: 79, agency_starter: 149 };
+
+/**
+ * Feature key -> the sentence a buyer reads.
+ *
+ * Every key here exists in a tier's feature list in src/config/tiers.js, and
+ * backend/tests/tier-feature-existence.test.js requires each of those keys to
+ * name the code that implements it. So a label can only reach this page if
+ * something is actually behind it — the old card sold funder matching,
+ * analytics and a template library that returned 501.
+ */
+const FEATURE_LABELS = {
+  draft_basic: 'AI drafting with Steve',
+  draft_unlimited: 'Unlimited saved drafts',
+  scoring_basic: 'Checkmate scoring',
+  scoring_detailed: 'Checkmate scoring, criterion by criterion',
+  version_history: 'Version history',
+  email_delivery: 'Email delivery of drafts',
+  export_pdf: 'Export to PDF',
+  export_doc: 'Export to Word',
+  client_folders: 'Client folders',
+  client_aware_steve: 'Client-aware Steve',
+};
+
+/**
+ * Free on every tier, so it is never a reason to upgrade. These two stay in the
+ * comparison table (where "included everywhere" is the honest story) and are
+ * stripped from the paid cards.
+ */
+const FREE_ON_EVERY_TIER = ['export_pdf', 'export_doc'];
+
+/**
+ * Comparison rows are the union of feature keys plus the seat limit, built from
+ * the config rather than typed out, so a config change cannot leave the table
+ * advertising something no tier has.
+ */
+const COMPARISON_FEATURES = [
+  'draft_basic',
+  'draft_unlimited',
+  'scoring_basic',
+  'scoring_detailed',
+  'version_history',
+  'email_delivery',
+  'export_pdf',
+  'export_doc',
+  'client_folders',
+  'client_aware_steve',
+];
+
+const PLAN_COPY = {
+  free: {
+    eyebrow: 'Start here',
     bestFor: 'Small nonprofits exploring TGM.',
-    features: [
-      '1 saved draft',
-      'Basic AI assistance (rewrite, clarity, impact)',
-      'Basic brainstorming',
-      'Export to PDF',
-      'Email support',
-    ],
     cta: 'Start Free',
     href: '/signup',
   },
-  {
-    key: 'starter',
-    stripeKey: 'starter',
-    name: 'Starter',
+  starter: {
     eyebrow: 'For growing nonprofits',
-    price: '$29',
-    period: '/ month',
-    bestFor: 'Nonprofits writing multiple grants per year.',
-    // Market benchmark, not a TGM performance claim. Range is the per-proposal
-    // flat fee commonly cited for freelance grant writers; keep it sourced to
-    // the market and never restate it as something TGM has measured.
+    bestFor: 'Nonprofits writing several grants a year.',
+    // Market benchmark, not a TGM performance claim. Keep it sourced to the
+    // market and never restate it as something TGM has measured.
     priceAnchor: 'Most nonprofits pay $1,500–$10,000 for a single freelance proposal.',
-    intro: 'Includes everything in Free, plus:',
-    features: [
-      'Full AI drafting (Steve)',
-      'Unlimited saved drafts',
-      'Checkmate scoring',
-      'Funder alignment insights',
-      'Missing components detection',
-      'Compliance checks',
-      'Grant Fit Score',
-      'Template library (single-org)',
-      'Priority support',
-    ],
-    cta: 'Upgrade to Starter',
+    cta: 'Choose Grant Writer',
   },
-  {
-    key: 'pro',
-    stripeKey: 'pro',
-    name: 'Pro',
-    eyebrow: 'For teams writing grants monthly',
-    price: '$79',
-    period: '/ month',
-    bestFor: 'Nonprofits with recurring grant cycles.',
-    intro: 'Includes everything in Starter, plus:',
-    features: [
-      'Team seats (up to 3)',
-      'Shared workspace',
-      'Team templates',
-      'Team activity log',
-      'Advanced Checkmate analytics',
-      'NY funder intelligence',
-      'NY compliance rules',
-      'Document uploads',
-      'Custom export formatting',
-    ],
-    cta: 'Upgrade to Pro',
+  pro: {
+    eyebrow: 'For consultants and small teams',
+    bestFor: 'Consultants and teams running more than one client.',
+    cta: 'Choose Grant Consultant',
     highlighted: true,
   },
-  {
-    key: 'agency_starter',
-    stripeKey: 'agency_starter',
-    name: 'Agency',
-    eyebrow: 'For consultants & multi-client teams',
-    price: '$149',
-    period: '/ month',
-    bestFor: 'Consultants, agencies, and multi-client grant firms.',
-    intro: 'Includes everything in Pro, plus:',
-    features: [
-      'Multi-client dashboard',
-      'Client folders',
-      'Client-specific templates',
-      'White-label Checkmate reports',
-      'White-label proposal exports',
-      'Bulk Checkmate scoring',
-      'Bulk CSV export',
-      'Client activity logs',
-      'Team seats (up to 10)',
-      'Role-based permissions',
-      'Priority support',
-    ],
-    cta: 'Upgrade to Agency',
+  agency_starter: {
+    eyebrow: 'For grant firms',
+    bestFor: 'Firms carrying a portfolio of client work.',
+    cta: 'Choose Grant Agency',
   },
-  {
-    key: 'agency_unlimited',
-    stripeKey: 'agency_unlimited',
-    name: 'Agency+',
-    eyebrow: 'For high-volume teams',
-    price: '$299',
-    period: '/ month',
-    bestFor: 'Large agencies, economic development teams, and enterprise-level grant operations.',
-    intro: 'Includes everything in Agency, plus:',
-    features: [
-      'Unlimited team seats',
-      'Unlimited client folders',
-      'Full white-label branding',
-      'Priority support',
-      'Dedicated workspace setup',
-      'Multi-client dashboard',
-      'White-label reports',
-      'Quarterly strategy review',
-      'Early access to new features',
-    ],
-    cta: 'Upgrade to Agency+',
-  },
-];
+};
 
-const COMPARISON_ROWS = [
-  ['AI drafting (Steve)', true, true, true, true, true],
-  ['Unlimited drafts', false, true, true, true, true],
-  ['Checkmate Pro scoring', false, true, true, true, true],
-  ['Funder alignment', false, true, true, true, true],
-  ['Grant Fit Score', false, true, true, true, true],
-  ['NY funder intelligence', false, false, true, true, true],
-  ['Team seats', false, false, '3', '10', 'Unlimited'],
-  ['Multi-client workspace', false, false, false, true, true],
-  ['White-label reports', false, false, false, true, true],
-  ['Bulk scoring', false, false, false, true, true],
-  ['Client templates', false, false, false, true, true],
-  ['Activity logs', false, false, true, true, true],
-];
+/** What this tier adds over the one below it — the upgrade pitch, not the spec sheet. */
+function addedFeatures(tierKey) {
+  const index = LADDER.indexOf(tierKey);
+  const previous = index > 0 ? LADDER[index - 1] : null;
+  const before = previous ? TIERS[previous].features : [];
+  return TIERS[tierKey].features.filter(
+    (feature) => !before.includes(feature) && !FREE_ON_EVERY_TIER.includes(feature)
+  );
+}
+
+/** Whole dollars render without cents; anything else keeps them. */
+function money(value) {
+  return Number.isInteger(value) ? `$${value}` : `$${value.toFixed(2)}`;
+}
+
+/**
+ * The price a card shows, for the selected interval and discount.
+ *
+ * The yearly total is the source of truth (see src/config/discounts.js), so the
+ * monthly-equivalent is derived from it and can never disagree with the amount
+ * Stripe charges. The need-based discount multiplies on top, matching how the
+ * backend applies it as a coupon that stacks with the annual price.
+ */
+function quoteFor(tierKey, { interval, needBased }) {
+  const monthly = MONTHLY_PRICE[tierKey] || 0;
+  if (!monthly) return { amount: '$0', unit: '/ forever', note: null };
+
+  const factor = needBased ? 1 - NEED_BASED_DISCOUNT.rate : 1;
+
+  if (interval === 'annual') {
+    const perMonth = annualMonthlyPrice(monthly) * factor;
+    const yearly = annualTotal(monthly) * factor;
+    return {
+      amount: money(Number(perMonth.toFixed(2))),
+      unit: '/ month',
+      note: `billed ${money(Number(yearly.toFixed(2)))} yearly`,
+    };
+  }
+
+  return {
+    amount: money(Number((monthly * factor).toFixed(2))),
+    unit: '/ month',
+    note: null,
+  };
+}
 
 const SECURITY_POINTS = [
   'Your data is never used to train AI models',
@@ -143,35 +155,6 @@ const SECURITY_POINTS = [
   'Security inherited from independently audited providers (Railway, Vercel, Supabase, GitHub)',
   'GDPR & CCPA: deletion on request',
   'Secure document storage',
-];
-
-// Founding Member is a genuine Starter superset: both configs grant it exactly
-// the Starter feature set, so "Everything in Starter" is a statement the config
-// backs rather than an aspiration. Source of truth: TIERS.lifetime in
-// src/config/tiers.js.
-//
-// This card previously also advertised unlimited funder matching, advanced
-// analytics, reviewer simulation, a grant calendar, priority AI processing, a
-// template library and a Founding Member badge/certificate. None of those are
-// built, so they are gone: a $499 card must not sell capabilities the product
-// does not have. tests/tier-config-agreement.test.js pins that.
-const LIFETIME_FEATURES = [
-  'Full AI drafting (Steve)',
-  'Unlimited saved drafts',
-  'Full Checkmate scoring',
-  'Funder alignment insights',
-  'Grant Fit Score',
-  'Missing components detection',
-  'Compliance checks',
-  'Export to PDF and Word',
-  'Priority support',
-];
-
-const LIFETIME_EXCLUDES = [
-  'Team seats and shared workspace',
-  'NY funder intelligence and NY compliance rules',
-  'Document uploads and custom export formatting',
-  'Agency client folders, white-label output and bulk scoring',
 ];
 
 function CheckIcon({ active = true }) {
@@ -203,6 +186,8 @@ function cellValue(value) {
 export default function PricingPage() {
   const { startCheckout, loading: checkoutLoading, error: checkoutError } = useStripeCheckout();
   const [priceIds, setPriceIds] = useState({});
+  const [interval, setInterval] = useState('annual');
+  const [needBased, setNeedBased] = useState(false);
   const [searchParams] = useSearchParams();
   const checkoutStarted = useRef(false);
 
@@ -216,6 +201,33 @@ export default function PricingPage() {
       .catch(() => setPriceIds({}));
   }, []);
 
+  // Annual only exists once the annual price IDs are configured. Until then the
+  // page falls back to monthly-only rather than offering a plan the checkout
+  // would reject with a 400.
+  const annualIds = priceIds.annual || {};
+  const annualAvailable = SELLABLE.some((key) => Boolean(annualIds[key]));
+  const effectiveInterval = annualAvailable ? interval : 'monthly';
+
+  // The need-based checkbox is hidden until the coupon is configured, because
+  // the server answers a need-based session with 503 when it is not.
+  const needBasedAvailable = Boolean(priceIds.needBasedAvailable);
+  const needBasedApplied = needBasedAvailable && needBased;
+
+  const comparisonRows = useMemo(() => [
+    ...COMPARISON_FEATURES.map((key) => ({
+      label: FEATURE_LABELS[key],
+      values: LADDER.map((tierKey) => TIERS[tierKey].features.includes(key)),
+    })),
+    {
+      label: 'Team seats',
+      values: LADDER.map((tierKey) => {
+        const seats = TIERS[tierKey].limits.teamSeats;
+        if (!seats) return false;
+        return seats === Infinity ? 'Unlimited' : String(seats);
+      }),
+    },
+  ], []);
+
   useEffect(() => {
     const priceId = searchParams.get('checkout');
     const token = localStorage.getItem('token');
@@ -224,6 +236,12 @@ export default function PricingPage() {
       startCheckout(priceId, { cancelPath: '/pricing' });
     }
   }, [priceIds, searchParams, startCheckout]);
+
+  const priceIdFor = (tierKey) => {
+    if (tierKey === 'free') return null;
+    if (effectiveInterval === 'annual') return annualIds[tierKey] || null;
+    return priceIds[tierKey] || null;
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--tgm-bg)', color: 'var(--tgm-text)' }}>
@@ -241,7 +259,8 @@ export default function PricingPage() {
             Built for nonprofits, consultants, and agencies
           </h1>
           <p style={{ fontSize: 19, lineHeight: 1.7, opacity: .82, margin: '0 auto 28px', maxWidth: 720 }}>
-            Choose the plan that matches your grant-writing capacity. Start free. Upgrade anytime.
+            Buy the capacity you need. Every plan does the whole job — you are never
+            buying back a feature the plan below should have had.
           </p>
           <Link to="/signup" style={{
             display: 'inline-flex',
@@ -260,28 +279,96 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section style={{ padding: '56px 24px 72px', maxWidth: 1280, margin: '0 auto' }}>
+      <section style={{ padding: '40px 24px 0', maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 16 }}>
+          {annualAvailable && (
+            <div style={{ display: 'inline-flex', background: '#E8EDF5', borderRadius: 999, padding: 4 }}>
+              {['monthly', 'annual'].map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setInterval(option)}
+                  aria-pressed={effectiveInterval === option}
+                  style={{
+                    border: 'none',
+                    borderRadius: 999,
+                    padding: '9px 20px',
+                    fontSize: 14,
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    background: effectiveInterval === option ? 'var(--tgm-navy)' : 'transparent',
+                    color: effectiveInterval === option ? '#fff' : 'var(--tgm-navy)',
+                  }}
+                >
+                  {option === 'monthly' ? 'Monthly' : `Annual — save ${Math.round(ANNUAL_DISCOUNT * 100)}%`}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {needBasedAvailable && (
+            <label style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              background: '#fff',
+              border: '1px solid var(--tgm-border)',
+              borderRadius: 999,
+              padding: '9px 18px',
+              fontSize: 13.5,
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}>
+              <input
+                type="checkbox"
+                checked={needBased}
+                onChange={(event) => setNeedBased(event.target.checked)}
+                style={{ width: 16, height: 16 }}
+              />
+              {NEED_BASED_DISCOUNT.label}
+            </label>
+          )}
+        </div>
+      </section>
+
+      <section style={{ padding: '32px 24px 72px', maxWidth: 1280, margin: '0 auto' }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
           gap: 20,
           alignItems: 'stretch',
         }}>
-          {PLAN_COPY.map((plan) => {
-            const priceId = plan.stripeKey ? priceIds[plan.stripeKey] : null;
+          {LADDER.map((tierKey) => {
+            const tier = TIERS[tierKey];
+            const copy = PLAN_COPY[tierKey];
+            const isFree = tierKey === 'free';
+            const quote = quoteFor(tierKey, { interval: effectiveInterval, needBased: needBasedApplied });
+            const priceId = priceIdFor(tierKey);
+
+            // Free lists what it includes; paid tiers list only what they add,
+            // because "Everything in X, plus" has to be a true superset claim.
+            const features = isFree
+              ? tier.features.map((key) => FEATURE_LABELS[key])
+              : addedFeatures(tierKey).map((key) => FEATURE_LABELS[key]);
+
+            const seats = tier.limits.teamSeats;
+            if (!isFree && seats) {
+              features.push(seats === Infinity ? 'Unlimited team seats' : `Team seats (up to ${seats})`);
+            }
+
             return (
-              <article key={plan.key} style={{
+              <article key={tierKey} style={{
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
                 minHeight: '100%',
                 background: '#fff',
                 borderRadius: 12,
-                border: plan.highlighted ? '2px solid var(--tgm-gold)' : '1px solid var(--tgm-border)',
-                boxShadow: plan.highlighted ? '0 14px 40px rgba(212,175,55,.18)' : 'var(--tgm-shadow-sm)',
+                border: copy.highlighted ? '2px solid var(--tgm-gold)' : '1px solid var(--tgm-border)',
+                boxShadow: copy.highlighted ? '0 14px 40px rgba(212,175,55,.18)' : 'var(--tgm-shadow-sm)',
                 padding: 24,
               }}>
-                {plan.highlighted && (
+                {copy.highlighted && (
                   <div style={{
                     position: 'absolute',
                     top: -13,
@@ -299,24 +386,31 @@ export default function PricingPage() {
                   </div>
                 )}
                 <p style={{ margin: '0 0 8px', color: '#B8960C', fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>
-                  {plan.eyebrow}
+                  {copy.eyebrow}
                 </p>
-                <h2 style={{ margin: '0 0 12px', fontSize: 24, fontWeight: 900, color: 'var(--tgm-navy)' }}>{plan.name}</h2>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 14 }}>
-                  <span style={{ fontSize: 42, fontWeight: 900, color: 'var(--tgm-navy)' }}>{plan.price}</span>
-                  <span style={{ fontSize: 14, color: 'var(--tgm-muted)', fontWeight: 700 }}>{plan.period}</span>
+                <h2 style={{ margin: '0 0 12px', fontSize: 24, fontWeight: 900, color: 'var(--tgm-navy)' }}>{tier.name}</h2>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
+                  <span style={{ fontSize: 42, fontWeight: 900, color: 'var(--tgm-navy)' }}>{quote.amount}</span>
+                  <span style={{ fontSize: 14, color: 'var(--tgm-muted)', fontWeight: 700 }}>{quote.unit}</span>
                 </div>
-                {plan.priceAnchor && (
-                  <p style={{ margin: '0 0 12px', fontSize: 13, lineHeight: 1.55, color: 'var(--tgm-muted)' }}>
-                    {plan.priceAnchor}
+                {quote.note && (
+                  <p style={{ margin: '0 0 10px', fontSize: 12.5, fontWeight: 800, color: '#15803D' }}>{quote.note}</p>
+                )}
+                {copy.priceAnchor && (
+                  <p style={{ margin: '8px 0 12px', fontSize: 13, lineHeight: 1.55, color: 'var(--tgm-muted)' }}>
+                    {copy.priceAnchor}
                   </p>
                 )}
                 <p style={{ margin: '0 0 16px', minHeight: 44, fontSize: 14, lineHeight: 1.55, color: 'var(--tgm-muted)' }}>
-                  <strong style={{ color: 'var(--tgm-text)' }}>Best for:</strong> {plan.bestFor}
+                  <strong style={{ color: 'var(--tgm-text)' }}>Best for:</strong> {copy.bestFor}
                 </p>
-                {plan.intro && <p style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 800, color: 'var(--tgm-navy)' }}>{plan.intro}</p>}
+                {!isFree && (
+                  <p style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 800, color: 'var(--tgm-navy)' }}>
+                    Everything in {TIERS[LADDER[LADDER.indexOf(tierKey) - 1]].name}, plus:
+                  </p>
+                )}
                 <ul style={{ margin: '0 0 24px', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 9, flex: 1 }}>
-                  {plan.features.map((feature) => (
+                  {features.map((feature) => (
                     <li key={feature} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 13, lineHeight: 1.45 }}>
                       <CheckIcon />
                       <span>{feature}</span>
@@ -324,15 +418,16 @@ export default function PricingPage() {
                   ))}
                 </ul>
                 <UpgradeButton
-                  tierKey={plan.key}
-                  href={plan.href}
+                  tierKey={tierKey}
+                  href={copy.href}
                   priceId={priceId}
                   onCheckout={priceId ? () => startCheckout(priceId, {
+                    needBased: needBasedApplied,
                     loginRedirectPath: `/pricing?checkout=${encodeURIComponent(priceId)}`,
                   }) : undefined}
                   loading={checkoutLoading}
                 >
-                  {plan.cta}
+                  {copy.cta}
                 </UpgradeButton>
               </article>
             );
@@ -346,69 +441,14 @@ export default function PricingPage() {
         )}
       </section>
 
-      <section style={{ padding: '0 24px 72px', maxWidth: 1120, margin: '0 auto' }}>
-        <article style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 28,
-          alignItems: 'center',
-          background: '#fff',
-          border: '2px solid var(--tgm-gold)',
-          borderRadius: 16,
-          boxShadow: '0 18px 48px rgba(212,175,55,.18)',
-          padding: 28,
-        }}>
-          <div>
-            <p style={{ margin: '0 0 10px', color: '#B8960C', fontSize: 12, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>
-              Founding Member
-            </p>
-            <h2 style={{ margin: '0 0 10px', fontSize: 30, fontWeight: 900, color: 'var(--tgm-navy)' }}>
-              Founding Member Lifetime Access
-            </h2>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 12 }}>
-              <span style={{ fontSize: 44, fontWeight: 900, color: 'var(--tgm-navy)' }}>$499</span>
-              <span style={{ fontSize: 15, color: 'var(--tgm-muted)', fontWeight: 800 }}>one-time</span>
-            </div>
-            <p style={{ margin: '0 0 14px', fontSize: 15, lineHeight: 1.7, color: 'var(--tgm-muted)' }}>
-              Limited to 100 seats. One payment, no renewal, ever. Your price is locked for life.
-            </p>
-            <p style={{ margin: '0 0 22px', fontSize: 14, fontWeight: 900, color: 'var(--tgm-navy)' }}>
-              Everything in Starter, locked in for life.
-            </p>
-            <UpgradeButton
-              tierKey="lifetime"
-              priceId={priceIds.lifetime}
-              onCheckout={priceIds.lifetime ? () => startCheckout(priceIds.lifetime, {
-                loginRedirectPath: `/pricing?checkout=${encodeURIComponent(priceIds.lifetime)}`,
-              }) : undefined}
-              loading={checkoutLoading}
-            >
-              Claim a Founding Member seat
-            </UpgradeButton>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
-            {LIFETIME_FEATURES.map((feature) => (
-              <div key={feature} style={{ display: 'flex', gap: 9, alignItems: 'center', background: '#FFFBEB', border: '1px solid rgba(212,175,55,.28)', borderRadius: 10, padding: '11px 12px' }}>
-                <CheckIcon />
-                <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--tgm-navy)' }}>{feature}</span>
-              </div>
-            ))}
-          </div>
-          <p style={{ margin: '16px 0 0', fontSize: 12.5, lineHeight: 1.7, color: 'var(--tgm-muted)' }}>
-            <strong style={{ color: 'var(--tgm-navy)' }}>Not included:</strong>{' '}
-            {LIFETIME_EXCLUDES.join(' · ')}
-          </p>
-        </article>
-      </section>
-
       <section style={{ background: '#fff', borderTop: '1px solid var(--tgm-border)', borderBottom: '1px solid var(--tgm-border)', padding: '64px 24px' }}>
         <div style={{ maxWidth: 1180, margin: '0 auto' }}>
           <h2 style={{ margin: '0 0 28px', fontSize: 32, fontWeight: 900, color: 'var(--tgm-navy)', textAlign: 'center' }}>Compare plans</h2>
           <div style={{ overflowX: 'auto', border: '1px solid var(--tgm-border)', borderRadius: 12 }}>
-            <table style={{ width: '100%', minWidth: 780, borderCollapse: 'collapse', fontSize: 14 }}>
+            <table style={{ width: '100%', minWidth: 720, borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
                 <tr style={{ background: '#F8FAFC' }}>
-                  {['Feature', 'Free', 'Starter', 'Pro', 'Agency', 'Agency+'].map((heading) => (
+                  {['Feature', ...LADDER.map((tierKey) => TIERS[tierKey].name)].map((heading) => (
                     <th key={heading} style={{ padding: '14px 16px', textAlign: heading === 'Feature' ? 'left' : 'center', color: 'var(--tgm-navy)', borderBottom: '1px solid var(--tgm-border)' }}>
                       {heading}
                     </th>
@@ -416,11 +456,11 @@ export default function PricingPage() {
                 </tr>
               </thead>
               <tbody>
-                {COMPARISON_ROWS.map(([feature, free, starter, pro, agency, agencyPlus]) => (
-                  <tr key={feature}>
-                    <td style={{ padding: '14px 16px', borderBottom: '1px solid #EEF2F7', fontWeight: 800 }}>{feature}</td>
-                    {[free, starter, pro, agency, agencyPlus].map((value, index) => (
-                      <td key={`${feature}-${index}`} style={{ padding: '14px 16px', borderBottom: '1px solid #EEF2F7', textAlign: 'center' }}>
+                {comparisonRows.map(({ label, values }) => (
+                  <tr key={label}>
+                    <td style={{ padding: '14px 16px', borderBottom: '1px solid #EEF2F7', fontWeight: 800 }}>{label}</td>
+                    {values.map((value, index) => (
+                      <td key={`${label}-${index}`} style={{ padding: '14px 16px', borderBottom: '1px solid #EEF2F7', textAlign: 'center' }}>
                         {cellValue(value)}
                       </td>
                     ))}
@@ -429,6 +469,9 @@ export default function PricingPage() {
               </tbody>
             </table>
           </div>
+          <p style={{ margin: '16px 0 0', textAlign: 'center', fontSize: 13, color: 'var(--tgm-muted)' }}>
+            Export to PDF and Word is included on every plan, including Free.
+          </p>
         </div>
       </section>
 

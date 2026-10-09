@@ -36,8 +36,8 @@ export default function TeamPage() {
         ) : (
           <div className="rounded-xl border border-[#E2E8F0] bg-white p-6">
             <p className="text-sm leading-6 text-gray-600">
-              Team seats are included with the Pro and Agency plans. Pro includes 3 seats,
-              Agency 10, and Agency+ unlimited.
+              Team seats are included with Grant Consultant and Grant Agency. Grant Consultant
+              includes 3 seats and Grant Agency includes 10.
             </p>
             <Link to="/plans" className="mt-4 inline-block text-sm font-bold text-[#003A8C] no-underline hover:text-[#B8960C]">
               Compare plans →

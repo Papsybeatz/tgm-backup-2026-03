@@ -67,76 +67,23 @@ test('the limit comparison is not vacuous', async () => {
   assert.ok(compared >= 12, `expected at least 12 comparable limit fields, found ${compared}`);
 });
 
-/* ─────────────── the Founding Member card ─────────────── */
+/* ─────────────── the retired tiers ─────────────── */
 
-test('the Founding Member card claims only what the product actually does', async () => {
-  // The card is a $499 promise, and it used to sell things that do not exist:
-  // unlimited funder matching (POST /api/match → 501), advanced analytics
-  // (GET /api/analytics → 501), reviewer simulation, a grant calendar, priority
-  // AI processing, a template library and a Founding Member badge.
+test('the retired tiers are gone from the pricing page', () => {
+  // The $499 Founding Member tier and the $299 Agency+ tier are no longer sold.
+  // Both stay grandfathered in the configs so existing accounts keep access, but
+  // a card for either would put a product back on sale that nobody can buy.
   //
-  // A card describes what the product does; TIERS.*.features describes what an
-  // upgrade unlocks. Those are different lists, so each claim is checked against
-  // the capability itself rather than against the tier's feature array.
-  const { TIERS } = await frontendTiersPromise;
-  const granted = TIERS.lifetime.features;
+  // This replaces a test that pinned the Founding Member card's contents. That
+  // test read the block between two constants, so it would have failed on a
+  // rename rather than on the real problem, and it cannot outlive the card.
   const card = fs.readFileSync(path.join(REPO, 'src', 'components', 'PricingPage.jsx'), 'utf8');
-
-  const start = card.indexOf('const LIFETIME_FEATURES');
-  const end = card.indexOf('function CheckIcon');
-  assert.ok(start !== -1 && end > start, 'could not isolate the Founding Member card block');
-  const block = card.slice(start, end);
-
-  // It must not sell anything that is not built.
-  const NOT_BUILT_CLAIMS = [
-    [/Unlimited funder matching/i, 'funder matching is not built (POST /api/match → 501)'],
-    [/Advanced analytics/i, 'advanced analytics is not built (GET /api/analytics → 501)'],
-    [/Reviewer simulation/i, 'reviewer simulation is not built'],
-    [/Grant calendar/i, 'the grant calendar is not built'],
-    [/Priority AI processing/i, 'AI is not prioritised by tier'],
-    [/Template library/i, 'the template library is not built'],
-    [/badge and certificate/i, 'no badge or certificate is rendered anywhere'],
-  ];
-  for (const [label, why] of NOT_BUILT_CLAIMS) {
-    assert.doesNotMatch(block, label, `the card claims something unbuilt: ${why}`);
-  }
-
-  // The scoring insights it names are produced by the Checkmate engine, which
-  // computes them for every tier — so they are evidence-checked against the
-  // engine, not against TIERS.lifetime.features (they are not tier features).
-  const SCORING_INSIGHTS = [
-    [/Funder alignment/i, /criteria\.alignment/, 'funder alignment'],
-    [/Grant Fit Score/i, /overall/, 'a grant fit score'],
-    [/Missing components/i, /missingComponents/, 'missing components'],
-    [/Compliance checks/i, /criteria\.compliance/, 'compliance checks'],
-  ];
-  const scoring = fs.readFileSync(
-    path.join(REPO, 'backend', 'agents', 'steve', 'scoring.js'),
-    'utf8'
-  );
-  for (const [label, evidence, name] of SCORING_INSIGHTS) {
-    if (label.test(block)) {
-      assert.match(
-        scoring,
-        evidence,
-        `the card claims ${name}, but the scoring engine does not produce it`
-      );
-    }
-  }
-
-  // "Everything in Starter" is honest only while the tier really is a superset.
-  if (/Everything in Starter/.test(block)) {
-    const missing = TIERS.starter.features.filter((f) => !granted.includes(f));
-    assert.deepEqual(
-      missing,
-      [],
-      `the card says "Everything in Starter" but lifetime lacks: ${missing.join(', ')}`
-    );
-  }
-
-  // It must never claim Pro: lifetime has no seats, shared workspace, NY funder
-  // intelligence or document uploads.
-  assert.doesNotMatch(block, /Everything in Pro/, 'lifetime is not a Pro superset');
+  assert.doesNotMatch(card, /Founding Member/i, 'the Founding Member card is still on the pricing page');
+  assert.doesNotMatch(card, /\$499/, 'the $499 lifetime price is still on the pricing page');
+  assert.doesNotMatch(card, /Agency\+/, 'the retired Agency+ tier is still on the pricing page');
+  assert.doesNotMatch(card, /\$299/, 'the $299 Agency+ price is still on the pricing page');
+  // Display names must come from the config, not be retyped on the page.
+  assert.match(card, /from '\.\.\/config\/tiers'/, 'the page must import the tier config');
 });
 
 test('the lifetime tier is a superset of starter in BOTH configs', async () => {

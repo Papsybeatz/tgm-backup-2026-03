@@ -40,6 +40,10 @@ export function useStripeCheckout() {
       const successPath = typeof options.successPath === 'string' ? options.successPath : '/billing/processing';
       const cancelPath = typeof options.cancelPath === 'string' ? options.cancelPath : '/pricing';
       const checkoutContext = typeof options.checkoutContext === 'string' ? options.checkoutContext : 'app';
+      // Only meaningful for a signed-in session. The server applies the
+      // need-based coupon and answers 503 when none is configured, so the page
+      // hides the checkbox until /api/checkout/prices reports one.
+      const needBased = options.needBased === true;
       const loginRedirectPath =
         typeof options.loginRedirectPath === 'string' ? options.loginRedirectPath : window.location.pathname;
       const loginRedirect = encodeURIComponent(loginRedirectPath);
@@ -58,7 +62,7 @@ export function useStripeCheckout() {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ priceId, successPath, cancelPath, checkoutContext }),
+        body: JSON.stringify({ priceId, successPath, cancelPath, checkoutContext, needBased }),
       });
 
       const data = await res.json();
