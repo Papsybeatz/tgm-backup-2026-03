@@ -57,14 +57,22 @@ test('the canonical tier config is readable and is the 6 expected tiers', () => 
 // ── The user map holds exactly the sellable user tiers ───────────────────────
 
 test('the user price map holds exactly the 5 sellable tiers, including lifetime', () => {
-  const map = getUserPriceTierMap();
-  assert.deepEqual(Object.values(map).sort(), [
-    'agency_starter',
-    'agency_unlimited',
-    'lifetime',
-    'pro',
-    'starter',
-  ]);
+  const body = CHECKOUT_SRC
+    .slice(CHECKOUT_SRC.indexOf('function getUserPriceTierMap'))
+    .split('\n}')[0];
+
+  const tiers = new Set((body.match(/'([a-z_]+)'/g) || []).map((q) => q.slice(1, -1)));
+
+  // Each sellable tier now has TWO prices (monthly and annual), so the map has
+  // more entries than tiers. What must stay exactly true is the TIER set: a
+  // stray tier here is a tier the checkout accepts but src/config/tiers.js does
+  // not define, which means the buyer pays and every feature accessor falls
+  // back to free.
+  assert.deepEqual(
+    [...tiers].sort(),
+    ['agency_starter', 'agency_unlimited', 'lifetime', 'pro', 'starter'],
+    'the user price map must hold exactly the 5 sellable tiers',
+  );
 });
 
 test('every tier in the user price map is a real tier in src/config/tiers.js', () => {
@@ -182,4 +190,51 @@ test('a stray funder tier is still routed through Stripe verification', () => {
   assert.match(AUTH_SRC, /STRIPE_PAID_TIERS/);
   assert.match(AUTH_SRC, /'funder_pilot',/);
   assert.match(AUTH_SRC, /tier: 'free',/);
+});
+
+/* ── annual prices ───────────────────────────────────────────────────────── */
+
+test('every sellable tier has an annual price that maps to the same tier', () => {
+  const body = CHECKOUT_SRC
+    .slice(CHECKOUT_SRC.indexOf('function getUserPriceTierMap'))
+    .split('\n}')[0];
+
+  for (const [tier, env] of [
+    ['starter', 'STRIPE_STARTER_ANNUAL_PRICE_ID'],
+    ['pro', 'STRIPE_PRO_ANNUAL_PRICE_ID'],
+    ['agency_starter', 'STRIPE_AGENCY_STARTER_ANNUAL_PRICE_ID'],
+  ]) {
+    assert.match(
+      body,
+      new RegExp(`\\[process\\.env\\.${env}\\]:\\s*'${tier}'`),
+      `${tier} annual price must map back to ${tier}`,
+    );
+  }
+});
+
+test('the webhook and auth price maps also know the annual prices', () => {
+  // The webhook map is what actually GRANTS the tier, and auth's map is what
+  // reconciliation uses to decide a subscription still entitles the account.
+  // An annual price missing from either one charges the card and grants
+  // nothing — the worst failure mode in the whole billing path.
+  for (const [name, src] of [['webhook', WEBHOOK_SRC], ['auth', AUTH_SRC]]) {
+    for (const env of [
+      'STRIPE_STARTER_ANNUAL_PRICE_ID',
+      'STRIPE_PRO_ANNUAL_PRICE_ID',
+      'STRIPE_AGENCY_STARTER_ANNUAL_PRICE_ID',
+    ]) {
+      assert.match(src, new RegExp(`process\\.env\\.${env}`), `${name} map is missing ${env}`);
+    }
+  }
+});
+
+test('need-based pricing is a coupon and fails loudly when unconfigured', () => {
+  assert.match(CHECKOUT_SRC, /STRIPE_NEED_BASED_COUPON_ID/);
+  assert.match(CHECKOUT_SRC, /discounts\s*=\s*\[\{\s*coupon/);
+  assert.match(CHECKOUT_SRC, /503/);
+});
+
+test('the prices endpoint exposes the annual ids and the need-based flag', () => {
+  assert.match(CHECKOUT_SRC, /annual:\s*\{/);
+  assert.match(CHECKOUT_SRC, /needBasedAvailable/);
 });

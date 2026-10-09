@@ -34,21 +34,34 @@ const FUNDER_ENTERPRISE_PRICE_ID = process.env.STRIPE_FUNDER_ENTERPRISE_PRICE_ID
 // exactly the user tiers in src/config/tiers.js: starter, pro, agency_starter,
 // agency_unlimited, and lifetime (the founding-member deal).
 //
+// Every sellable tier has TWO prices — monthly and annual — and both map to the
+// SAME tier string. An annual buyer therefore gets exactly what a monthly buyer
+// gets; only the billing interval differs. The yearly totals themselves live in
+// src/config/discounts.js, which is the single source of truth for the amounts.
+//
+// This map is duplicated in routes/webhooks/stripe.js and routes/auth.js. All
+// three must list the annual prices: the webhook map is what actually grants the
+// tier, so an annual price missing there would charge the card and grant
+// nothing.
+//
 // Funder prices are deliberately absent. A funder price accepted here would
 // store a tier string (`funder_pilot`) that has no entry in src/config/tiers.js,
 // so every feature accessor would fall back to TIERS.free and the buyer would
 // pay and receive nothing. Funder plans are a separate, cycle-based product
 // sold through /create-funder-session.
-//
-// No `annual_pro` either: there is no annual toggle in the UI, so a price slot
-// that maps to an existing tier but is never sold only invites confusion.
 function getUserPriceTierMap() {
   return {
-    [process.env.STRIPE_STARTER_PRICE_ID]:          'starter',
-    [process.env.STRIPE_PRO_PRICE_ID]:              'pro',
-    [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:   'agency_starter',
-    [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
-    [process.env.STRIPE_LIFETIME_PRICE_ID]:         'lifetime',
+    // Monthly
+    [process.env.STRIPE_STARTER_PRICE_ID]:               'starter',
+    [process.env.STRIPE_PRO_PRICE_ID]:                   'pro',
+    [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:        'agency_starter',
+    // Annual — the same tiers, billed yearly
+    [process.env.STRIPE_STARTER_ANNUAL_PRICE_ID]:        'starter',
+    [process.env.STRIPE_PRO_ANNUAL_PRICE_ID]:            'pro',
+    [process.env.STRIPE_AGENCY_STARTER_ANNUAL_PRICE_ID]: 'agency_starter',
+    // Grandfathered, no longer sold
+    [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]:      'agency_unlimited',
+    [process.env.STRIPE_LIFETIME_PRICE_ID]:              'lifetime',
   };
 }
 
@@ -70,7 +83,7 @@ function normalizeCheckoutPaths(successPath, cancelPath) {
   };
 }
 
-function buildSessionParams({ priceId, customerId, userId, checkoutContext, successPath, cancelPath }) {
+function buildSessionParams({ priceId, customerId, userId, checkoutContext, successPath, cancelPath, couponId }) {
   const LIFETIME_PRICE_ID = process.env.STRIPE_LIFETIME_PRICE_ID;
   const isLifetime = priceId === LIFETIME_PRICE_ID;
 
@@ -106,6 +119,13 @@ function buildSessionParams({ priceId, customerId, userId, checkoutContext, succ
     }
   }
 
+  // Need-based pricing (70% off for organizations under $300k) is a coupon, not
+  // a second set of prices, so it stacks with the annual price without a schema
+  // change or a price-ID explosion.
+  if (couponId) {
+    sessionParams.discounts = [{ coupon: couponId }];
+  }
+
   return sessionParams;
 }
 
@@ -119,10 +139,25 @@ router.post('/create-session', requireAuth, async (req, res) => {
     return res.status(500).json({ error: 'Stripe not configured' });
   }
 
-  const { priceId, successPath, cancelPath, checkoutContext } = req.body;
+  const { priceId, successPath, cancelPath, checkoutContext, needBased } = req.body;
   if (!priceId) return res.status(400).json({ error: 'priceId is required' });
 
   const normalizedPaths = normalizeCheckoutPaths(successPath, cancelPath);
+
+  // The need-based discount is self-attested at checkout. If it is requested
+  // but the coupon is not configured, fail loudly — silently charging full
+  // price to an organization that qualifies is worse than not selling.
+  let couponId = null;
+  if (needBased) {
+    couponId = process.env.STRIPE_NEED_BASED_COUPON_ID;
+    if (!couponId) {
+      console.error('[CHECKOUT] need-based requested but STRIPE_NEED_BASED_COUPON_ID is not set');
+      return res.status(503).json({
+        error: 'Need-based pricing is not available right now',
+        reason: 'need_based_coupon_missing',
+      });
+    }
+  }
 
   const PRICE_TIER_MAP   = getUserPriceTierMap();
 
@@ -192,6 +227,7 @@ router.post('/create-session', requireAuth, async (req, res) => {
       checkoutContext,
       successPath: normalizedPaths.successPath,
       cancelPath: normalizedPaths.cancelPath,
+      couponId,
     });
 
     const session = await stripe.checkout.sessions.create(sessionParams);
@@ -336,6 +372,18 @@ router.get('/prices', (req, res) => {
       agency_starter:   process.env.STRIPE_AGENCY_STARTER_PRICE_ID,
       agency_unlimited: process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID,
       lifetime:         process.env.STRIPE_LIFETIME_PRICE_ID,
+      // Annual prices for the Monthly/Annual toggle. An entry missing here has
+      // no annual price configured yet, and the page must fall back to
+      // monthly-only rather than offer a plan the checkout will reject with a
+      // 400. JSON.stringify drops undefined, so an unset var simply vanishes.
+      annual: {
+        starter:        process.env.STRIPE_STARTER_ANNUAL_PRICE_ID,
+        pro:            process.env.STRIPE_PRO_ANNUAL_PRICE_ID,
+        agency_starter: process.env.STRIPE_AGENCY_STARTER_ANNUAL_PRICE_ID,
+      },
+      // Lets the page hide the need-based checkbox instead of offering a
+      // discount the server will answer with 503.
+      needBasedAvailable: Boolean(process.env.STRIPE_NEED_BASED_COUPON_ID),
       // Funder plans, for the funder landing page. They must be sent to
       // /create-funder-session, never to /create-session.
       funder: {
