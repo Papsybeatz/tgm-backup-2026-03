@@ -22,11 +22,19 @@ function getStripe() {
 // getUserPriceTierMap() in routes/checkout.js.
 function getUserPriceTierMap() {
   return {
-    [process.env.STRIPE_STARTER_PRICE_ID]:          'starter',
-    [process.env.STRIPE_PRO_PRICE_ID]:              'pro',
-    [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:   'agency_starter',
-    [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
-    [process.env.STRIPE_LIFETIME_PRICE_ID]:         'lifetime',
+    // Monthly
+    [process.env.STRIPE_STARTER_PRICE_ID]:               'starter',
+    [process.env.STRIPE_PRO_PRICE_ID]:                   'pro',
+    [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]:        'agency_starter',
+    // Annual — the same tiers, billed yearly. These MUST be listed here as well
+    // as in routes/checkout.js: this map is what actually grants the tier, so an
+    // annual price missing from it charges the card and grants nothing.
+    [process.env.STRIPE_STARTER_ANNUAL_PRICE_ID]:        'starter',
+    [process.env.STRIPE_PRO_ANNUAL_PRICE_ID]:            'pro',
+    [process.env.STRIPE_AGENCY_STARTER_ANNUAL_PRICE_ID]: 'agency_starter',
+    // Grandfathered, no longer sold
+    [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]:      'agency_unlimited',
+    [process.env.STRIPE_LIFETIME_PRICE_ID]:              'lifetime',
   };
 }
 

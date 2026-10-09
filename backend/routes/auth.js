@@ -80,9 +80,19 @@ function normalizeEmail(input) {
 // Must stay in step with src/config/tiers.js and routes/checkout.js.
 function getUserPriceTierMap() {
   return {
+    // Monthly
     [process.env.STRIPE_STARTER_PRICE_ID]: 'starter',
     [process.env.STRIPE_PRO_PRICE_ID]: 'pro',
     [process.env.STRIPE_AGENCY_STARTER_PRICE_ID]: 'agency_starter',
+    // Annual — the same tiers, billed yearly. Listed here too, because
+    // tierForStripePrice() is what reconciliation uses to decide whether a
+    // subscription still entitles the account to its tier. An annual price
+    // missing from this map would look unverifiable and downgrade a paying
+    // customer to free on their next sign-in.
+    [process.env.STRIPE_STARTER_ANNUAL_PRICE_ID]: 'starter',
+    [process.env.STRIPE_PRO_ANNUAL_PRICE_ID]: 'pro',
+    [process.env.STRIPE_AGENCY_STARTER_ANNUAL_PRICE_ID]: 'agency_starter',
+    // Grandfathered, no longer sold
     [process.env.STRIPE_AGENCY_UNLIMITED_PRICE_ID]: 'agency_unlimited',
     [process.env.STRIPE_LIFETIME_PRICE_ID]: 'lifetime',
   };
