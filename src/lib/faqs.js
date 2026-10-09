@@ -32,7 +32,7 @@ export const PRICING_FAQS = [
   },
   {
     q: 'Is TGM for consultants?',
-    a: 'Yes — Agency and Agency+ are built specifically for multi-client workflows.',
+    a: 'Yes — Grant Consultant and Grant Agency are built for multi-client work, with client folders and team seats.',
   },
 ];
 

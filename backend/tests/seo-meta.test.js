@@ -207,18 +207,22 @@ test('structured data claims no ratings or reviews we do not have', () => {
   assert.doesNotMatch(serialized, /"review"/, 'structured data claims reviews we do not have');
 });
 
-test('structured data offers match the real, corrected prices', () => {
-  const prices = [...INDEX_SRC.matchAll(/"name":\s*"(Free|Starter|Pro|Agency|Agency\+|Lifetime)",\s*"price":\s*"(\d+)"/g)]
+test('structured data offers match the tiers actually on sale', () => {
+  const prices = [...INDEX_SRC.matchAll(/"name":\s*"([^"]+)",\s*"price":\s*"(\d+)"/g)]
     .map((m) => [m[1], m[2]]);
 
-  // The two numbers the competitor report got wrong are the ones worth pinning:
-  // Lifetime is $499 (not $149) and Agency is $149 (not $299).
-
+  // Three paid tiers, and the display names match src/config/tiers.js. A rich
+  // result offering a plan nobody can buy is the same overpromise as a pricing
+  // card for one, so the retired tiers are pinned as absent rather than merely
+  // omitted from the expected list.
   assert.deepEqual(
     prices,
-    [['Free', '0'], ['Starter', '29'], ['Pro', '79'], ['Agency', '149'], ['Agency+', '299'], ['Lifetime', '499']],
-    'structured-data prices must match the corrected tier list'
+    [['Free', '0'], ['Grant Writer', '29'], ['Grant Consultant', '79'], ['Grant Agency', '149']],
+    'structured-data prices must match the tiers on sale'
   );
+
+  assert.doesNotMatch(INDEX_SRC, /Agency\+/, 'the retired Agency+ tier is still in structured data');
+  assert.doesNotMatch(INDEX_SRC, /Lifetime/, 'the retired Lifetime tier is still in structured data');
 });
 
 /* ────────── served-HTML metadata (the second audit's finding) ────────── */
