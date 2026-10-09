@@ -211,10 +211,12 @@ app.post('/api/upload', uploadLimiter, upload.single('file'), (req, res) => {
   res.json({ success: true, message: 'File uploaded and validated.' });
 });
 
-// Tier-gated AI agent endpoint â€” requires ai_rewrite (starter+)
+// Retired AI agent endpoint.
 // Retirement notice: this returned { success: true, message: 'Agent call
 // processed.' } without doing anything. Steve owns drafting and rewrites now.
-app.post('/api/agent/call', agentLimiter, requireAuth, requireFeature('ai_rewrite'), (req, res) => {
+// It is no longer tier-gated: no tier carries ai_rewrite, so a gate here would
+// answer 403 "upgrade your tier" for an endpoint that does not exist at all.
+app.post('/api/agent/call', agentLimiter, requireAuth, (req, res) => {
   res.status(410).json({
     success: false,
     error: 'gone',
@@ -223,12 +225,13 @@ app.post('/api/agent/call', agentLimiter, requireAuth, requireFeature('ai_rewrit
   });
 });
 
-// Tier-gated matching endpoint â€” requires matching_engine (pro+)
+// Funder matching endpoint.
 // NOT IMPLEMENTED. This returned { success: true, message: 'Matching engine
 // processed.' } — a paying customer was told matching ran when it never did.
-// Funder matching is not built; advertising it on a paid tier is the real
-// problem, so this fails honestly until it exists.
-app.post('/api/match', requireAuth, requireFeature('matching_engine'), (req, res) => {
+// Funder matching is not built and no tier advertises it any more, so it is no
+// longer tier-gated: a gate would answer 403 "upgrade your tier" and imply a
+// plan that has it. It fails honestly instead.
+app.post('/api/match', requireAuth, (req, res) => {
   res.status(501).json({
     success: false,
     error: 'not_implemented',
@@ -330,11 +333,12 @@ app.post('/api/score', requireAuth, requireFeature('scoring_basic'), async (req,
   }
 });
 
-// Tier-gated analytics endpoint â€” requires analytics_advanced (pro+)
+// Advanced analytics endpoint.
 // NOT IMPLEMENTED. Same defect as /api/match: it claimed success and returned a
-// placeholder string. Pro and Agency list advanced analytics, so this needs
-// either building or removing from the plan copy.
-app.get('/api/analytics', requireAuth, requireFeature('analytics_advanced'), (req, res) => {
+// placeholder string. It has been removed from the plan copy, so it is no longer
+// tier-gated — a gate would answer 403 "upgrade your tier" and imply a plan that
+// has it.
+app.get('/api/analytics', requireAuth, (req, res) => {
   res.status(501).json({
     success: false,
     error: 'not_implemented',

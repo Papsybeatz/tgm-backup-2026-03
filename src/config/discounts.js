@@ -3,7 +3,7 @@
  * ----------------------------------------------------------------------------
  * Two discounts, deliberately simple ("no complications"):
  *
- *   1. ANNUAL_DISCOUNT — paying yearly saves 17%. The same "Save 17%" anchor
+ *   1. ANNUAL_DISCOUNT — paying yearly saves ~17%. The same "Save 17%" anchor
  *      Grantable publishes; Instrumentl sits near 14%. Shown as a
  *      Monthly/Annual toggle with annual preselected.
  *
@@ -17,7 +17,35 @@
  * stops the page and the checkout from disagreeing.
  */
 
+/**
+ * The advertised annual saving. It drives the "Save 17%" label and is the
+ * fallback for a monthly price with no configured yearly total.
+ *
+ * It is a LABEL, not the arithmetic. Yearly totals are set directly (see
+ * ANNUAL_TOTALS) and the real saving lands at 16.95–17.00%, close enough that
+ * "Save 17%" is honest — but never assume annualTotal() is monthly × 12 × 0.83.
+ */
 export const ANNUAL_DISCOUNT = 0.17;
+
+/**
+ * Annual prices, as YEARLY TOTALS. These are the source of truth.
+ *
+ * Deriving the yearly total from the monthly price produced a number Stripe
+ * could not charge: 17% off $29/month is $288.84, so the page would render
+ * "$288.84 billed yearly" while the Stripe price read $289. Setting the yearly
+ * total directly and deriving the monthly-equivalent from it keeps the page and
+ * the checkout to the cent — the same reason the tier configs have a single
+ * source of truth.
+ *
+ * Keyed by the monthly price, because that is what the pricing page holds.
+ * Changing a monthly price means adding its yearly total here, or the fallback
+ * below will quietly re-derive one.
+ */
+export const ANNUAL_TOTALS = {
+  29: 289, // Grant Writer
+  79: 787, // Grant Consultant
+  149: 1484, // Grant Agency
+};
 
 export const NEED_BASED_DISCOUNT = {
   rate: 0.7,
@@ -30,17 +58,40 @@ export const NEED_BASED_DISCOUNT = {
 /** Round to cents so a rendered price never shows float dust. */
 const toCents = (value) => Math.round(value * 100) / 100;
 
-/** Monthly-equivalent price when billed annually. */
+/**
+ * The yearly total for a monthly price.
+ *
+ * A configured total always wins. Anything else falls back to 17% off rounded
+ * to whole dollars, so an unlisted price is still approximately right rather
+ * than silently absent.
+ */
+export function annualTotal(monthly) {
+  const configured = ANNUAL_TOTALS[monthly];
+  if (typeof configured === 'number') return configured;
+  return Math.round(monthly * 12 * (1 - ANNUAL_DISCOUNT));
+}
+
+/**
+ * Monthly-equivalent price when billed annually.
+ *
+ * DERIVED from the yearly total, never from the monthly price, so it can never
+ * drift from what Stripe charges.
+ */
 export function annualMonthlyPrice(monthly) {
-  return toCents(monthly * (1 - ANNUAL_DISCOUNT));
+  return toCents(annualTotal(monthly) / 12);
+}
+
+/**
+ * The real annual saving as a fraction (0.1695 for Grant Writer), so the
+ * "Save 17%" label can be checked rather than trusted.
+ */
+export function annualDiscountRate(monthly) {
+  const full = monthly * 12;
+  if (!full) return 0;
+  return 1 - annualTotal(monthly) / full;
 }
 
 /** Monthly price after the need-based discount. */
 export function needBasedMonthlyPrice(monthly) {
   return toCents(monthly * (1 - NEED_BASED_DISCOUNT.rate));
-}
-
-/** Yearly total when billed annually (12 × the discounted monthly). */
-export function annualTotal(monthly) {
-  return toCents(annualMonthlyPrice(monthly) * 12);
 }

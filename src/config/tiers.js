@@ -2,7 +2,10 @@ export const TIERS = {
   free: {
     key: 'free',
     name: 'Free',
-    features: ['draft_basic', 'view_drafts', 'brainstorming_unlimited', 'scoring_basic', 'export_pdf', 'export_doc', 'ny_grants', 'email_support'],
+    // Every label here is backed by a live gate or a live route; see
+    // tests/tier-feature-existence.test.js. Export is available on every tier,
+    // so it is not what an upgrade buys.
+    features: ['draft_basic', 'scoring_basic', 'export_pdf', 'export_doc'],
     // Free = six daily uses, not a one-draft cliff: a visitor has to stay
     // attached long enough to convert. `scoring` mirrors FREE_SCORE_LIMIT in
     // backend/utils/scoreGate.js (pinned by tests/scoring-gate.test.js).
@@ -21,7 +24,7 @@ export const TIERS = {
     // Display name only — the internal key stays `starter` because it is
     // referenced across src/, backend/ and the User.tier column.
     name: 'Grant Writer',
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'matching_basic', 'matching_engine', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'project_templates', 'priority_support'],
+    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc'],
     limits: {
       drafts: Infinity,
       scoring: Infinity,
@@ -34,20 +37,25 @@ export const TIERS = {
   pro: {
     key: 'pro',
     name: 'Grant Consultant',
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'matching_engine', 'matching_unlimited', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_3', 'shared_workspace', 'team_templates', 'team_activity_log', 'ny_funder_intelligence', 'ny_compliance_rules', 'document_uploads', 'custom_export_formatting'],
+    // Client folders sit here, not only on Agency. The ladder sells capacity and
+    // depth, not deprivation: a $79 tier that added nothing but three seats over
+    // the $29 tier was a step most buyers would skip. Agency keeps what actually
+    // separates a firm from a freelancer — 10 seats and client-aware Steve.
+    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc', 'client_folders'],
     limits: {
       drafts: Infinity,
       scoring: Infinity,
       matching: Infinity,
       exports: true,
-      teamSeats: 3
+      teamSeats: 3,
+      clientFolders: true
     },
     dashboardModules: ['draft', 'scoring', 'matching', 'analytics', 'calendar']
   },
   agency_starter: {
     key: 'agency_starter',
     name: 'Grant Agency',
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'scoring_bulk', 'matching_engine', 'matching_unlimited', 'matching_bulk', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_10', 'client_folders', 'client_templates', 'shared_workspace', 'white_label_header', 'white_label_full', 'priority_support', 'role_based_permissions', 'client_activity_logs', 'multi_client_dashboards'],
+    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc', 'client_folders', 'client_aware_steve'],
     limits: {
       drafts: Infinity,
       scoring: Infinity,
@@ -62,7 +70,7 @@ export const TIERS = {
   agency_unlimited: {
     key: 'agency_unlimited',
     name: 'Grant Agency (legacy)',
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_engine', 'scoring_detailed', 'scoring_bulk', 'matching_engine', 'matching_unlimited', 'matching_bulk', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_portfolio', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'team_seats_unlimited', 'client_folders', 'client_templates', 'shared_workspace', 'white_label_full', 'priority_support', 'sla_support', 'admin_controls', 'multi_client_dashboards', 'dedicated_success_manager', 'quarterly_strategy_reviews', 'early_access'],
+    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc', 'client_folders', 'client_aware_steve'],
     limits: {
       drafts: Infinity,
       scoring: Infinity,
@@ -77,16 +85,13 @@ export const TIERS = {
   lifetime: {
     key: 'lifetime',
     name: 'Founding Member (legacy)',
-    // Everything in Starter, plus Pro's analytics, reviewer simulation,
-    // calendar and priority AI. It previously omitted funder_alignment,
-    // grant_fit_score, missing_components and compliance_checks — four features
-    // Starter ($29/mo) has — while the card advertised "Everything in Starter,
-    // forever", so the tier and its own description disagreed.
+    // It carries exactly the Starter feature set, so "Everything in Starter,
+    // forever" is a statement the config can back.
     //
     // Seats are deliberately 0, not 1: the backend (routes/teamInvites.js
     // seatCapFor) has always treated a missing teamSeats as none, so the old
     // `1` here only ever showed a seat the API would refuse.
-    features: ['draft_basic', 'draft_unlimited', 'view_drafts', 'ai_rewrite', 'ai_priority', 'scoring_basic', 'scoring_engine', 'scoring_detailed', 'matching_basic', 'matching_engine', 'matching_unlimited', 'funder_alignment', 'grant_fit_score', 'missing_components', 'compliance_checks', 'export_pdf', 'export_doc', 'analytics_advanced', 'reviewer_simulation', 'grant_calendar', 'project_templates', 'priority_support', 'lifetime_badge', 'founder_certificate'],
+    features: ['draft_basic', 'draft_unlimited', 'scoring_basic', 'scoring_detailed', 'version_history', 'email_delivery', 'export_pdf', 'export_doc'],
     limits: {
       drafts: Infinity,
       scoring: Infinity,
@@ -161,8 +166,12 @@ export function getTierGates(tier) {
     // for paying Pro customers.
     teamFeaturesUnlocked: tierAtLeast(tier, 'pro'),
 
+    // Pro+ — client folders start at Grant Consultant, matching the feature
+    // list above. A gate stricter than the feature list is the "you bought it
+    // and still can't use it" bug this test exists to catch.
+    clientFoldersUnlocked:tierAtLeast(tier, 'pro'),
+
     // Agency+
-    clientFoldersUnlocked:tierAtLeast(tier, 'agency_starter'),
     whiteLabelUnlocked:   tierAtLeast(tier, 'agency_starter'),
 
     // Lifetime

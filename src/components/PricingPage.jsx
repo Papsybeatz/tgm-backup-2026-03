@@ -145,15 +145,16 @@ const SECURITY_POINTS = [
   'Secure document storage',
 ];
 
-// Founding Member is now a genuine Starter superset. The four features it was
-// missing — funder_alignment, grant_fit_score, missing_components and
-// compliance_checks, all of which Starter ($29/mo) has — were added to BOTH
-// configs, so this card's original "Everything in Starter" claim is finally
-// true rather than aspirational.
+// Founding Member is a genuine Starter superset: both configs grant it exactly
+// the Starter feature set, so "Everything in Starter" is a statement the config
+// backs rather than an aspiration. Source of truth: TIERS.lifetime in
+// src/config/tiers.js.
 //
-// It still stops short of Pro's team seats, shared workspace, NY funder
-// intelligence and document uploads, which is what keeps the $79/mo tier worth
-// buying. Source of truth: TIERS.lifetime in src/config/tiers.js.
+// This card previously also advertised unlimited funder matching, advanced
+// analytics, reviewer simulation, a grant calendar, priority AI processing, a
+// template library and a Founding Member badge/certificate. None of those are
+// built, so they are gone: a $499 card must not sell capabilities the product
+// does not have. tests/tier-config-agreement.test.js pins that.
 const LIFETIME_FEATURES = [
   'Full AI drafting (Steve)',
   'Unlimited saved drafts',
@@ -162,15 +163,8 @@ const LIFETIME_FEATURES = [
   'Grant Fit Score',
   'Missing components detection',
   'Compliance checks',
-  'Unlimited funder matching',
-  'Advanced analytics',
-  'Reviewer simulation',
-  'Grant calendar',
-  'Priority AI processing',
-  'Template library',
   'Export to PDF and Word',
   'Priority support',
-  'Founding Member badge and certificate',
 ];
 
 const LIFETIME_EXCLUDES = [
@@ -379,7 +373,7 @@ export default function PricingPage() {
               Limited to 100 seats. One payment, no renewal, ever. Your price is locked for life.
             </p>
             <p style={{ margin: '0 0 22px', fontSize: 14, fontWeight: 900, color: 'var(--tgm-navy)' }}>
-              Everything in Starter, plus Pro's advanced analytics and calendar.
+              Everything in Starter, locked in for life.
             </p>
             <UpgradeButton
               tierKey="lifetime"
