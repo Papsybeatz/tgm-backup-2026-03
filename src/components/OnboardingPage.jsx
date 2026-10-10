@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from './UserContext';
-import { useStripeCheckout } from '../hooks/useStripeCheckout';
 
 const STATES = [
   ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'], ['CA', 'California'],
@@ -161,30 +160,13 @@ function OptionButton({ active, children, onClick }) {
   );
 }
 
-function LifetimeBadge() {
-  return (
-    <p style={{ margin: '14px 0 0', textAlign: 'center', color: '#E8D28C', fontSize: 12, fontWeight: 800 }}>
-      Founding Member seats available - limited to 100
-    </p>
-  );
-}
-
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const { user, setUser } = useUser();
-  const { startCheckout, loading: checkoutLoading } = useStripeCheckout();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(INITIAL_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [priceIds, setPriceIds] = useState({});
-
-  useEffect(() => {
-    fetch('/api/checkout/prices')
-      .then((res) => res.json())
-      .then((data) => setPriceIds(data.prices || {}))
-      .catch(() => setPriceIds({}));
-  }, []);
 
   const profile = useMemo(() => deriveProfile(form), [form]);
   const progress = (step / 5) * 100;
@@ -252,13 +234,6 @@ export default function OnboardingPage() {
     const saved = await saveOnboarding();
     if (!saved) return;
     navigate((saved.postOnboardingCta === 'start_workspace_now' || saved.postOnboardingCta === 'start_draft_now') ? '/workspace/new' : '/dashboard');
-  };
-
-  const unlockLifetime = async () => {
-    const saved = await saveOnboarding();
-    if (!saved) return;
-    if (priceIds.lifetime) startCheckout(priceIds.lifetime);
-    else navigate('/pricing');
   };
 
   return (
@@ -487,31 +462,6 @@ export default function OnboardingPage() {
           )}
         </div>
 
-        {step < 5 ? (
-          <LifetimeBadge />
-        ) : (
-          <div style={{ marginTop: 16, textAlign: 'center' }}>
-            <p style={{ margin: '0 0 10px', color: '#E8D28C', fontSize: 13, fontWeight: 900 }}>
-              Founding Member - $499 one-time (limited to 100 seats)
-            </p>
-            <button
-              type="button"
-              onClick={unlockLifetime}
-              disabled={!canContinue() || saving || checkoutLoading}
-              style={{
-                padding: '10px 16px',
-                borderRadius: 10,
-                border: '1px solid rgba(212,175,55,.5)',
-                background: 'rgba(212,175,55,.12)',
-                color: '#E8D28C',
-                fontWeight: 900,
-                cursor: canContinue() ? 'pointer' : 'not-allowed',
-              }}
-            >
-              {checkoutLoading ? 'Opening checkout...' : 'Unlock Lifetime Access'}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -12,10 +12,8 @@ const MAX_MANUAL_ACCESS_DAYS = 90;
 const MANUAL_COMP_PROVIDER = 'manual_comp';
 const MANUAL_COMP_TYPE = 'manual_comp';
 const PASSWORD_RESET_TOKEN_PREFIX = 'pwdreset_';
-// The enforced Founding Member cap lives in checkout.js. Read the SAME source
-// here so the dashboard can never report a different number than the one the
-// checkout actually enforces (it reported 200 while checkout capped at 100).
-const LIFETIME_CAP = Number(process.env.FOUNDING_MEMBER_SEATS || 100);
+// The Founding Member cap is gone with the tier: it is no longer sold, so there
+// is no cap to report and no second source to keep in step with checkout.js.
 
 // Protect all admin routes
 async function requireAdmin(req, res, next) {
@@ -388,7 +386,6 @@ router.get('/metrics', requireAdmin, async (req, res) => {
       newSignups7d,
       activeSubs,
       lifetimeCount,
-      lifetimeSpotsRemaining: Math.max(0, LIFETIME_CAP - lifetimeCount),
       totalDrafts,
       drafts24h,
       activeSessions,
@@ -402,8 +399,6 @@ router.get('/metrics', requireAdmin, async (req, res) => {
         activeSubscriptions: activeSubs,
         aiDraftsToday: drafts24h,
         lifetimeTierCount: lifetimeCount,
-        lifetimeTierRemaining: Math.max(0, LIFETIME_CAP - lifetimeCount),
-        lifetimeTierCap: LIFETIME_CAP,
       },
       timeseries: [], // no time-series table yet — chart shows empty gracefully
       subscriptionsByTier,

@@ -57,41 +57,6 @@ function MetricTile({ label, value, sublabel, trend }) {
   );
 }
 
-function LifetimeTierCountdown({ used, remaining, cap }) {
-  const pct = Math.min(100, Math.round((used / cap) * 100));
-  const segments = Array.from({ length: 20 }, (_, i) => i < Math.round(pct / 5));
-  
-  return (
-    <div style={s.hero}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Lifetime Tier</div>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Early access spots</div>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{remaining}</div>
-          <div style={{ fontSize: 12, color: '#94a3b8' }}>remaining</div>
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: 4, marginBottom: 16 }}>
-        {segments.map((filled, i) => (
-          <div key={i} style={{ 
-            flex: 1, 
-            height: 8, 
-            background: filled ? '#10b981' : '#e2e8f0', 
-            borderRadius: 4,
-            transition: 'background 0.3s ease'
-          }} />
-        ))}
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 13, color: '#64748b' }}>{pct}% filled · {used} of {cap} used</span>
-        <span style={{ fontSize: 12, color: '#10b981', fontWeight: 600 }}>Urgency active</span>
-      </div>
-    </div>
-  );
-}
-
 function LineChart({ data, dataKey = 'visitors', color = '#3b82f6' }) {
   if (!data || data.length === 0) return <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>No data</div>;
   
@@ -768,11 +733,6 @@ export default function MonitoringDashboard() {
       </div>
 
       <div style={{ ...s.grid2, ...s.sectionBlock }}>
-        <LifetimeTierCountdown 
-          used={data.system?.lifetimeTierCount || 0} 
-          remaining={data.system?.lifetimeTierRemaining || 100}
-          cap={data.system?.lifetimeTierCap || 100}
-        />
         <div style={s.card}>
           <div style={s.sectionTitle}>AI Usage Breakdown</div>
           <PieChart data={aiData} />
