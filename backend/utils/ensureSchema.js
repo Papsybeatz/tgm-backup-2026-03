@@ -333,6 +333,33 @@ const STATEMENTS = [
     label: 'FunderCycle status index',
     sql: `CREATE INDEX IF NOT EXISTS "FunderCycle_status_idx" ON "FunderCycle"("status")`,
   },
+
+  // ---------------------------------------------------------------------------
+  // Rate-limit counters — the free funnel's daily walls.
+  //
+  // These used to live in express-rate-limit's in-process Map, so a deploy or a
+  // second instance reset them: "one rewrite per day" was really "one per day
+  // per process", and the 6/day score cap widened as the service scaled. The
+  // counter now lives in the database, and the limiter moves it with a single
+  // atomic upsert (see utils/rateLimitStore.js).
+  //
+  // The `resetAt` index exists because expired rows are swept opportunistically
+  // and that sweep must not scan the whole table.
+  // ---------------------------------------------------------------------------
+  {
+    label: 'RateLimitCounter table',
+    sql: `CREATE TABLE IF NOT EXISTS "RateLimitCounter" (
+      "id" TEXT NOT NULL,
+      "count" INTEGER NOT NULL DEFAULT 0,
+      "resetAt" TIMESTAMP(3) NOT NULL,
+      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "RateLimitCounter_pkey" PRIMARY KEY ("id")
+    )`,
+  },
+  {
+    label: 'RateLimitCounter resetAt index',
+    sql: `CREATE INDEX IF NOT EXISTS "RateLimitCounter_resetAt_idx" ON "RateLimitCounter"("resetAt")`,
+  },
 ];
 
 /** Is the Steve store actually able to use the database now? */

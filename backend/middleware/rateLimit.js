@@ -1,6 +1,7 @@
 // middleware/rateLimit.js
 // Rate limiting middleware for agent calls and uploads
 const rateLimit = require('express-rate-limit');
+const { createRateLimitStore } = require('../utils/rateLimitStore');
 
 const agentLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
@@ -68,10 +69,20 @@ const publicScoreLimiter = rateLimit({
 // 6, not 3: Free now gets six daily uses (drafts/scoring/rewrite) so a visitor
 // can stay attached to the product long enough to convert, rather than hitting
 // a wall after three. Kept equal to FREE_SCORE_LIMIT by the public-score test.
+// The counter is in Postgres, not in this process. This is a rule about the
+// visitor, so it has to outlive a deploy and be shared by every instance —
+// otherwise "six a day" becomes "six a day per restart per instance". See
+// utils/rateLimitStore.js for the atomicity and fallback behaviour.
+const publicScoreDailyStore = createRateLimitStore('public-score-daily');
+
 const publicScoreDailyLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
   max: 6,
+  store: publicScoreDailyStore,
   skipFailedRequests: true,
+  // A database blip must not refuse every visitor on the site. Failing open is
+  // the deliberate choice here, and it is logged rather than silent.
+  passOnStoreError: true,
   message:
     'You have used your free Checkmate scores. Create an account to keep scoring.',
   standardHeaders: true,
@@ -83,10 +94,16 @@ const publicScoreDailyLimiter = rateLimit({
 // unlimited). Enforced server-side — a client flag is not a limit. The shared
 // publicScoreDailyLimiter still applies on top, so the rewrite also spends one
 // of the visitor's six daily uses.
+// Same reasoning as the daily score cap: the wall is the product promise, so
+// it cannot be held in a process that is expected to be replaced.
+const publicRewriteDailyStore = createRateLimitStore('public-rewrite-daily');
+
 const publicRewriteDailyLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
   max: 1,
+  store: publicRewriteDailyStore,
   skipFailedRequests: true,
+  passOnStoreError: true,
   message:
     'You have used your free rewrite. Create an account for unlimited rewrites.',
   standardHeaders: true,
