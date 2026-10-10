@@ -422,3 +422,19 @@ model FunderCycle {
   @@unique([funderLeadId, cycleName, cycleYear])
   @@index([status])
 }
+
+/// Rate-limit counters for the free funnel's daily walls.
+///
+/// One row per (limiter, client key) per window. The row is moved by a single
+/// atomic upsert so concurrent increments from different instances cannot lose
+/// a hit — see backend/utils/rateLimitStore.js, which owns the SQL. The table
+/// is created at boot by backend/utils/ensureSchema.js, because
+/// `prisma migrate deploy` cannot run against this database.
+model RateLimitCounter {
+  id        String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+  updatedAt DateTime @default(now())
+
+  @@index([resetAt])
+}
