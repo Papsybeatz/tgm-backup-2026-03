@@ -396,3 +396,6 @@ module.exports.getFunderPriceMap = getFunderPriceMap;
 // Exported so the retirement of a tier is asserted, not assumed: a tier that is
 // mapped but not refused is still buyable.
 module.exports.RETIRED_TIERS = RETIRED_TIERS;
+// Exported so a test can pin the metadata bridge: the webhook grants the tier
+// from session.metadata.price_id, so what this writes is load-bearing.
+module.exports.buildSessionParams = buildSessionParams;
