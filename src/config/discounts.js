@@ -22,29 +22,34 @@
  * fallback for a monthly price with no configured yearly total.
  *
  * It is a LABEL, not the arithmetic. Yearly totals are set directly (see
- * ANNUAL_TOTALS) and the real saving lands at 16.95–17.00%, close enough that
- * "Save 17%" is honest — but never assume annualTotal() is monthly × 12 × 0.83.
+ * ANNUAL_TOTALS), and because Stripe holds $X.99 totals the real saving lands
+ * at 16.67–16.95% — which still rounds to 17% at every configured total, but
+ * never assume annualTotal() is monthly × 12 × 0.83.
  */
 export const ANNUAL_DISCOUNT = 0.17;
 
 /**
  * Annual prices, as YEARLY TOTALS. These are the source of truth.
  *
- * Deriving the yearly total from the monthly price produced a number Stripe
- * could not charge: 17% off $29/month is $288.84, so the page would render
- * "$288.84 billed yearly" while the Stripe price read $289. Setting the yearly
- * total directly and deriving the monthly-equivalent from it keeps the page and
- * the checkout to the cent — the same reason the tier configs have a single
- * source of truth.
+ * These are the amounts Stripe actually charges, read from the Stripe product
+ * catalogue on 2026-10-10. They must stay in step with Stripe: the page renders
+ * from here, so a total that differs from the Stripe price is a page quoting a
+ * number the customer will not be charged. That is exactly what happened when
+ * these read 289 / 787 / 1484 against Stripe's 289.99 / 787.99 / 1484.99.
+ *
+ * Deriving the yearly total from the monthly price is the other way to drift:
+ * 17% off $29/month is $288.84, a number Stripe could not charge. Setting the
+ * yearly total directly and deriving the monthly-equivalent from it keeps the
+ * page and the checkout to the cent.
  *
  * Keyed by the monthly price, because that is what the pricing page holds.
  * Changing a monthly price means adding its yearly total here, or the fallback
  * below will quietly re-derive one.
  */
 export const ANNUAL_TOTALS = {
-  29: 289, // Grant Writer
-  79: 787, // Grant Consultant
-  149: 1484, // Grant Agency
+  29: 289.99, // Grant Writer
+  79: 787.99, // Grant Consultant
+  149: 1484.99, // Grant Agency
 };
 
 export const NEED_BASED_DISCOUNT = {
