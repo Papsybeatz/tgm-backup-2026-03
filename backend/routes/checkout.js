@@ -76,6 +76,11 @@ function getFunderPriceMap() {
   };
 }
 
+// Retired tiers stay in the map above so grandfathered owners keep resolving,
+// but they must never be sold again. Leaving them mapped with no sales guard is
+// what made the Founding Member seat cap the only thing bounding an unsold tier.
+const RETIRED_TIERS = new Set(['lifetime', 'agency_unlimited']);
+
 function normalizeCheckoutPaths(successPath, cancelPath) {
   return {
     successPath: typeof successPath === 'string' && successPath.startsWith('/') ? successPath : '/billing/processing',
@@ -177,35 +182,22 @@ router.post('/create-session', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Unknown price ID' });
   }
 
-  // Founding Member is a capped launch instrument: the scarcity is what makes
-  // the urgency real, and the cap is what bounds the liability.
-  if (tier === 'lifetime') {
-    const FOUNDING_MEMBER_SEATS = Number(process.env.FOUNDING_MEMBER_SEATS || 100);
-    try {
-      const claimed = await prisma.user.count({ where: { tier: 'lifetime' } });
-      if (claimed >= FOUNDING_MEMBER_SEATS) {
-        return res.status(409).json({
-          error: 'Founding Member seats are all claimed',
-          reason: 'founding_member_sold_out',
-          seatsClaimed: claimed,
-          seatLimit: FOUNDING_MEMBER_SEATS,
-          message: `All ${FOUNDING_MEMBER_SEATS} Founding Member seats have been claimed. Starter is $29/month.`,
-        });
-      }
-    } catch (e) {
-      // Never block a sale because the count failed; the webhook still records it.
-      console.warn('[CHECKOUT] could not count lifetime seats:', e?.message || e);
-    }
+  // The retired tiers are grandfathered, not sold. Refusing them here is what
+  // makes that true: the seat cap this replaces only bounded how many were sold,
+  // so removing it without this guard would have made an already-reachable
+  // retired tier unlimited instead of unavailable.
+  if (RETIRED_TIERS.has(tier)) {
+    console.error('[CHECKOUT] Retired tier submitted to create-session:', tier, priceId);
+    return res.status(410).json({
+      error: 'This plan is no longer for sale',
+      reason: 'tier_retired',
+      tier,
+    });
   }
 
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user) return res.status(404).json({ error: 'User not found' });
-
-    // Already a Founding Member — nothing to buy.
-    if (tier === 'lifetime' && user.tier === 'lifetime') {
-      return res.status(409).json({ error: 'You are already a Founding Member' });
-    }
 
     let customerId = user.stripeCustomerId;
     if (!customerId) {
@@ -401,3 +393,9 @@ module.exports = router;
 // than trusted.
 module.exports.getUserPriceTierMap = getUserPriceTierMap;
 module.exports.getFunderPriceMap = getFunderPriceMap;
+// Exported so the retirement of a tier is asserted, not assumed: a tier that is
+// mapped but not refused is still buyable.
+module.exports.RETIRED_TIERS = RETIRED_TIERS;
+// Exported so a test can pin the metadata bridge: the webhook grants the tier
+// from session.metadata.price_id, so what this writes is load-bearing.
+module.exports.buildSessionParams = buildSessionParams;
