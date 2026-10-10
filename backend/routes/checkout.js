@@ -401,3 +401,6 @@ module.exports = router;
 // than trusted.
 module.exports.getUserPriceTierMap = getUserPriceTierMap;
 module.exports.getFunderPriceMap = getFunderPriceMap;
+// Exported so a test can pin the metadata bridge: the webhook grants the tier
+// from session.metadata.price_id, so what this writes is load-bearing.
+module.exports.buildSessionParams = buildSessionParams;
