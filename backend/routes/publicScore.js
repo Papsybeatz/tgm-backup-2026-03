@@ -66,6 +66,23 @@ const upload = multer({
   },
 });
 
+/**
+ * Refuse an upload without charging the visitor's daily allowance.
+ *
+ * The daily limiters refund exactly the responses marked here. A file we could
+ * not accept produced nothing and is not the visitor's fault, so it must not
+ * cost them one of the six daily uses or the day's rewrite. A *genuine*
+ * failure — the rewrite engine being down, an empty rewrite — is deliberately
+ * NOT marked, because that is a real attempt that consumed the product.
+ *
+ * Every refusal that is about the file rather than the product goes through
+ * this, so there is one place to audit.
+ */
+function rejectUpload(res, error, message) {
+  res.locals.uploadRejected = true;
+  return res.status(400).json({ success: false, error, message });
+}
+
 /** Turn multer's errors into a clean 400 instead of a 500. */
 function handleUpload(req, res, next) {
   upload.single('file')(req, res, (error) => {
@@ -74,7 +91,7 @@ function handleUpload(req, res, next) {
       error.code === 'LIMIT_FILE_SIZE'
         ? 'That file is larger than 10MB. Try exporting just the narrative.'
         : error.message || 'Upload failed. Please try again.';
-    return res.status(400).json({ success: false, error: 'upload_rejected', message });
+    return rejectUpload(res, 'upload_rejected', message);
   });
 }
 
@@ -108,11 +125,7 @@ async function readUploadedText(file) {
 
 router.post('/score', handleUpload, async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      error: 'no_file',
-      message: 'Attach a proposal file to score.',
-    });
+    return rejectUpload(res, 'no_file', 'Attach a proposal file to score.');
   }
 
   let content = '';
@@ -129,12 +142,11 @@ router.post('/score', handleUpload, async (req, res) => {
     .trim();
 
   if (text.length < MIN_READABLE_CHARS) {
-    return res.status(400).json({
-      success: false,
-      error: 'unreadable',
-      message:
-        "We couldn't read enough text from that file. Scanned PDFs have no text layer — upload a Word version, or a PDF exported from the original document.",
-    });
+    return rejectUpload(
+      res,
+      'unreadable',
+      "We couldn't read enough text from that file. Scanned PDFs have no text layer — upload a Word version, or a PDF exported from the original document.",
+    );
   }
 
   try {
@@ -202,11 +214,7 @@ router.post('/score', handleUpload, async (req, res) => {
  */
 router.post('/rewrite', publicRewriteDailyLimiter, handleUpload, async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      error: 'no_file',
-      message: 'Attach a proposal file to rewrite.',
-    });
+    return rejectUpload(res, 'no_file', 'Attach a proposal file to rewrite.');
   }
 
   let content = '';
@@ -223,12 +231,11 @@ router.post('/rewrite', publicRewriteDailyLimiter, handleUpload, async (req, res
     .trim();
 
   if (text.length < MIN_READABLE_CHARS) {
-    return res.status(400).json({
-      success: false,
-      error: 'unreadable',
-      message:
-        "We couldn't read enough text from that file. Scanned PDFs have no text layer — upload a Word version, or a PDF exported from the original document.",
-    });
+    return rejectUpload(
+      res,
+      'unreadable',
+      "We couldn't read enough text from that file. Scanned PDFs have no text layer — upload a Word version, or a PDF exported from the original document.",
+    );
   }
 
   try {

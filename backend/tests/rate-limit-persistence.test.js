@@ -31,6 +31,10 @@ const {
   createMemoryAdapter,
 } = require('../utils/rateLimitStore');
 
+// The real refund predicate, so the behavioural tests below exercise the rule
+// that ships rather than a copy of it.
+const { uploadWasRejected } = require('../middleware/rateLimit');
+
 const ROOT = path.join(__dirname, '..', '..');
 const read = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8');
 
@@ -121,10 +125,10 @@ test('get reports the current window and hides an expired one', async () => {
 
 /* ── the limiters depend on these ─────────────────────────────────────────── */
 
-test('decrement gives back a hit, which the per-minute limiter still relies on', async () => {
-  // The daily walls deliberately dropped `skipFailedRequests` (they must not be
-  // refundable), but the one-minute burst limiter still sets it, so the store
-  // must keep supporting the decrement half of the contract.
+test('decrement gives back a hit, which every refund path relies on', async () => {
+  // The daily walls refund only a refused upload and the one-minute burst
+  // limiter refunds any failure, so the store must keep supporting the
+  // decrement half of the contract for both.
   const s = store('public-rewrite-daily');
   await s.increment('192.0.2.4');
   await s.increment('192.0.2.4');
@@ -235,28 +239,28 @@ test('the limiters actually enforce through the store', async () => {
   }
 });
 
-test('a failed request no longer refunds the day, so the wall cannot be reset', async () => {
-  // The defect: with `skipFailedRequests` on a 24-hour allowance, one rejected
-  // upload handed the visitor's whole day back — the wall could be reset by a
-  // request that produced nothing, and on a shared or carrier-NAT address by
-  // somebody else's failure.
+test('the daily refund follows the route verdict, not the status code', async () => {
+  // The refund has to be exactly this narrow. Bare `skipFailedRequests` refunds
+  // on ANY 4xx/5xx, so a provider outage handed the day back — and on a shared
+  // or carrier-NAT address another visitor's failure refunded yours. But no
+  // refund at all is too harsh: a visitor whose scan was unreadable got
+  // nothing, and charging them a day for it is not the rule either.
   //
-  // Two requests are made against a one-per-day wall whose handler always
-  // fails. The pair of status codes is the whole proof.
+  // Two requests are made against a one-per-day wall. `outcome` decides what
+  // the route does: 'upload' refuses the file and marks it, 'genuine' fails for
+  // real and does not. The pair of status codes is the whole proof.
   const express = require('express');
   const rateLimit = require('express-rate-limit');
   const http = require('node:http');
 
-  const twoFailedRequests = async ({ skipFailedRequests }) => {
-    const s = new PersistentRateLimitStore({
-      namespace: `integration-daily-${skipFailedRequests ? 'refund' : 'no-refund'}`,
-      adapter: createMemoryAdapter(),
-    });
+  const twoRequests = async ({ namespace, outcome, requestWasSuccessful }) => {
+    const s = new PersistentRateLimitStore({ namespace, adapter: createMemoryAdapter() });
     const limiter = rateLimit({
       windowMs: DAY,
       max: 1,
       store: s,
-      ...(skipFailedRequests ? { skipFailedRequests: true } : {}),
+      skipFailedRequests: true,
+      ...(requestWasSuccessful ? { requestWasSuccessful } : {}),
       passOnStoreError: true,
       standardHeaders: true,
       legacyHeaders: false,
@@ -264,11 +268,17 @@ test('a failed request no longer refunds the day, so the wall cannot be reset', 
     });
 
     const app = express();
-    app.get('/fail', limiter, (_req, res) => res.status(500).json({ ok: false }));
+    app.get('/probe', limiter, (_req, res) => {
+      if (outcome === 'upload') {
+        res.locals.uploadRejected = true;
+        return res.status(400).json({ error: 'unreadable' });
+      }
+      return res.status(503).json({ error: 'rewrite_unavailable' });
+    });
     const server = app.listen(0);
     const { port } = server.address();
     const get = () => new Promise((resolve, reject) => {
-      http.get({ hostname: '127.0.0.1', port, path: '/fail' }, (res) => {
+      http.get({ hostname: '127.0.0.1', port, path: '/probe' }, (res) => {
         res.resume();
         res.on('end', () => resolve(res.statusCode));
       }).on('error', reject);
@@ -281,19 +291,31 @@ test('a failed request no longer refunds the day, so the wall cannot be reset', 
     }
   };
 
-  // Control: the old behaviour. This keeps the test honest — it fails if the
-  // refund is not actually caused by the flag the daily limiters dropped.
+  const narrow = (_req, res) => !uploadWasRejected(res);
+
+  // Control — the too-wide behaviour the daily limiters used to have. It keeps
+  // the test honest: it fails if the refund is not actually what the predicate
+  // changes.
   assert.deepEqual(
-    await twoFailedRequests({ skipFailedRequests: true }),
-    [500, 500],
-    'control: skipFailedRequests is what made the daily wall refundable',
+    await twoRequests({ namespace: 'refund-bare', outcome: 'genuine' }),
+    [503, 503],
+    'control: a bare skipFailedRequests refunds a genuine failure too',
   );
 
-  // The fix: a failure still spends the day.
+  // A refused upload produced nothing and is not the visitor's fault, so the
+  // second request gets a real attempt instead of a 429.
   assert.deepEqual(
-    await twoFailedRequests({ skipFailedRequests: false }),
-    [500, 429],
-    'a failed request must not hand the day back',
+    await twoRequests({ namespace: 'refund-upload', outcome: 'upload', requestWasSuccessful: narrow }),
+    [400, 400],
+    'a refused upload must be refunded',
+  );
+
+  // A genuine failure is a real attempt that consumed the product, so it keeps
+  // the day.
+  assert.deepEqual(
+    await twoRequests({ namespace: 'refund-genuine', outcome: 'genuine', requestWasSuccessful: narrow }),
+    [503, 429],
+    'a genuine failure must not hand the day back',
   );
 });
 
@@ -353,9 +375,20 @@ test('both daily limiters use the persistent store instead of the default Map', 
   assert.equal(Number(rewrite[0].match(/max:\s*(\d+)/)?.[1]), 1);
   assert.equal(Number(daily[0].match(/max:\s*(\d+)/)?.[1]), 6);
 
-  // A 24-hour allowance must not be refundable: no `skipFailedRequests`.
-  assert.doesNotMatch(rewrite[0], /skipFailedRequests/);
-  assert.doesNotMatch(daily[0], /skipFailedRequests/);
+  // Both daily limiters refund, but only on the route's own verdict that the
+  // upload was refused — never on the status code alone.
+  for (const block of [rewrite[0], daily[0]]) {
+    assert.match(block, /skipFailedRequests:\s*true/);
+    assert.match(
+      block,
+      /requestWasSuccessful:\s*\(_req,\s*res\)\s*=>\s*!uploadWasRejected\(res\)/,
+      'a bare skipFailedRequests would refund on any 4xx',
+    );
+  }
+
+  // The predicate is only meaningful if the route actually sets the marker.
+  const route = read('backend', 'routes', 'publicScore.js');
+  assert.match(route, /res\.locals\.uploadRejected\s*=\s*true/);
 });
 
 test('without a database the store degrades to memory, and says so out loud', async () => {

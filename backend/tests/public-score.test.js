@@ -534,17 +534,19 @@ test('the anonymous daily cap does not exceed the Free tier score cap', () => {
   );
 });
 
-test('the daily score cap is not refundable by a failed request', () => {
-  // `skipFailedRequests` on a 24-hour allowance means "a failed request hands
-  // the day back", so the wall could be reset by an upload that produced
-  // nothing — and on a shared address by somebody else's failure. It belongs
-  // on the short throttle only. See the note in middleware/rateLimit.js.
+test('the daily score cap refunds only a refused upload, not any 4xx', () => {
+  // A bare `skipFailedRequests` on a 24-hour allowance hands the day back for
+  // ANY failure — a provider outage, or on a shared address somebody else's
+  // failure. But no refund at all is too harsh: a visitor whose scan was
+  // unreadable got nothing. The refund has to follow the route's verdict. See
+  // the note in middleware/rateLimit.js.
   const daily = RATE_SRC.match(/publicScoreDailyLimiter\s*=\s*rateLimit\(\{[\s\S]*?\}\);/);
   assert.ok(daily, 'daily limiter definition not found');
-  assert.doesNotMatch(
+  assert.match(daily[0], /skipFailedRequests:\s*true/);
+  assert.match(
     daily[0],
-    /skipFailedRequests/,
-    'the daily allowance must not be refundable by a failed request',
+    /requestWasSuccessful:\s*\(_req,\s*res\)\s*=>\s*!uploadWasRejected\(res\)/,
+    'the refund must be driven by the route verdict, not the status code',
   );
 
   const burst = RATE_SRC.match(/publicScoreLimiter\s*=\s*rateLimit\(\{[\s\S]*?\}\);/);
@@ -553,6 +555,11 @@ test('the daily score cap is not refundable by a failed request', () => {
     burst[0],
     /skipFailedRequests:\s*true/,
     'a rejected upload must still not burn a burst slot',
+  );
+  assert.doesNotMatch(
+    burst[0],
+    /requestWasSuccessful/,
+    'the burst limiter wants the default — refund any failure',
   );
 });
 

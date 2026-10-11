@@ -77,19 +77,38 @@ const publicScoreLimiter = rateLimit({
 // utils/rateLimitStore.js for the atomicity and fallback behaviour.
 const publicScoreDailyStore = createRateLimitStore('public-score-daily');
 
-// Deliberately NO `skipFailedRequests` on the daily limits. On a one-minute
-// throttle it means "a rejected upload must not burn a burst slot"; on a
-// 24-hour allowance it means "a failed request refunds the day", which makes
-// the wall refundable. On a shared or carrier-NAT address another visitor's
-// failed request refunds yours, and because `passOnStoreError` fails open (a
-// store blip skips the increment) while a failed response still decrements, a
-// transient database error could hand the day's allowance back silently. The
-// allowance measures how much of the product the visitor used, so it is spent
-// whether or not that particular request succeeded.
+/**
+ * Did we refuse this response because of the *upload* rather than the product?
+ *
+ * The route marks those responses (see `rejectUpload` in routes/publicScore.js).
+ * Only that mark refunds a daily hit.
+ *
+ * The refund has to be this narrow. Plain `skipFailedRequests` refunds on *any*
+ * 4xx/5xx, which is too wide for a 24-hour allowance: a provider outage handed
+ * the day back, and on a shared or carrier-NAT address another visitor's
+ * failure refunded yours — and because `passOnStoreError` fails open (a store
+ * blip skips the increment) while a failed response still decrements, a
+ * transient database error could hand the day back silently too. Refusing
+ * every refund is too harsh the other way, though: a visitor whose scan was
+ * unreadable got nothing, and charging them a day for it is not the rule
+ * either. A genuine failure — the rewrite engine down, an empty rewrite — is a
+ * real attempt that consumed the product, so it keeps the day.
+ */
+function uploadWasRejected(res) {
+  return res.locals?.uploadRejected === true;
+}
+
 const publicScoreDailyLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
   max: 6,
   store: publicScoreDailyStore,
+  // express-rate-limit asks "was the request successful?" and refunds when the
+  // answer is no. The question this wall actually needs answered is narrower —
+  // "did the visitor get a real attempt?" — so a refused upload reads as
+  // unsuccessful and is refunded, while a genuine failure reads as successful
+  // and is not.
+  skipFailedRequests: true,
+  requestWasSuccessful: (_req, res) => !uploadWasRejected(res),
   // A database blip must not refuse every visitor on the site. Failing open is
   // the deliberate choice here, and it is logged rather than silent.
   passOnStoreError: true,
@@ -108,12 +127,15 @@ const publicScoreDailyLimiter = rateLimit({
 // it cannot be held in a process that is expected to be replaced.
 const publicRewriteDailyStore = createRateLimitStore('public-rewrite-daily');
 
-// Same no-refund reasoning as the daily score cap above: the wall is the
-// product promise, so a failed request must not hand the day back.
+// Same narrow refund as the daily score cap above: only an upload we refused
+// comes back, because a genuine failure is a real attempt and the wall is the
+// product promise.
 const publicRewriteDailyLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
   max: 1,
   store: publicRewriteDailyStore,
+  skipFailedRequests: true,
+  requestWasSuccessful: (_req, res) => !uploadWasRejected(res),
   passOnStoreError: true,
   message:
     'You have used your free rewrite. Create an account for unlimited rewrites.',
@@ -157,4 +179,7 @@ module.exports = {
   publicRewriteDailyLimiter,
   uploadLimiter,
   passwordResetLimiter,
+  // Exported so a route can refund the day for an upload it refused, and so a
+  // test can prove the refund is narrower than "any 4xx".
+  uploadWasRejected,
 };
