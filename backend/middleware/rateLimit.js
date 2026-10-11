@@ -51,8 +51,10 @@ const steveHourlyLimiter = rateLimit({
 //                           anonymous visitor should not get more than a
 //                           signed-in free user.
 //
-// `skipFailedRequests` matters: a rejected upload (wrong type, unreadable scan)
-// must not burn one of the visitor's scores.
+// `skipFailedRequests` belongs on this limiter and nowhere else. It is the
+// right answer for a short throttle: a rejected upload (wrong type, unreadable
+// scan) must not burn a burst slot. It is the wrong answer for the 24-hour
+// allowances below — see the note there.
 const publicScoreLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 5,
@@ -75,11 +77,19 @@ const publicScoreLimiter = rateLimit({
 // utils/rateLimitStore.js for the atomicity and fallback behaviour.
 const publicScoreDailyStore = createRateLimitStore('public-score-daily');
 
+// Deliberately NO `skipFailedRequests` on the daily limits. On a one-minute
+// throttle it means "a rejected upload must not burn a burst slot"; on a
+// 24-hour allowance it means "a failed request refunds the day", which makes
+// the wall refundable. On a shared or carrier-NAT address another visitor's
+// failed request refunds yours, and because `passOnStoreError` fails open (a
+// store blip skips the increment) while a failed response still decrements, a
+// transient database error could hand the day's allowance back silently. The
+// allowance measures how much of the product the visitor used, so it is spent
+// whether or not that particular request succeeded.
 const publicScoreDailyLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
   max: 6,
   store: publicScoreDailyStore,
-  skipFailedRequests: true,
   // A database blip must not refuse every visitor on the site. Failing open is
   // the deliberate choice here, and it is logged rather than silent.
   passOnStoreError: true,
@@ -98,11 +108,12 @@ const publicScoreDailyLimiter = rateLimit({
 // it cannot be held in a process that is expected to be replaced.
 const publicRewriteDailyStore = createRateLimitStore('public-rewrite-daily');
 
+// Same no-refund reasoning as the daily score cap above: the wall is the
+// product promise, so a failed request must not hand the day back.
 const publicRewriteDailyLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
   max: 1,
   store: publicRewriteDailyStore,
-  skipFailedRequests: true,
   passOnStoreError: true,
   message:
     'You have used your free rewrite. Create an account for unlimited rewrites.',

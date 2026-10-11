@@ -11,7 +11,7 @@
  *
  * These tests pin the two halves of the fix: the counters are stored somewhere
  * shared, and the store keeps the semantics the limiters depend on (window
- * rollover, namespacing, decrement for `skipFailedRequests`).
+ * rollover, namespacing, and the decrement the per-minute limiter still uses).
  *
  * The store is exercised against an injected adapter, so this file needs no
  * database. The Postgres adapter's SQL is pinned by source, because the
@@ -121,13 +121,16 @@ test('get reports the current window and hides an expired one', async () => {
 
 /* ── the limiters depend on these ─────────────────────────────────────────── */
 
-test('decrement gives back a hit, which is what skipFailedRequests relies on', async () => {
+test('decrement gives back a hit, which the per-minute limiter still relies on', async () => {
+  // The daily walls deliberately dropped `skipFailedRequests` (they must not be
+  // refundable), but the one-minute burst limiter still sets it, so the store
+  // must keep supporting the decrement half of the contract.
   const s = store('public-rewrite-daily');
   await s.increment('192.0.2.4');
   await s.increment('192.0.2.4');
   await s.decrement('192.0.2.4');
 
-  assert.equal((await s.get('192.0.2.4')).totalHits, 1, 'a rejected upload must not burn the rewrite');
+  assert.equal((await s.get('192.0.2.4')).totalHits, 1, 'a decrement must give back exactly one hit');
 });
 
 test('decrement never drives a counter below zero', async () => {
@@ -232,6 +235,68 @@ test('the limiters actually enforce through the store', async () => {
   }
 });
 
+test('a failed request no longer refunds the day, so the wall cannot be reset', async () => {
+  // The defect: with `skipFailedRequests` on a 24-hour allowance, one rejected
+  // upload handed the visitor's whole day back — the wall could be reset by a
+  // request that produced nothing, and on a shared or carrier-NAT address by
+  // somebody else's failure.
+  //
+  // Two requests are made against a one-per-day wall whose handler always
+  // fails. The pair of status codes is the whole proof.
+  const express = require('express');
+  const rateLimit = require('express-rate-limit');
+  const http = require('node:http');
+
+  const twoFailedRequests = async ({ skipFailedRequests }) => {
+    const s = new PersistentRateLimitStore({
+      namespace: `integration-daily-${skipFailedRequests ? 'refund' : 'no-refund'}`,
+      adapter: createMemoryAdapter(),
+    });
+    const limiter = rateLimit({
+      windowMs: DAY,
+      max: 1,
+      store: s,
+      ...(skipFailedRequests ? { skipFailedRequests: true } : {}),
+      passOnStoreError: true,
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: 'wall',
+    });
+
+    const app = express();
+    app.get('/fail', limiter, (_req, res) => res.status(500).json({ ok: false }));
+    const server = app.listen(0);
+    const { port } = server.address();
+    const get = () => new Promise((resolve, reject) => {
+      http.get({ hostname: '127.0.0.1', port, path: '/fail' }, (res) => {
+        res.resume();
+        res.on('end', () => resolve(res.statusCode));
+      }).on('error', reject);
+    });
+
+    try {
+      return [await get(), await get()];
+    } finally {
+      server.close();
+    }
+  };
+
+  // Control: the old behaviour. This keeps the test honest — it fails if the
+  // refund is not actually caused by the flag the daily limiters dropped.
+  assert.deepEqual(
+    await twoFailedRequests({ skipFailedRequests: true }),
+    [500, 500],
+    'control: skipFailedRequests is what made the daily wall refundable',
+  );
+
+  // The fix: a failure still spends the day.
+  assert.deepEqual(
+    await twoFailedRequests({ skipFailedRequests: false }),
+    [500, 429],
+    'a failed request must not hand the day back',
+  );
+});
+
 /* ── the Postgres adapter's atomicity ─────────────────────────────────────── */
 
 test('the Postgres increment is one atomic upsert, not a read then a write', () => {
@@ -287,8 +352,10 @@ test('both daily limiters use the persistent store instead of the default Map', 
   // policy change.
   assert.equal(Number(rewrite[0].match(/max:\s*(\d+)/)?.[1]), 1);
   assert.equal(Number(daily[0].match(/max:\s*(\d+)/)?.[1]), 6);
-  assert.match(rewrite[0], /skipFailedRequests:\s*true/);
-  assert.match(daily[0], /skipFailedRequests:\s*true/);
+
+  // A 24-hour allowance must not be refundable: no `skipFailedRequests`.
+  assert.doesNotMatch(rewrite[0], /skipFailedRequests/);
+  assert.doesNotMatch(daily[0], /skipFailedRequests/);
 });
 
 test('without a database the store degrades to memory, and says so out loud', async () => {
