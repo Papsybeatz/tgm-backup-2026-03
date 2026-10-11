@@ -148,7 +148,11 @@ test('the rewrite route is behind its own one-per-day limiter', () => {
   const block = RATE_SRC.match(/publicRewriteDailyLimiter\s*=\s*rateLimit\(\{[\s\S]*?\}\);/);
   assert.ok(block, 'publicRewriteDailyLimiter definition not found');
   assert.equal(Number(block[0].match(/max:\s*(\d+)/)?.[1]), 1, 'the free rewrite is one per day');
-  assert.match(block[0], /skipFailedRequests:\s*true/, 'a rejected upload must not burn the rewrite');
+  assert.doesNotMatch(
+    block[0],
+    /skipFailedRequests/,
+    'a failed request must not hand the day back — the wall is the product promise',
+  );
 });
 
 test('a missing provider fails loudly instead of echoing the original as a rewrite', () => {

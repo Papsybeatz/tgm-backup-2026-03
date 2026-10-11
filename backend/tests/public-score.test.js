@@ -534,9 +534,26 @@ test('the anonymous daily cap does not exceed the Free tier score cap', () => {
   );
 });
 
-test('a rejected upload does not burn one of the visitor scores', () => {
-  const block = RATE_SRC.match(/publicScoreDailyLimiter\s*=\s*rateLimit\(\{[\s\S]*?\}\);/);
-  assert.match(block[0], /skipFailedRequests:\s*true/);
+test('the daily score cap is not refundable by a failed request', () => {
+  // `skipFailedRequests` on a 24-hour allowance means "a failed request hands
+  // the day back", so the wall could be reset by an upload that produced
+  // nothing — and on a shared address by somebody else's failure. It belongs
+  // on the short throttle only. See the note in middleware/rateLimit.js.
+  const daily = RATE_SRC.match(/publicScoreDailyLimiter\s*=\s*rateLimit\(\{[\s\S]*?\}\);/);
+  assert.ok(daily, 'daily limiter definition not found');
+  assert.doesNotMatch(
+    daily[0],
+    /skipFailedRequests/,
+    'the daily allowance must not be refundable by a failed request',
+  );
+
+  const burst = RATE_SRC.match(/publicScoreLimiter\s*=\s*rateLimit\(\{[\s\S]*?\}\);/);
+  assert.ok(burst, 'per-minute limiter definition not found');
+  assert.match(
+    burst[0],
+    /skipFailedRequests:\s*true/,
+    'a rejected upload must still not burn a burst slot',
+  );
 });
 
 /* ── end to end through scoreDraft ────────────────────────────────────────── */
