@@ -499,6 +499,67 @@ test('without a database the store degrades to memory, and says so out loud', as
   }
 });
 
+test('a configured database is actually used, not silently swapped for the local map', async () => {
+  // Both branches of the factory return the same class, so `instanceof` cannot
+  // tell the shared store from the per-process fallback. The only honest check is
+  // behavioural: with a client configured, the increment has to reach the client.
+  // If it does not, the store has quietly degraded and the wall is no longer
+  // shared — the failure mode that made the daily limits leak.
+  const calls = [];
+  const client = {
+    async $queryRaw(strings, ...values) {
+      calls.push({ sql: strings.join('?'), values });
+      return [{ count: 1, resetAt: new Date(Date.now() + DAY) }];
+    },
+  };
+
+  const store = createRateLimitStore('wiring-uses-client', { prisma: client });
+  store.init({ windowMs: DAY });
+  await store.increment('203.0.113.9');
+
+  assert.equal(calls.length, 1, 'a configured database must receive the increment');
+  assert.match(calls[0].sql, /RateLimitCounter/, 'and it must be the counter table');
+});
+
+test('a configured client stays silent, so the fallback warning keeps its meaning', () => {
+  // The warning is the only signal that the wall is not shared. If it fired even
+  // with a database configured it would become noise, and the one line that
+  // matters at boot would be lost in it.
+  const warnings = [];
+  const original = console.warn;
+  console.warn = (...args) => warnings.push(args.join(' '));
+  try {
+    createRateLimitStore('wiring-silent', { prisma: { $queryRaw: async () => [] } });
+  } finally {
+    console.warn = original;
+  }
+
+  assert.equal(
+    warnings.filter((line) => /in-process store/.test(line)).length,
+    0,
+    'a configured database must not announce a fallback',
+  );
+
+  // Control: the capture above only proves something if the warning can fire at
+  // all. With no client and no DATABASE_URL it must.
+  const fallbackWarnings = [];
+  const saved = process.env.DATABASE_URL;
+  delete process.env.DATABASE_URL;
+  console.warn = (...args) => fallbackWarnings.push(args.join(' '));
+  try {
+    createRateLimitStore('wiring-silent-control');
+  } finally {
+    console.warn = original;
+    if (saved !== undefined) process.env.DATABASE_URL = saved;
+  }
+
+  assert.equal(
+    fallbackWarnings.filter((line) => /in-process store/.test(line)).length,
+    1,
+    'control: with no database the fallback must announce itself',
+  );
+});
+
 test('the counter table is created at boot, since migrate deploy cannot run here', () => {
   assert.match(SCHEMA_SRC, /CREATE TABLE IF NOT EXISTS "RateLimitCounter"/);
   assert.match(SCHEMA_SRC, /RateLimitCounter resetAt index/);
