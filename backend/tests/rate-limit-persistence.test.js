@@ -319,6 +319,98 @@ test('the daily refund follows the route verdict, not the status code', async ()
   );
 });
 
+test('a hit recorded by one instance is visible to every other instance', async () => {
+  // This is the regression the wall leaked on. The daily limits are only real if
+  // every process counts against the *same* row; when each process keeps its own
+  // counter, a visitor gets `max` uses per instance instead of per day.
+  //
+  // Two PersistentRateLimitStore objects over ONE adapter stand in for two app
+  // processes over one database.
+  const shared = createMemoryAdapter();
+  const first = new PersistentRateLimitStore({ namespace: 'shared-instances', adapter: shared });
+  const second = new PersistentRateLimitStore({ namespace: 'shared-instances', adapter: shared });
+
+  await first.increment('203.0.113.9');
+  const seenBySecond = await second.increment('203.0.113.9');
+
+  assert.equal(
+    seenBySecond.totalHits,
+    2,
+    'a hit recorded by one instance must be counted by every other instance',
+  );
+  assert.equal(
+    (await first.get('203.0.113.9')).totalHits,
+    2,
+    'and it must read back the same from either side',
+  );
+});
+
+test('the wall refuses across instances, not once per instance', async () => {
+  // End-to-end version of the same guarantee: two limiters standing in for two
+  // app instances, one visitor, one backing store. The second instance must
+  // refuse the visitor the first one already served.
+  const express = require('express');
+  const rateLimit = require('express-rate-limit');
+  const http = require('node:http');
+
+  const twoInstances = async ({ shareStore }) => {
+    const shared = createMemoryAdapter();
+    const limiterFor = () => rateLimit({
+      windowMs: DAY,
+      max: 1,
+      store: new PersistentRateLimitStore({
+        namespace: 'shared-instances-e2e',
+        // With `shareStore` false each instance gets its own adapter — which is
+        // exactly the bug: the counters diverge and the wall leaks.
+        adapter: shareStore ? shared : createMemoryAdapter(),
+      }),
+      passOnStoreError: true,
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: 'wall',
+    });
+
+    const servers = [];
+    const hit = (limiter) => new Promise((resolve, reject) => {
+      const app = express();
+      app.get('/probe', limiter, (_req, res) => res.json({ ok: true }));
+      const server = app.listen(0, () => {
+        const { port } = server.address();
+        http.get({ hostname: '127.0.0.1', port, path: '/probe' }, (res) => {
+          res.resume();
+          res.on('end', () => resolve(res.statusCode));
+        }).on('error', reject);
+      });
+      servers.push(server);
+    });
+
+    try {
+      // The first request lands on one instance, the second on the other.
+      return [await hit(limiterFor()), await hit(limiterFor())];
+    } finally {
+      for (const server of servers) server.close();
+    }
+  };
+
+  // The wall holds: the hit the first instance recorded is already spent for
+  // the second.
+  assert.deepEqual(
+    await twoInstances({ shareStore: true }),
+    [200, 429],
+    'one shared counter must refuse the second instance',
+  );
+
+  // Control — the leak this test exists to catch. With a counter per process,
+  // each instance hands out its own free use and the wall leaks by the replica
+  // count. If this ever stops being [200, 200] the test is no longer proving
+  // anything about sharing.
+  assert.deepEqual(
+    await twoInstances({ shareStore: false }),
+    [200, 200],
+    'control: a per-instance counter leaks one free use per instance',
+  );
+});
+
 /* ── the Postgres adapter's atomicity ─────────────────────────────────────── */
 
 test('the Postgres increment is one atomic upsert, not a read then a write', () => {
