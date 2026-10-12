@@ -133,10 +133,22 @@ test('the rewrite route re-scores both drafts with the same engine', () => {
   assert.match(ROUTE_SRC, /router\.post\('\/rewrite'/);
   assert.match(ROUTE_SRC, /rewriteText\(/);
   assert.match(ROUTE_SRC, /buildCriteriaDelta\(/);
-  // Two scoreDraft calls: the original and the rewrite. Scoring the rewrite is
-  // what makes the delta honest.
-  const calls = ROUTE_SRC.match(/scoreDraft\(/g) || [];
-  assert.ok(calls.length >= 3, `expected scoreDraft in /score and twice in /rewrite, found ${calls.length}`);
+  // Both drafts go through the same scorer, which is what makes the delta
+  // honest. The original goes through the cache so its "before" number is the
+  // number the page already showed rather than a fresh roll of the dice; the
+  // rewrite is scored fresh, because the model produced new text.
+  const rewriteBlock = ROUTE_SRC.slice(ROUTE_SRC.indexOf("router.post('/rewrite'"));
+  assert.ok(rewriteBlock, 'rewrite route not found');
+  assert.match(rewriteBlock, /const before = await scoreLetter\(text, content\)/);
+  assert.match(rewriteBlock, /const after = await scoreDraft\(\{\}, rewrittenPlain/);
+
+  // And the cached path really does score — it is not a stub that returns a
+  // constant, which would make every letter score the same.
+  assert.match(
+    ROUTE_SRC,
+    /compute: \(\) => scoreDraft\(\{\}, content, \{ orderless: true \}\)/,
+    'the cache miss path must still score the document',
+  );
 });
 
 test('the rewrite route is behind its own one-per-day limiter', () => {
