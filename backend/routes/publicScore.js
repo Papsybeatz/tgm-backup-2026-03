@@ -15,7 +15,15 @@
  *    is handing over confidential material. The file is held in memory, written
  *    to an OS temp path only because `extractDocumentText` reads from disk, and
  *    deleted on every exit path. Nothing is written to the served upload
- *    directory and nothing is persisted to the database.
+ *    directory.
+ *
+ *    The document text is still never persisted. What IS persisted is the
+ *    report derived from it, keyed by a SHA-256 of the normalised text (see
+ *    utils/scoreCache.js). That is what makes a repeat score of the same letter
+ *    return the same number rather than a different one. The stored report holds
+ *    the scores and the model's commentary, so treat it as derived confidential
+ *    material: it is only ever served back to a visitor who submits a letter
+ *    that hashes to the same key.
  *
  * 3. The score is real. `orderless: true` selects the document-only rubric, so
  *    a strong draft is not marked down for ticket fields an anonymous upload
@@ -39,9 +47,31 @@ const { applyScoreGate, FREE_SCORE_LIMIT } = require('../utils/scoreGate');
 const { buildCriteriaDelta } = require('../utils/criteriaDelta');
 const { extractDocumentText } = require('../utils/extractDocumentText');
 const { errorDetail } = require('../utils/errorDetail');
+const { createScoreCache, scoreOnce } = require('../utils/scoreCache');
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// Reuses the client above rather than opening a second pool.
+const scoreCache = createScoreCache({ prisma });
+
+/**
+ * Score a letter, reusing the stored report when we have already seen it.
+ *
+ * The model is stochastic even at temperature 0, so an uncached re-score of the
+ * same letter can move the number the visitor is looking at. A cache hit makes
+ * the score stable and costs no tokens. The decision itself lives in
+ * utils/scoreCache.js so it can be tested without the model.
+ */
+async function scoreLetter(text, content) {
+  const { report } = await scoreOnce({
+    cache: scoreCache,
+    text,
+    compute: () => scoreDraft({}, content, { orderless: true }),
+    onError: (error) => console.warn('[PUBLIC SCORE] cache unavailable:', error?.message || error),
+  });
+  return report;
+}
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10MB, matching /api/documents/upload
 // The rewrite is one LLM call, so it cannot take a whole 10MB document. Cap the
@@ -150,7 +180,7 @@ router.post('/score', handleUpload, async (req, res) => {
   }
 
   try {
-    const report = await scoreDraft({}, content, { orderless: true });
+    const report = await scoreLetter(text, content);
 
     // Diagnosis free, fixes paid — the same gate the signed-in route applies.
     const gated = applyScoreGate('free', report);
@@ -239,7 +269,9 @@ router.post('/rewrite', publicRewriteDailyLimiter, handleUpload, async (req, res
   }
 
   try {
-    const before = await scoreDraft({}, content, { orderless: true });
+    // Same letter, same cache key as /score — so the delta's "before" number is
+    // the number the page already showed, instead of a fresh roll of the dice.
+    const before = await scoreLetter(text, content);
 
     const truncatedForRewrite = text.length > MAX_REWRITE_CHARS;
     const inputForRewrite = truncatedForRewrite ? text.slice(0, MAX_REWRITE_CHARS) : text;

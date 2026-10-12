@@ -360,6 +360,30 @@ const STATEMENTS = [
     label: 'RateLimitCounter resetAt index',
     sql: `CREATE INDEX IF NOT EXISTS "RateLimitCounter_resetAt_idx" ON "RateLimitCounter"("resetAt")`,
   },
+
+  // ---------------------------------------------------------------------------
+  // ScoreCache
+  //
+  // The same letter scored 62/51/58/51 across runs even though scoring pins
+  // `temperature: 0` — the provider batches and routes through a
+  // mixture-of-experts, so identical input is not reproducible. Caching the
+  // report against a hash of the letter takes that variance out of the
+  // visitor's view, and stops us paying to score one document repeatedly.
+  //
+  // `hits` is telemetry: it says how much variance the cache is absorbing.
+  // ---------------------------------------------------------------------------
+  {
+    label: 'ScoreCache table',
+    sql: `CREATE TABLE IF NOT EXISTS "ScoreCache" (
+      "hash" TEXT NOT NULL,
+      "report" JSONB NOT NULL,
+      "score" INTEGER NOT NULL,
+      "hits" INTEGER NOT NULL DEFAULT 0,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "ScoreCache_pkey" PRIMARY KEY ("hash")
+    )`,
+  },
 ];
 
 /** Is the Steve store actually able to use the database now? */
