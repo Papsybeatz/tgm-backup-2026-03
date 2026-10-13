@@ -523,6 +523,30 @@ test('the public score route is mounted behind both limiters', () => {
   assert.match(mount[0], /publicScoreDailyLimiter/, 'a daily cap is required');
 });
 
+test('the temporary IP diagnostic is gone and stays gone', () => {
+  // The [IP-DEBUG] middleware answered its question — req.ip was an edge
+  // address — and the fix lives in middleware/rateLimit.js. It printed every
+  // visitor's address to the production log, so it must not come back, and it
+  // must not have taken the limiter mount with it when it left.
+  assert.ok(
+    !SERVER_SRC.includes('IP-DEBUG'),
+    'the temporary diagnostic must not return — it logs visitor IPs',
+  );
+  assert.ok(
+    !/TEMPORARY DIAGNOSTIC/.test(SERVER_SRC),
+    'no temporary diagnostic should be left in the server entrypoint',
+  );
+
+  // And the route it sat in front of is still behind both walls.
+  const mount = SERVER_SRC.match(/app\.use\('\/api\/public'[^\n]*/);
+  assert.ok(mount, 'the limiter mount must survive the revert');
+  assert.match(mount[0], /publicScoreLimiter/);
+  assert.match(mount[0], /publicScoreDailyLimiter/);
+
+  // The real fix is still in place, so this revert cannot have undone it.
+  assert.match(RATE_SRC, /keyGenerator:\s*visitorKey/);
+});
+
 test('the anonymous daily cap does not exceed the Free tier score cap', () => {
   const block = RATE_SRC.match(/publicScoreDailyLimiter\s*=\s*rateLimit\(\{[\s\S]*?\}\);/);
   assert.ok(block, 'daily limiter definition not found');
