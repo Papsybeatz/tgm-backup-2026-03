@@ -175,38 +175,13 @@ app.use('/api/lead-magnet', leadMagnetRoutes);
 // Anonymous Checkmate scoring — the funnel wedge. No auth by design; abuse is
 // bounded by the two IP limiters instead. See routes/publicScore.js.
 const publicScoreRoutes = require('./routes/publicScore');
-
-// ---------------------------------------------------------------------------
-// TEMPORARY DIAGNOSTIC — DELETE THIS BLOCK.
-//
-// The daily wall is not keyed on the visitor: identical requests land on
-// different counters seconds apart, and a first-time visitor can be refused.
-// The limiters key on express-rate-limit's default, which is `req.ip`, and
-// nothing here reads X-Forwarded-For — so the question is purely what Express
-// resolves `req.ip` to behind the Vercel and Railway proxies.
-//
-// This cannot be reasoned out from outside. It has to be read. It sits BEFORE
-// the limiters on purpose: a 429 short-circuits the chain, so a diagnostic
-// placed after them would never print for the requests that matter most.
-//
-// Registered globally with a path guard rather than mounted on '/api/public',
-// so it cannot be confused with the limiter mount that the tests assert on.
-//
-// Remove as soon as the boot logs have been read.
-// ---------------------------------------------------------------------------
-app.use((req, res, next) => {
-  if (!req.path.startsWith('/api/public')) return next();
-  console.log('[IP-DEBUG]', JSON.stringify({
-    ip: req.ip,
-    xff: req.headers['x-forwarded-for'] || null,
-    xri: req.headers['x-real-ip'] || null,
-    sock: req.socket?.remoteAddress || null,
-    edge: req.headers['x-railway-edge'] || null,
-    vercel: req.headers['x-vercel-id'] || null,
-  }));
-  next();
-});
-
+// A temporary request-logging middleware briefly sat here and has been removed.
+// It existed to answer one question — what `req.ip` resolves to behind the
+// Vercel and Railway proxies — and the answer was an edge address, not the
+// visitor. That is fixed in middleware/rateLimit.js, where the limiters now key
+// on the first X-Forwarded-For entry. A diagnostic that prints visitor IPs has
+// no business running in production once it has answered its question, which is
+// why public-score.test.js asserts it cannot come back.
 app.use('/api/public', publicScoreLimiter, publicScoreDailyLimiter, publicScoreRoutes);
 const funderApiRequestRoutes = require('./routes/funderApiRequest');
 app.use('/api/funder-api', funderIntakeLimiter, funderApiRequestRoutes);
