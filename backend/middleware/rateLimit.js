@@ -3,6 +3,9 @@
 const rateLimit = require('express-rate-limit');
 const { createRateLimitStore } = require('../utils/rateLimitStore');
 
+// Used by `visitorKey` below. Not decoration — see the note there.
+const { ipKeyGenerator } = rateLimit;
+
 const agentLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 10, // limit each user to 10 agent calls per minute
@@ -55,9 +58,51 @@ const steveHourlyLimiter = rateLimit({
 // right answer for a short throttle: a rejected upload (wrong type, unreadable
 // scan) must not burn a burst slot. It is the wrong answer for the 24-hour
 // allowances below — see the note there.
+/**
+ * The rate-limit key for an anonymous visitor.
+ *
+ * express-rate-limit's default key is `req.ip`. Behind the Vercel -> Railway
+ * chain that is NOT the visitor. `trust proxy: 1` (server.js) makes Express
+ * return the LAST entry of `X-Forwarded-For`, which the edge appends, so the
+ * key was an edge address. A production log read on 2026-10-12 showed ten
+ * requests collapsing onto three keys — 84.17.44.226/.227/.229, Datacamp
+ * Limited, Los Angeles, matching `x-railway-edge: lax1` — while the real client
+ * sat in the first XFF entry.
+ *
+ * The damage was not a leak but a wall that refused strangers. A visitor's own
+ * allowance was shared with everyone else routed through the same edge, so a
+ * first-time visitor could be told they had already used their free score. The
+ * proof was in the counter itself: two identical requests, identical headers,
+ * seconds apart, came back with different resets (12209, then 76314). One
+ * client cannot be on two counters unless the key is not the client.
+ *
+ * So key on the client. The first `X-Forwarded-For` entry is platform-set and
+ * not forgeable — a probe sending `X-Forwarded-For: 203.0.113.201` produced an
+ * `xff` of "<client>, <edge>" with the forged value gone, because Vercel
+ * overwrites the header. `x-real-ip` carries the same address and is the
+ * fallback for a deployment that sets only that; `req.ip` is the last resort.
+ *
+ * `ipKeyGenerator` is load-bearing. Without it a visitor with a routed IPv6
+ * allocation gets a fresh key per address — a free bypass, handed out while
+ * fixing a bug about keys. It normalises IPv6 to the /56 the address is
+ * delegated from, and passes IPv4 through untouched.
+ */
+function visitorKey(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  const first = Array.isArray(forwarded)
+    ? forwarded[0]
+    : String(forwarded || '').split(',')[0];
+
+  const candidate =
+    (first || '').trim() || req.headers['x-real-ip'] || req.ip || '';
+
+  return ipKeyGenerator(candidate);
+}
+
 const publicScoreLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 5,
+  keyGenerator: visitorKey,
   skipFailedRequests: true,
   message: 'Too many scoring requests. Please wait a moment and try again.',
   standardHeaders: true,
@@ -101,6 +146,7 @@ function uploadWasRejected(res) {
 const publicScoreDailyLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
   max: 6,
+  keyGenerator: visitorKey,
   store: publicScoreDailyStore,
   // express-rate-limit asks "was the request successful?" and refunds when the
   // answer is no. The question this wall actually needs answered is narrower —
@@ -133,6 +179,7 @@ const publicRewriteDailyStore = createRateLimitStore('public-rewrite-daily');
 const publicRewriteDailyLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
   max: 1,
+  keyGenerator: visitorKey,
   store: publicRewriteDailyStore,
   skipFailedRequests: true,
   requestWasSuccessful: (_req, res) => !uploadWasRejected(res),
@@ -182,4 +229,7 @@ module.exports = {
   // Exported so a route can refund the day for an upload it refused, and so a
   // test can prove the refund is narrower than "any 4xx".
   uploadWasRejected,
+  // Exported so a test can prove two visitors get separate counters, and that
+  // the fix is the key rather than luck.
+  visitorKey,
 };
