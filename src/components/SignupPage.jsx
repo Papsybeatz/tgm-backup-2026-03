@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from './UserContext';
 import CaseStudiesSection from './CaseStudiesSection';
 import { readPublicScoreHandoff } from '../lib/publicScoreHandoff';
+import { track, FUNNEL_EVENTS } from '../lib/analytics';
 
 async function safeJson(res) {
   const text = await res.text();
@@ -61,6 +62,11 @@ export default function SignupPage() {
       localStorage.setItem('user', JSON.stringify(userObj));
       localStorage.setItem('token', data.token);
       setStatus('success');
+      // Step 6. No email, no name — the tier and where they came from are the
+      // only things the funnel needs, and both are non-identifying.
+      track(FUNNEL_EVENTS.SIGNUP_COMPLETED, {
+        source: inviteToken ? 'invite' : 'signup',
+      });
       // Route new users to onboarding; returning users to dashboard
       const isNewUser = data.createdAt && data.updatedAt &&
         Math.abs(new Date(data.updatedAt) - new Date(data.createdAt)) < 5000;

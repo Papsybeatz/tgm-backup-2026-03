@@ -7,8 +7,13 @@ import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { initAnalytics } from './lib/analytics';
 
 const queryClient = new QueryClient();
+
+// No-op unless VITE_POSTHOG_KEY is set at build time. Autocapture and session
+// recording stay off — see the note in lib/analytics.js.
+initAnalytics();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

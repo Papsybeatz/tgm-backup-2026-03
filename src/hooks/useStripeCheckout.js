@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { track, FUNNEL_EVENTS } from '../lib/analytics';
 
 export function useStripeCheckout() {
   const [loading, setLoading] = useState(false);
@@ -76,6 +77,14 @@ export function useStripeCheckout() {
         const detail = data.reason ? `${data.reason}${data.code ? ` [${data.code}]` : ''}` : null;
         throw new Error(detail || data.error || 'Checkout failed');
       }
+
+      // Step 7. Fires only once Stripe has handed back a session URL, so this
+      // counts sessions actually created rather than buttons pressed. The
+      // priceId is a Stripe identifier, not personal data.
+      track(FUNNEL_EVENTS.CHECKOUT_STARTED, {
+        priceId,
+        context: checkoutContext,
+      });
 
       window.location.href = data.url;
     } catch (err) {

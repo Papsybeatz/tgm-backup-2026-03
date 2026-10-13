@@ -71,12 +71,28 @@ test('the landing copy does not promise the criterion the free tool omits', () =
 /* ── the back door ────────────────────────────────────────────────────────── */
 
 test('the unlock click hands the result over before leaving', () => {
+  // Pinned to the intent, not to the exact arrow body: the handler now records
+  // a funnel event before handing the score over, and an assertion on the
+  // literal `() => savePublicScoreHandoff(report)` would break on any addition
+  // rather than on a regression.
   assert.match(
     FUNNEL,
-    /onClick=\{\(\) => savePublicScoreHandoff\(report\)\}/,
+    /onClick=\{[\s\S]{0,400}?savePublicScoreHandoff\(report\)/,
     'without this the visitor arrives at signup with their score gone',
   );
   assert.match(FUNNEL, /import \{ savePublicScoreHandoff \}/);
+});
+
+test('every checkup funnel step is recorded', () => {
+  // Three signup CTAs: the locked-out panel, the rewrite panel, the unlock
+  // panel. Missing one silently under-counts the step the funnel is judged on.
+  const signupClicks = FUNNEL.match(/FUNNEL_EVENTS\.SIGNUP_CLICKED/g) || [];
+  assert.equal(signupClicks.length, 3, 'each signup CTA must record signup_clicked');
+
+  assert.match(FUNNEL, /track\(FUNNEL_EVENTS\.CHECKUP_VIEW\)/);
+  assert.match(FUNNEL, /track\(FUNNEL_EVENTS\.LETTER_UPLOADED/);
+  assert.match(FUNNEL, /track\(FUNNEL_EVENTS\.REWRITE_CLICKED/);
+  assert.match(FUNNEL, /track\(FUNNEL_EVENTS\.REWRITE_SHOWN/);
 });
 
 test('signup reads the carried result and shows it', () => {
