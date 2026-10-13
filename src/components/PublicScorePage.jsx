@@ -21,11 +21,12 @@
  * Upload-only by design: this is how grant consultants actually work, and it
  * removes the "paste your whole proposal" step that loses people at the door.
  */
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiUrl } from '../lib/apiUrl';
 import { savePublicScoreHandoff } from '../lib/publicScoreHandoff';
 import { shareScoreCard } from '../lib/scoreCard';
+import { track, FUNNEL_EVENTS } from '../lib/analytics';
 
 const ACCEPTED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.txt', '.md'];
 const ACCEPT_ATTR = ACCEPTED_EXTENSIONS.join(',');
@@ -219,6 +220,11 @@ export default function PublicScorePage() {
   const [copied, setCopied] = useState('');
   const inputRef = useRef(null);
 
+  // Step 1 of the funnel. No properties: the visit itself is the datum.
+  useEffect(() => {
+    track(FUNNEL_EVENTS.CHECKUP_VIEW);
+  }, []);
+
   const pickFile = useCallback((candidate) => {
     setErrorMessage('');
     if (!candidate) return;
@@ -273,6 +279,15 @@ export default function PublicScorePage() {
 
       setReport(data);
       setStatus('result');
+      // Step 2. Fires once the score renders rather than on file pick: the
+      // funnel step that matters is "got a score", and this is the first
+      // moment `score` and `words` exist. Neither describes the letter's
+      // contents, and nothing else here is allowed to leave the browser.
+      track(FUNNEL_EVENTS.LETTER_UPLOADED, {
+        score: data.score,
+        words: data.words,
+        band: data.label,
+      });
     } catch (error) {
       setErrorMessage(
         error?.message === 'Failed to fetch'
@@ -308,6 +323,9 @@ export default function PublicScorePage() {
    */
   const runRewrite = useCallback(async () => {
     if (!file) return;
+    // Step 3, before the await: the click is the datum, and a refused or failed
+    // rewrite must still register as an intent or the funnel under-counts it.
+    track(FUNNEL_EVENTS.REWRITE_CLICKED, { score: report?.score });
     setRewriteState('working');
     setRewriteError('');
     setRewriteLockedOut(false);
@@ -334,6 +352,14 @@ export default function PublicScorePage() {
 
       setRewrite(data);
       setRewriteState('done');
+      // Step 4. The delta is the moment of belief, so record how far it moved.
+      track(FUNNEL_EVENTS.REWRITE_SHOWN, {
+        fromScore: data.original?.score,
+        toScore: data.rewritten?.score,
+        delta: data.delta?.total,
+        fromBand: data.bandChange?.from,
+        toBand: data.bandChange?.to,
+      });
     } catch (error) {
       setRewriteError(
         error?.message === 'Failed to fetch'
@@ -570,6 +596,12 @@ export default function PublicScorePage() {
                     <div style={{ marginTop: 12 }}>
                       <Link
                         to="/signup?from=public-score"
+                        onClick={() =>
+                          track(FUNNEL_EVENTS.SIGNUP_CLICKED, {
+                            source: 'checkup-locked-out',
+                            score: report?.score,
+                          })
+                        }
                         style={{
                           display: 'inline-block',
                           padding: '10px 18px',
@@ -846,7 +878,13 @@ export default function PublicScorePage() {
                           <div style={{ marginTop: 12 }}>
                             <Link
                               to="/signup?from=public-score"
-                              onClick={() => savePublicScoreHandoff(report)}
+                              onClick={() => {
+                                track(FUNNEL_EVENTS.SIGNUP_CLICKED, {
+                                  source: 'checkup-rewrite-panel',
+                                  score: report?.score,
+                                });
+                                savePublicScoreHandoff(report);
+                              }}
                               style={{
                                 display: 'inline-block',
                                 padding: '10px 18px',
@@ -1082,7 +1120,13 @@ export default function PublicScorePage() {
                     // The unlock click is the conversion event. Hand the result
                     // over before we leave, or signup opens as a blank form and
                     // the score that brought them here is gone.
-                    onClick={() => savePublicScoreHandoff(report)}
+                    onClick={() => {
+                      track(FUNNEL_EVENTS.SIGNUP_CLICKED, {
+                        source: 'checkup-unlock-panel',
+                        score: report?.score,
+                      });
+                      savePublicScoreHandoff(report);
+                    }}
                     style={{
                       display: 'inline-block',
                       padding: '13px 24px',

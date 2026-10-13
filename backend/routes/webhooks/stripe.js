@@ -4,6 +4,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { sendBrevoEmail } = require('../../utils/brevo');
 const { alertOnBusinessFailure } = require('../../utils/alerting');
+const { trackSubscribed } = require('../../utils/analytics');
 // Funder prices are intentionally NOT mapped in this file. The funder flow is
 // handled earlier, by checkout_context === 'funder_cycle'. A funder price
 // reaching the subscription paths below is a wiring mistake, and it is better
@@ -338,6 +339,20 @@ async function handleStripeEvent(req, res) {
           stripeCustomerId: customerId,
           currentPeriodEnd,
         });
+
+        // Funnel step 8, fired from the one place that can tell the truth about
+        // it: access was just granted. Deliberately not awaited — analytics
+        // must never be able to fail a payment. `email` and `customerId` are in
+        // scope right here and are not passed; the sanitizer would drop them
+        // anyway, and the privacy test asserts it.
+        trackSubscribed({
+          userId: user.id,
+          tier,
+          priceId,
+          interval: isLifetime ? 'one_time' : 'recurring',
+          context: 'checkout',
+        }).catch(() => {});
+
         return res.status(200).send('ok');
       }
 
