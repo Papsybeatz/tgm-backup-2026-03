@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import FailureLogPanel from '../components/FailureLogPanel';
+import { analyticsDashboardUrl } from '../lib/analytics';
 
 const BUILD_MARKER = 'build-2026-08-02-funder-leads';
 
@@ -24,6 +25,22 @@ const s = {
   hero: { background: 'linear-gradient(135deg, #f8fafc 0%, #fff 50%, #f0fdf4 100%)', borderRadius: 12, padding: 24, border: '1px solid #e2e8f0' },
   severity: { critical: { background: '#fef2f2', color: '#dc2626' }, warning: { background: '#fffbeb', color: '#d97706' }, info: { background: '#f0f9ff', color: '#0284c7' } },
   colors: { blue: '#3b82f6', green: '#10b981', amber: '#f59e0b', slate: '#64748b' },
+  funnelLink: {
+    display: 'inline-block',
+    padding: '10px 18px',
+    borderRadius: 8,
+    background: '#0f172a',
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: 700,
+    textDecoration: 'none',
+    whiteSpace: 'nowrap',
+  },
+  funnelMissing: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+  },
 };
 
 function LoadingSkeleton() {
@@ -586,6 +603,9 @@ export default function MonitoringDashboard() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
+  // Null when analytics is unconfigured, in which case the card explains what to
+  // set rather than offering a link to an empty project.
+  const funnelUrl = analyticsDashboardUrl();
   const [viewMode, setViewMode] = useState('allUsers');
   const [tierFilter, setTierFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -715,6 +735,49 @@ export default function MonitoringDashboard() {
         <MetricTile label="Active Starter Accounts" value={activeStarterUsers.length} sublabel="Status: active" />
         <MetricTile label="AI Drafts Today" value={data.system?.aiDraftsToday} sublabel="Generated today" />
         <MetricTile label="New Signups" value={recentSignups.length} sublabel="Last 7 days" />
+      </div>
+
+      {/**
+       * A link, not a merge. This page is operational — named accounts, what is
+       * on fire. The funnel is behavioural and anonymous, and it stays in
+       * PostHog precisely because the events carry no letter text, no email and
+       * no file name, which only holds while they never land next to a user
+       * record. One click apart, two systems.
+       */}
+      <div
+        style={{
+          ...s.card,
+          ...s.sectionBlock,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 24,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div>
+          <div style={s.sectionTitle}>Funnel Analytics</div>
+          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: '#64748b', maxWidth: 760 }}>
+            Where anonymous visitors drop off on /checkup — from the first page view to a paid
+            subscription. Deliberately not built into this page: the events carry no letter text, no
+            email and no file name, and that guarantee only holds while they stay in a system that
+            never sees an account.
+          </p>
+        </div>
+        {funnelUrl ? (
+          <a
+            href={funnelUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={s.funnelLink}
+          >
+            Open the funnel in PostHog →
+          </a>
+        ) : (
+          <span style={s.funnelMissing}>
+            Set VITE_POSTHOG_PROJECT_URL and VITE_POSTHOG_KEY to enable
+          </span>
+        )}
       </div>
 
       <div style={{ ...s.grid2, ...s.sectionBlock }}>
