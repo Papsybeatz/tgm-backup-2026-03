@@ -33,7 +33,7 @@ const {
 
 // The real refund predicate, so the behavioural tests below exercise the rule
 // that ships rather than a copy of it.
-const { uploadWasRejected } = require('../middleware/rateLimit');
+const { responseRefundsTheDay } = require('../middleware/rateLimit');
 
 const ROOT = path.join(__dirname, '..', '..');
 const read = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8');
@@ -247,8 +247,9 @@ test('the daily refund follows the route verdict, not the status code', async ()
   // nothing, and charging them a day for it is not the rule either.
   //
   // Two requests are made against a one-per-day wall. `outcome` decides what
-  // the route does: 'upload' refuses the file and marks it, 'genuine' fails for
-  // real and does not. The pair of status codes is the whole proof.
+  // the route does: 'upload' refuses the file and marks it, 'busy' means the
+  // provider was at capacity and never made the attempt, 'genuine' fails for
+  // real and does neither. The pair of status codes is the whole proof.
   const express = require('express');
   const rateLimit = require('express-rate-limit');
   const http = require('node:http');
@@ -273,6 +274,10 @@ test('the daily refund follows the route verdict, not the status code', async ()
         res.locals.uploadRejected = true;
         return res.status(400).json({ error: 'unreadable' });
       }
+      if (outcome === 'busy') {
+        res.locals.scorerBusy = true;
+        return res.status(503).json({ error: 'scorer_busy' });
+      }
       return res.status(503).json({ error: 'rewrite_unavailable' });
     });
     const server = app.listen(0);
@@ -291,7 +296,7 @@ test('the daily refund follows the route verdict, not the status code', async ()
     }
   };
 
-  const narrow = (_req, res) => !uploadWasRejected(res);
+  const narrow = (_req, res) => !responseRefundsTheDay(res);
 
   // Control — the too-wide behaviour the daily limiters used to have. It keeps
   // the test honest: it fails if the refund is not actually what the predicate
@@ -316,6 +321,16 @@ test('the daily refund follows the route verdict, not the status code', async ()
     await twoRequests({ namespace: 'refund-genuine', outcome: 'genuine', requestWasSuccessful: narrow }),
     [503, 429],
     'a genuine failure must not hand the day back',
+  );
+
+  // The provider being at capacity is a THIRD case, and it refunds. We never
+  // called the model, so there is nothing to charge for: a visitor whose six
+  // scores were eaten by a busy afternoon would be right to call it broken.
+  // Without this the busy path would silently spend a daily use.
+  assert.deepEqual(
+    await twoRequests({ namespace: 'refund-busy', outcome: 'busy', requestWasSuccessful: narrow }),
+    [503, 503],
+    'a capacity shed must hand the day back',
   );
 });
 
@@ -473,7 +488,7 @@ test('both daily limiters use the persistent store instead of the default Map', 
     assert.match(block, /skipFailedRequests:\s*true/);
     assert.match(
       block,
-      /requestWasSuccessful:\s*\(_req,\s*res\)\s*=>\s*!uploadWasRejected\(res\)/,
+      /requestWasSuccessful:\s*\(_req,\s*res\)\s*=>\s*!responseRefundsTheDay\(res\)/,
       'a bare skipFailedRequests would refund on any 4xx',
     );
   }

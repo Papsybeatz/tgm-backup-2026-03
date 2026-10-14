@@ -209,6 +209,9 @@ export default function PublicScorePage() {
   const [report, setReport] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [lockedOut, setLockedOut] = useState(false);
+  // The provider was at capacity. Distinct from an error because nothing was
+  // used up and retrying is the right move — see utils/scoringCapacity.js.
+  const [busy, setBusy] = useState(null);
   // Share loop: the card is drawn in-browser and never uploaded.
   const [shareState, setShareState] = useState('idle'); // idle | working | done | error
   const [shareNote, setShareNote] = useState('');
@@ -217,6 +220,7 @@ export default function PublicScorePage() {
   const [rewrite, setRewrite] = useState(null);
   const [rewriteError, setRewriteError] = useState('');
   const [rewriteLockedOut, setRewriteLockedOut] = useState(false);
+  const [rewriteBusy, setRewriteBusy] = useState(null);
   const [copied, setCopied] = useState('');
   const inputRef = useRef(null);
 
@@ -256,6 +260,7 @@ export default function PublicScorePage() {
     setStatus('scoring');
     setErrorMessage('');
     setLockedOut(false);
+    setBusy(null);
 
     try {
       const body = new FormData();
@@ -269,6 +274,16 @@ export default function PublicScorePage() {
           data.message || 'You have used your free Checkmate scores. Create an account to keep scoring.',
         );
         setStatus('error');
+        return;
+      }
+      // Capacity, not failure. Handled before the generic branch so a busy
+      // scorer is never rendered as a crash.
+      if (res.status === 503 && data.error === 'scorer_busy') {
+        setBusy({
+          message: data.message,
+          retryAfterSeconds: data.retryAfterSeconds,
+        });
+        setStatus('busy');
         return;
       }
       if (!res.ok || !data.success) {
@@ -329,6 +344,7 @@ export default function PublicScorePage() {
     setRewriteState('working');
     setRewriteError('');
     setRewriteLockedOut(false);
+    setRewriteBusy(null);
 
     try {
       const body = new FormData();
@@ -342,6 +358,14 @@ export default function PublicScorePage() {
           data.message || 'You have used your free rewrite. Create an account for unlimited rewrites.',
         );
         setRewriteState('error');
+        return;
+      }
+      if (res.status === 503 && data.error === 'scorer_busy') {
+        setRewriteBusy({
+          message: data.message,
+          retryAfterSeconds: data.retryAfterSeconds,
+        });
+        setRewriteState('busy');
         return;
       }
       if (!res.ok || !data.success) {
@@ -388,6 +412,8 @@ export default function PublicScorePage() {
     setRewrite(null);
     setRewriteError('');
     setRewriteLockedOut(false);
+    setRewriteBusy(null);
+    setBusy(null);
     setCopied('');
     if (inputRef.current) inputRef.current.value = '';
   }, []);
@@ -503,7 +529,10 @@ export default function PublicScorePage() {
           }}
         >
           {/* upload state */}
-          {(status === 'idle' || status === 'scoring' || (status === 'error' && !report)) && (
+          {(status === 'idle' ||
+            status === 'scoring' ||
+            status === 'busy' ||
+            (status === 'error' && !report)) && (
             <>
               <div
                 onDragOver={(e) => {
@@ -620,6 +649,42 @@ export default function PublicScorePage() {
                 </div>
               )}
 
+              {status === 'busy' && (
+                <div
+                  role="status"
+                  style={{
+                    marginTop: 18,
+                    padding: '16px 18px',
+                    borderRadius: 'var(--tgm-radius-sm)',
+                    background: 'rgba(245,158,11,.08)',
+                    border: '1px solid rgba(245,158,11,.32)',
+                    color: 'var(--tgm-navy)',
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  <strong style={{ display: 'block', marginBottom: 4 }}>
+                    We are busy, not broken.
+                  </strong>
+                  {busy?.message ||
+                    'The scorer is at capacity right now. Try again in a moment.'}
+                  {busy?.retryAfterSeconds ? (
+                    <div style={{ marginTop: 4, color: 'var(--tgm-muted)', fontSize: 13 }}>
+                      Usually clears in about {busy.retryAfterSeconds} seconds.
+                    </div>
+                  ) : null}
+                  <div
+                    style={{
+                      marginTop: 6,
+                      color: 'var(--tgm-muted)',
+                      fontSize: 13,
+                    }}
+                  >
+                    Nothing was used up — your free scores are untouched.
+                  </div>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={score}
@@ -639,7 +704,11 @@ export default function PublicScorePage() {
                   transition: 'opacity .15s',
                 }}
               >
-                {status === 'scoring' ? 'Scoring your proposal…' : 'Score my proposal free'}
+                {status === 'scoring'
+                  ? 'Scoring your proposal…'
+                  : status === 'busy'
+                    ? 'Try again'
+                    : 'Score my proposal free'}
               </button>
 
               <p style={{ marginTop: 16, fontSize: 13, lineHeight: 1.6, color: 'var(--tgm-muted)', textAlign: 'center' }}>
@@ -857,8 +926,40 @@ export default function PublicScorePage() {
                     >
                       {rewriteState === 'working'
                         ? 'Rewriting and re-scoring\u2026'
-                        : 'Rewrite my draft and re-score it \u2014 free'}
+                        : rewriteState === 'busy'
+                          ? 'Try again'
+                          : 'Rewrite my draft and re-score it \u2014 free'}
                     </button>
+                    {rewriteState === 'busy' && (
+                      <div
+                        role="status"
+                        style={{
+                          marginTop: 14,
+                          padding: '16px 18px',
+                          borderRadius: 'var(--tgm-radius-sm)',
+                          background: 'rgba(245,158,11,.08)',
+                          border: '1px solid rgba(245,158,11,.32)',
+                          color: 'var(--tgm-navy)',
+                          fontSize: 14,
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        <strong style={{ display: 'block', marginBottom: 4 }}>
+                          We are busy, not broken.
+                        </strong>
+                        {rewriteBusy?.message ||
+                          'The rewrite engine is at capacity right now. Try again in a moment.'}
+                        {rewriteBusy?.retryAfterSeconds ? (
+                          <div style={{ marginTop: 4, color: 'var(--tgm-muted)', fontSize: 13 }}>
+                            Usually clears in about {rewriteBusy.retryAfterSeconds} seconds.
+                          </div>
+                        ) : null}
+                        <div style={{ marginTop: 6, color: 'var(--tgm-muted)', fontSize: 13 }}>
+                          Your free rewrite was not used up.
+                        </div>
+                      </div>
+                    )}
+
                     {rewriteError && (
                       <div
                         role="alert"
