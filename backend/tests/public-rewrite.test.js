@@ -239,7 +239,18 @@ test('the page no longer sells the rewrite as the paid unlock', () => {
   assert.match(PAGE, /unlimited/i, 'the reframe must sell unlimited, not access');
 });
 
-test('the free allowance copy says six, not three', () => {
-  assert.match(PAGE, /Six free scores/);
-  assert.doesNotMatch(PAGE, /Three free scores/);
+test('the free allowance copy does not state a count it cannot guarantee', () => {
+  // This test used to assert the copy read "Six free scores", and that it did
+  // not say "three" — the point being that the copy must not UNDERSELL the
+  // allowance either.
+  //
+  // The allowance is still six (FREE_SCORE_LIMIT, enforced by the daily wall),
+  // but it is keyed on the visitor, so two strangers behind one carrier-NAT
+  // address share it. Stating a fixed number turns a working limit into a
+  // promise the product breaks for someone on their first visit. The copy now
+  // describes the allowance instead of counting it.
+  //
+  // Both halves are kept: no exact count, and nothing that understates it.
+  assert.doesNotMatch(PAGE, /Six free scores|Three free scores/i);
+  assert.match(PAGE, /Free scores are limited\s+each\s+day/);
 });

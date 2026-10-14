@@ -15,6 +15,13 @@
  * 2. Never claim the document was kept. It is read in memory and discarded
  *    server-side; the page says so before the upload, not after.
  *
+ *    Since the score cache landed, that sentence has to be exact rather than
+ *    merely reassuring: the FILE is never stored, but the derived report IS,
+ *    keyed by a fingerprint of the normalised text rather than the text itself
+ *    (see utils/scoreCache.js). The copy below states both halves. "Nothing is
+ *    stored" would now be false, and a privacy claim that is slightly false is
+ *    worse than a narrower one that is exactly true.
+ *
  * 3. A score must be shown with its reasons. A number with no criteria and no
  *    gaps is a horoscope. The breakdown is the product.
  *
@@ -712,8 +719,10 @@ export default function PublicScorePage() {
               </button>
 
               <p style={{ marginTop: 16, fontSize: 13, lineHeight: 1.6, color: 'var(--tgm-muted)', textAlign: 'center' }}>
-                Your document is read in memory to produce the score and then discarded. It is never
-                stored, and we never share it. Six free scores, no account required.
+                Your document is read in memory to produce the score and then discarded — the file is
+                never stored and never shared. To keep your score consistent, the result is saved
+                against a fingerprint of the text, not the text itself. Free scores are limited each
+                day, no account required.
               </p>
             </>
           )}
@@ -1004,8 +1013,8 @@ export default function PublicScorePage() {
                       </div>
                     )}
                     <p style={{ margin: '12px 0 0', fontSize: 12.5, color: 'var(--tgm-muted)', lineHeight: 1.55 }}>
-                      One free rewrite. Your document is read in memory for the rewrite and discarded,
-                      exactly like the score.
+                      One free rewrite a day. Your document is read in memory for the rewrite and
+                      discarded, exactly like the score.
                     </p>
                   </div>
                 )}
@@ -1212,7 +1221,7 @@ export default function PublicScorePage() {
                   {rewriteState === 'done'
                     ? 'The rewrite is the demonstration, not the product. Starter makes rewrites unlimited, keeps your drafts and version history, and sends them by email — so the loop can repeat every time you write.'
                     : report.fixesLocked
-                      ? 'You have the diagnosis. Rewrite the draft and watch your own score move — one free rewrite, no account needed.'
+                      ? 'You have the diagnosis. Rewrite the draft and watch your own score move — one free rewrite a day, no account needed.'
                       : 'The recommended fixes are shown above.'}
                 </p>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
