@@ -143,6 +143,27 @@ function uploadWasRejected(res) {
   return res.locals?.uploadRejected === true;
 }
 
+/**
+ * Did we fail the visitor through no fault of their own?
+ *
+ * Two cases, and both must hand the day back:
+ *
+ *   - the upload was refused (wrong type, unreadable scan), so they never got
+ *     an attempt at all;
+ *   - the scorer was at capacity, so the attempt was never made.
+ *
+ * Deliberately still NOT "any 4xx/5xx". A provider fault or a bug is a real
+ * attempt that consumed the product and keeps the day. Widening this to every
+ * failure is exactly what made the 24-hour wall refundable in the first place —
+ * on a shared or carrier-NAT address, one stranger's outage handed the day back.
+ * The capacity case is different in kind: we never called the model, so there is
+ * nothing to charge for, and a visitor whose six scores were eaten by a busy
+ * afternoon would be right to call the product broken.
+ */
+function responseRefundsTheDay(res) {
+  return res.locals?.uploadRejected === true || res.locals?.scorerBusy === true;
+}
+
 const publicScoreDailyLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
   max: 6,
@@ -154,7 +175,7 @@ const publicScoreDailyLimiter = rateLimit({
   // unsuccessful and is refunded, while a genuine failure reads as successful
   // and is not.
   skipFailedRequests: true,
-  requestWasSuccessful: (_req, res) => !uploadWasRejected(res),
+  requestWasSuccessful: (_req, res) => !responseRefundsTheDay(res),
   // A database blip must not refuse every visitor on the site. Failing open is
   // the deliberate choice here, and it is logged rather than silent.
   passOnStoreError: true,
@@ -182,7 +203,7 @@ const publicRewriteDailyLimiter = rateLimit({
   keyGenerator: visitorKey,
   store: publicRewriteDailyStore,
   skipFailedRequests: true,
-  requestWasSuccessful: (_req, res) => !uploadWasRejected(res),
+  requestWasSuccessful: (_req, res) => !responseRefundsTheDay(res),
   passOnStoreError: true,
   message:
     'You have used your free rewrite. Create an account for unlimited rewrites.',
@@ -229,6 +250,7 @@ module.exports = {
   // Exported so a route can refund the day for an upload it refused, and so a
   // test can prove the refund is narrower than "any 4xx".
   uploadWasRejected,
+  responseRefundsTheDay,
   // Exported so a test can prove two visitors get separate counters, and that
   // the fix is the key rather than luck.
   visitorKey,

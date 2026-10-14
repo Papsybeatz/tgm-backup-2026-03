@@ -545,8 +545,16 @@ test('the daily score cap refunds only a refused upload, not any 4xx', () => {
   assert.match(daily[0], /skipFailedRequests:\s*true/);
   assert.match(
     daily[0],
-    /requestWasSuccessful:\s*\(_req,\s*res\)\s*=>\s*!uploadWasRejected\(res\)/,
+    /requestWasSuccessful:\s*\(_req,\s*res\)\s*=>\s*!responseRefundsTheDay\(res\)/,
     'the refund must be driven by the route verdict, not the status code',
+  );
+  // Two refundable cases, both proved behaviourally in
+  // rate-limit-persistence.test.js: an upload we refused, and a provider that
+  // was at capacity. Anything else keeps the day.
+  assert.match(
+    RATE_SRC,
+    /function responseRefundsTheDay\(res\)\s*\{[\s\S]*?uploadRejected[\s\S]*?scorerBusy[\s\S]*?\}/,
+    'the refund must cover the refused upload and the capacity shed, and nothing else',
   );
 
   const burst = RATE_SRC.match(/publicScoreLimiter\s*=\s*rateLimit\(\{[\s\S]*?\}\);/);

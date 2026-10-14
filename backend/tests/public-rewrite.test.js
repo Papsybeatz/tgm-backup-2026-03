@@ -144,9 +144,13 @@ test('the rewrite route re-scores both drafts with the same engine', () => {
 
   // And the cached path really does score — it is not a stub that returns a
   // constant, which would make every letter score the same.
+  //
+  // Matched to intent rather than to one exact line: the call is now wrapped in
+  // the capacity shed (withScoringSlot), and pinning the literal arrow would
+  // make a future change to the wrapper look like a broken scorer.
   assert.match(
     ROUTE_SRC,
-    /compute: \(\) => scoreDraft\(\{\}, content, \{ orderless: true \}\)/,
+    /compute:\s*\(\)\s*=>[\s\S]{0,140}?scoreDraft\(\{\}, content, \{ orderless: true \}\)/,
     'the cache miss path must still score the document',
   );
 });
@@ -163,8 +167,8 @@ test('the rewrite route is behind its own one-per-day limiter', () => {
   assert.match(block[0], /skipFailedRequests:\s*true/);
   assert.match(
     block[0],
-    /requestWasSuccessful:\s*\(_req,\s*res\)\s*=>\s*!uploadWasRejected\(res\)/,
-    'only a refused upload may hand the day back, never a genuine failure',
+    /requestWasSuccessful:\s*\(_req,\s*res\)\s*=>\s*!responseRefundsTheDay\(res\)/,
+    'only a refused upload or a capacity shed may hand the day back, never a genuine failure',
   );
 });
 

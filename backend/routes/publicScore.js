@@ -48,6 +48,11 @@ const { buildCriteriaDelta } = require('../utils/criteriaDelta');
 const { extractDocumentText } = require('../utils/extractDocumentText');
 const { errorDetail } = require('../utils/errorDetail');
 const { createScoreCache, scoreOnce } = require('../utils/scoreCache');
+const {
+  withScoringSlot,
+  classifyProviderError,
+  isScorerBusyError,
+} = require('../utils/scoringCapacity');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -67,10 +72,54 @@ async function scoreLetter(text, content) {
   const { report } = await scoreOnce({
     cache: scoreCache,
     text,
-    compute: () => scoreDraft({}, content, { orderless: true }),
+    // The slot is taken INSIDE `compute`, so a cache hit — which costs no
+    // tokens and cannot overload anything — never competes for one and can
+    // never be refused. Only the call that would actually reach the provider is
+    // gated. See utils/scoringCapacity.js for why this sheds instead of queues.
+    compute: () => withScoringSlot(() => scoreDraft({}, content, { orderless: true })),
     onError: (error) => console.warn('[PUBLIC SCORE] cache unavailable:', error?.message || error),
   });
   return report;
+}
+
+/**
+ * The provider is at capacity. Not the visitor's fault, so it must not cost
+ * them anything — see the refund predicate in middleware/rateLimit.js.
+ *
+ * 503 with a Retry-After header, and a code the page can branch on, so a busy
+ * scorer is never rendered as a crash.
+ */
+function rejectBusy(res, retryAfterSeconds, message) {
+  res.locals.scorerBusy = true;
+  res.set('Retry-After', String(retryAfterSeconds));
+  return res.status(503).json({
+    success: false,
+    error: 'scorer_busy',
+    retryAfterSeconds,
+    message,
+  });
+}
+
+/**
+ * Turn any provider failure into the right answer.
+ *
+ * `busy` is recoverable and costs the visitor nothing; anything else is a real
+ * fault and keeps the existing 500.
+ */
+function answerForScoringFailure(res, error, { busyMessage, faultMessage }) {
+  if (isScorerBusyError(error)) {
+    return rejectBusy(res, error.retryAfterSeconds, busyMessage);
+  }
+  const { busy, retryAfterSeconds } = classifyProviderError(error);
+  if (busy) {
+    return rejectBusy(res, retryAfterSeconds, busyMessage);
+  }
+  console.error('[PUBLIC SCORE] failed:', error?.message || error);
+  return res.status(500).json({
+    detail: errorDetail(error),
+    success: false,
+    message: faultMessage,
+  });
 }
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10MB, matching /api/documents/upload
@@ -220,11 +269,10 @@ router.post('/score', handleUpload, async (req, res) => {
       stored: false,
     });
   } catch (error) {
-    console.error('[PUBLIC SCORE] failed:', error?.message || error);
-    return res.status(500).json({
-      detail: errorDetail(error),
-      success: false,
-      message: 'Scoring failed. Please try again.',
+    return answerForScoringFailure(res, error, {
+      busyMessage:
+        'The scorer is at capacity right now, so nothing was used up. Try again in a moment.',
+      faultMessage: 'Scoring failed. Please try again.',
     });
   }
 });
@@ -278,11 +326,15 @@ router.post('/rewrite', publicRewriteDailyLimiter, handleUpload, async (req, res
 
     let rewrittenText;
     try {
-      rewrittenText = await rewriteText({
-        action: 'proposal_improve',
-        content: inputForRewrite,
-        maxTokens: 3000,
-      });
+      // Gated on the same shared ceiling as scoring: both reach the same
+      // provider, so a scoring burst must be able to shed a rewrite too.
+      rewrittenText = await withScoringSlot(() =>
+        rewriteText({
+          action: 'proposal_improve',
+          content: inputForRewrite,
+          maxTokens: 3000,
+        })
+      );
     } catch (error) {
       if (error?.message === 'NO_KEY') {
         // Never return the unchanged document as a "rewrite" — that would be a
@@ -337,11 +389,10 @@ router.post('/rewrite', publicRewriteDailyLimiter, handleUpload, async (req, res
       stored: false,
     });
   } catch (error) {
-    console.error('[PUBLIC REWRITE] failed:', error?.message || error);
-    return res.status(500).json({
-      detail: errorDetail(error),
-      success: false,
-      message: 'Rewrite failed. Please try again.',
+    return answerForScoringFailure(res, error, {
+      busyMessage:
+        'The rewrite engine is at capacity right now, so your free rewrite was not used. Try again in a moment.',
+      faultMessage: 'Rewrite failed. Please try again.',
     });
   }
 });
