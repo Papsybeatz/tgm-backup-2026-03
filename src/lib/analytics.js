@@ -193,6 +193,31 @@ export function track(event, props) {
   emit(event, sanitizeProps(props));
 }
 
+/**
+ * Where the funnel lives, for the ops dashboard to link to.
+ *
+ * Returns null when nothing is configured. A link to a project nobody has set up
+ * is worse than no link: it looks like a working control and lands on an empty
+ * page. The parameter exists so the rule can be tested — `import.meta.env` is
+ * undefined under Node, so the default is not reachable from a test.
+ *
+ * The scheme check is not paranoia about our own build: this value comes from a
+ * build-time environment variable, and a mistyped `javascript:` URL rendered
+ * into an anchor is a script-execution vector on an admin page.
+ */
+export function analyticsDashboardUrl(
+  raw = import.meta.env?.VITE_POSTHOG_PROJECT_URL
+) {
+  if (!raw || typeof raw !== 'string') return null;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 /** Test seam: capture payloads instead of sending them. Pass null to reset. */
 export function setAnalyticsSink(fn) {
   sink = typeof fn === 'function' ? fn : null;
