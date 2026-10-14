@@ -1,5 +1,6 @@
 const express = require('express');
 const { errorDetail } = require('../utils/errorDetail');
+const { retentionDays, SWEEP_EVERY } = require('../utils/scoreCache');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -636,6 +637,65 @@ router.post('/testimonials/:id/reject', requireAdmin, async (req, res) => {
       success: false,
       message: 'No testimonial with that id.',
       detail: errorDetail(err),
+    });
+  }
+});
+
+// GET /api/admin/cache-stats
+//
+// Read-only, and it exists because the retention sweep is otherwise invisible.
+// The sweep deletes rows older than the window, so until the first row ages out
+// a sweep that runs perfectly and a sweep that never runs look IDENTICAL from
+// outside — both delete nothing. There was no way to tell them apart short of
+// opening the database by hand.
+//
+// This reports the state and what the sweep would do to it, so "is it pruning?"
+// is one HTTP call. `dueForPruning` is the direct answer: true means there is at
+// least one row past the cutoff, which the next sweep will remove.
+//
+// It reads nothing but the cache's own bookkeeping. No letter text, no report
+// contents, no user identity — counts and timestamps only.
+router.get('/cache-stats', requireAdmin, async (req, res) => {
+  try {
+    const days = retentionDays();
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    let row = null;
+    let tablePresent = true;
+    try {
+      // `::int` because Prisma hands back COUNT(*) as a BigInt, which does not
+      // survive JSON.stringify.
+      [row] = await prisma.$queryRaw`
+        SELECT COUNT(*)::int AS "rows", MIN("updatedAt") AS "oldestUpdatedAt" FROM "ScoreCache"
+      `;
+    } catch (error) {
+      // A database that has never served a score has no table yet. That is a
+      // valid state, not a failure, and reporting it as a 500 would send
+      // someone chasing a problem that does not exist.
+      const message = String(error?.message || '');
+      if (!/does not exist|undefined table/i.test(message)) throw error;
+      tablePresent = false;
+    }
+
+    const oldest = row?.oldestUpdatedAt ? new Date(row.oldestUpdatedAt) : null;
+
+    return res.json({
+      success: true,
+      tablePresent,
+      rows: Number(row?.rows ?? 0),
+      oldestUpdatedAt: oldest ? oldest.toISOString() : null,
+      retentionDays: days,
+      cutoff: cutoff.toISOString(),
+      dueForPruning: Boolean(oldest && oldest < cutoff),
+      sweepEvery: SWEEP_EVERY,
+      now: new Date().toISOString(),
+    });
+  } catch (e) {
+    console.error('[ADMIN] cache stats failed', e.message);
+    return res.status(500).json({
+      detail: errorDetail(e),
+      success: false,
+      message: 'Cache stats unavailable',
     });
   }
 });
