@@ -1,4 +1,5 @@
 const express = require('express');
+const { persistenceInfo } = require('./lib/datastore');
 const {
   buildEnterpriseMonthlyReport,
   confirmEnterpriseRubricDeployment,
@@ -43,9 +44,14 @@ function requireInternalSecret(req, res, next) {
 }
 
 app.get('/health', (_req, res) => {
+  // `persistence` is here so the answer to "will a deploy wipe our funders?" is
+  // visible from a browser. Reading it out of a boot log only happens after the
+  // loss, and by then the keys are already gone.
+  const persistence = persistenceInfo();
   res.status(200).json({
     service: 'funder-intelligence-api',
     status: 'ok',
+    persistence: persistence.mode,
     timestamp: Date.now(),
   });
 });
