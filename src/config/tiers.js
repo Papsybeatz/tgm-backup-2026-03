@@ -17,7 +17,6 @@ export const TIERS = {
       exports: true,
       teamSeats: 0
     },
-    dashboardModules: ['draft']
   },
   starter: {
     key: 'starter',
@@ -32,7 +31,6 @@ export const TIERS = {
       exports: true,
       teamSeats: 0
     },
-    dashboardModules: ['draft', 'scoring', 'matching']
   },
   pro: {
     key: 'pro',
@@ -50,7 +48,6 @@ export const TIERS = {
       teamSeats: 3,
       clientFolders: true
     },
-    dashboardModules: ['draft', 'scoring', 'matching', 'analytics', 'calendar']
   },
   agency_starter: {
     key: 'agency_starter',
@@ -64,7 +61,6 @@ export const TIERS = {
       teamSeats: 10,
       clientFolders: true
     },
-    dashboardModules: ['draft', 'scoring', 'matching', 'analytics', 'calendar', 'clients']
   },
   // Grandfathered, no longer sold — existing Agency+ accounts keep their access.
   agency_unlimited: {
@@ -79,7 +75,6 @@ export const TIERS = {
       teamSeats: Infinity,
       clientFolders: true
     },
-    dashboardModules: ['draft', 'scoring', 'matching', 'analytics', 'calendar', 'clients', 'portfolio', 'admin']
   },
   // Grandfathered, no longer sold — Founder Lifetime accounts keep their access.
   lifetime: {
@@ -99,18 +94,12 @@ export const TIERS = {
       exports: true,
       teamSeats: 0
     },
-    dashboardModules: ['draft', 'scoring', 'matching', 'analytics', 'calendar']
   }
 };
 
 export function hasFeature(tier, feature) {
   const tierConfig = TIERS[tier] || TIERS.free;
   return tierConfig.features.includes(feature);
-}
-
-export function getDashboardModules(tier) {
-  const tierConfig = TIERS[tier] || TIERS.free;
-  return tierConfig.dashboardModules;
 }
 
 export function getTierLimits(tier) {
