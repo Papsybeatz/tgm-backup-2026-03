@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 
 import TestimonialWall from './TestimonialWall';
 import ShareStoryForm from './ShareStoryForm';
+import { supportContact } from '../config/support';
 const LINKEDIN = 'https://www.linkedin.com/in/thomas-clottey';
 const FACEBOOK = 'https://www.facebook.com/TheGrantsMaster';
-const PHONE = '(540) 566-9760';
-const PHONE_HREF = 'tel:+15405669760';
-const EMAIL = 'support@thegrantsmaster.com';
+// One source for the contact, shared with About and the landing page. See
+// config/support.js — the old hardcoded copy here was the fourth of five.
+const { email: EMAIL, phoneDisplay: PHONE, phoneHref: PHONE_HREF } = supportContact();
 const ENTITY = 'Gee Oh Dee (Tech) LLC';
 const ADDRESS = '4210 Electric Road #1038, Roanoke, VA 24018, United States';
 
