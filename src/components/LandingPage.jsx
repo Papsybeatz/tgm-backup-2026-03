@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { supportContact } from '../config/support';
+
+// Shared with About and Trust so the footer, the contact block and the story
+// form all point at the same address. See config/support.js.
+const SUPPORT = supportContact();
+
 
 /* ── Demo Modal ── */
 // Replace LOOM_URL with your Loom embed URL when ready
@@ -556,7 +562,7 @@ export default function LandingPage() {
             {/* This card promises a free, no-credit-card Checkmate run — it must
                 open the checkup itself, not a signup form. */}
             <button onClick={() => navigate('/checkup')} className="rounded-lg bg-[#D4AF37] px-6 py-3 text-sm font-bold text-[#0A0F1A]">Run your own draft free →</button>
-            <a href="mailto:support@thegrantsmaster.com?subject=My%20TGM%20story" className="rounded-lg border border-[#003A8C] px-6 py-3 text-sm font-bold text-[#003A8C] no-underline">Using TGM? Tell us your story →</a>
+            <a href={`mailto:${SUPPORT.email}?subject=My%20TGM%20story`} className="rounded-lg border border-[#003A8C] px-6 py-3 text-sm font-bold text-[#003A8C] no-underline">Using TGM? Tell us your story →</a>
           </div>
         </div>
       </section>
@@ -619,7 +625,7 @@ export default function LandingPage() {
                 {' · '}
                 <a className="text-[#003A8C] underline" href="https://www.facebook.com/TheGrantsMaster" target="_blank" rel="noopener noreferrer">Facebook</a>
                 {' · '}
-                <a className="text-[#003A8C] underline" href="tel:+15405669760">(540) 566-9760</a>
+                <a className="text-[#003A8C] underline" href={SUPPORT.phoneHref}>{SUPPORT.phoneDisplay}</a>
               </p>
             </div>
           </div>
@@ -672,9 +678,9 @@ export default function LandingPage() {
           <p className="font-bold text-white">The Grants Master is a product of Gee Oh Dee (Tech) LLC.</p>
           <p>4210 Electric Road #1038, Roanoke, VA 24018, United States</p>
           <p>
-            <a className="hover:text-[#D4AF37]" href="mailto:support@thegrantsmaster.com">support@thegrantsmaster.com</a>
+            <a className="hover:text-[#D4AF37]" href={`mailto:${SUPPORT.email}`}>support@thegrantsmaster.com</a>
             {' · '}
-            <a className="hover:text-[#D4AF37]" href="tel:+15405669760">(540) 566-9760</a>
+            <a className="hover:text-[#D4AF37]" href={SUPPORT.phoneHref}>{SUPPORT.phoneDisplay}</a>
             {' · '}
             <a className="hover:text-[#D4AF37]" href="https://www.linkedin.com/in/thomas-clottey" target="_blank" rel="noopener noreferrer">LinkedIn</a>
             {' · '}
