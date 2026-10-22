@@ -18,6 +18,8 @@ type OrderTicketProps = {
   status: SteveStatus;
   loading: boolean;
   draftTitle: string | null;
+  /** Which organisation the loaded draft was written for, if known. */
+  draftOrg?: string | null;
   docHtml: string | null;
   editedSections: string[];
   scoreReport: ScoreReport | null;
@@ -81,6 +83,7 @@ export default function OrderTicket({
   status,
   loading,
   draftTitle,
+  draftOrg = null,
   docHtml,
   editedSections,
   scoreReport,
@@ -250,6 +253,14 @@ export default function OrderTicket({
             )}
 
             <div ref={previewRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+              {draftOrg && (
+                // Names whose letter this is, immediately above the document.
+                // Without it the pane gave no way to notice that the draft
+                // belonged to a different client than the form.
+                <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-[#B8960C]">
+                  Prepared for {draftOrg}
+                </p>
+              )}
               {draftTitle && <p className="mb-2 text-sm font-bold text-[#0A0F1A]">{draftTitle}</p>}
               {sections.length > 1 && (
                 <div className="mb-2 flex flex-wrap gap-1 sm:hidden">

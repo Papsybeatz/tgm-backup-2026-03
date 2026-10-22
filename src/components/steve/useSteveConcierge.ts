@@ -67,6 +67,7 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
   const [scoreReport, setScoreReport] = useState<ScoreReport | null>(null);
   const [draftId, setDraftId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState<string | null>(null);
+  const [draftOrg, setDraftOrg] = useState<string | null>(null);
   const [docHtml, setDocHtml] = useState<string | null>(null);
   const [editedSections, setEditedSections] = useState<string[]>([]);
   const [download, setDownload] = useState<Download>(null);
@@ -119,6 +120,12 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
     if (data.draftTitle) setDraftTitle(data.draftTitle);
     if (typeof data.docHtml === 'string') setDocHtml(data.docHtml);
     if (typeof data.hasDraft === 'boolean' && !data.hasDraft) setDocHtml(null);
+    // Whose letter is loaded. The session view returns the order it was written
+    // from, so the owner survives a reload — which is exactly when the form has
+    // reset to blank and the mismatch is easiest to miss.
+    if (data.order && typeof data.order.orgName === 'string') {
+      setDraftOrg(data.order.orgName.trim() || null);
+    }
     if (Array.isArray(data.editedSections)) setEditedSections(data.editedSections);
     if (data.download !== undefined) setDownload(data.download || null);
     if (Array.isArray(data.suggestions)) setSuggestions(data.suggestions);
@@ -208,6 +215,10 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
       }
 
       applyPayload(data);
+      // Record whose letter this is, from the form that actually produced it.
+      // applyPayload() also reads order.orgName on rehydrate; setting it here
+      // means the owner is right even if this response omits the order.
+      setDraftOrg(String(form.orgName || '').trim() || null);
     } catch {
       setOrderError("I couldn't reach the server. Check your connection and try again.");
       setStatus('intake');
@@ -270,6 +281,7 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
     setScoreReport(null);
     setDraftId(null);
     setDraftTitle(null);
+    setDraftOrg(null);
     setDocHtml(null);
     setEditedSections([]);
     setDownload(null);
@@ -362,6 +374,9 @@ export function useSteveConcierge(options: { autoRehydrate?: boolean } = {}) {
     scoreReport,
     draftId,
     draftTitle,
+    // Which organisation the loaded draft was written for. Consumers compare it
+    // to the form so a consultant cannot email the wrong client's letter.
+    draftOrg,
     docHtml,
     editedSections,
     download,

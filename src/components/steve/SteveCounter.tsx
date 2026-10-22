@@ -34,6 +34,7 @@ export default function SteveCounter() {
     status: c.status,
     loading: c.loading,
     draftTitle: c.draftTitle,
+    draftOrg: c.draftOrg,
     docHtml: c.docHtml,
     editedSections: c.editedSections,
     scoreReport: c.scoreReport,
@@ -106,6 +107,7 @@ export default function SteveCounter() {
                 loading={c.loading}
                 error={c.orderError}
                 hasDraft={Boolean(c.docHtml)}
+                draftOrg={c.draftOrg}
               />
             </SteveErrorBoundary>
             <SteveErrorBoundary>
