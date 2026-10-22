@@ -18,6 +18,7 @@ import {
   visibleFields,
   type IntakeField,
 } from './intakeFields';
+import { draftBelongsToAnotherOrg } from './draftOwner';
 
 type SteveIntakeFormProps = {
   form: Record<string, string>;
@@ -27,6 +28,8 @@ type SteveIntakeFormProps = {
   loading: boolean;
   error?: string | null;
   hasDraft: boolean;
+  /** Which organisation the loaded draft was written for, if known. */
+  draftOrg?: string | null;
   disabled?: boolean;
 };
 
@@ -48,11 +51,16 @@ export default function SteveIntakeForm({
   loading,
   error,
   hasDraft,
+  draftOrg = null,
   disabled = false,
 }: SteveIntakeFormProps) {
   const fields = useMemo(() => visibleFields(form), [form]);
   const groups = useMemo(() => Array.from(new Set(fields.map((field) => field.group))), [fields]);
   const missing = useMemo(() => missingRequiredFields(form), [form]);
+  // The one mistake this product can cause that a customer cannot undo: emailing
+  // a funder another client's letter. Only true when both names are known and
+  // differ, so a draft restored without its order never raises a false alarm.
+  const staleDraft = draftBelongsToAnotherOrg(form.orgName, draftOrg);
   const canSubmit = missing.length === 0 && !loading && !disabled;
 
   const renderField = (field: IntakeField) => {
@@ -144,6 +152,18 @@ export default function SteveIntakeForm({
         </div>
 
         <div className="shrink-0 border-t border-[#E2E8F0] px-4 py-3">
+          {staleDraft && (
+            <div
+              role="alert"
+              className="mb-2 rounded-xl border border-[#FCA5A5] bg-[#FEF2F2] px-3 py-2 text-[12px] leading-5 text-[#B91C1C]"
+            >
+              <strong className="block font-bold">
+                The draft on the right was written for {draftOrg}.
+              </strong>
+              These details are for {form.orgName}. Check the draft before you download or email
+              it — or choose <em>Next client</em> to start a fresh one.
+            </div>
+          )}
           {missing.length > 0 && (
             <p className="mb-2 text-[11px] font-semibold text-[#92400E]">
               Still needed: {missing.join(', ')}
